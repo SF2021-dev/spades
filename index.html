@@ -9,6 +9,12 @@
     .ds-link { display:flex; flex-direction:column; align-items:center; gap:6px; text-decoration:none; color:#fbe646; padding:10px 6px; border:1px solid #444; border-radius:10px; background:#161616; font-size:11px; font-weight:800; letter-spacing:0.04em; text-align:center; line-height:1.2; }
     .ds-link:hover { border-color:#fbe646; background:#2a1608; }
     .ds-ico { width:48px; height:48px; object-fit:cover; border-radius:8px; display:block; }
+    .ds-tour { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; background:#ff2ad4; padding:14px 12px; }
+    .ds-tour-item { display:flex; align-items:center; gap:8px; min-width:0; }
+    .ds-join { flex:0 0 auto; background:#120c08; color:#fbe646; font-family:'Comic Sans MS',Comic Sans,cursive; font-weight:800; font-size:14px; text-decoration:none; padding:6px 10px; border-radius:6px; border:2px solid #120c08; }
+    .ds-join.hide { display:none; }
+    .ds-tour-text { font-family:'Comic Sans MS',Comic Sans,cursive; font-weight:800; font-size:16px; color:#111; line-height:1.2; }
+    .ds-tour-text a { color:#111; text-decoration:none; }
   </style>
 </head>
 <body>
@@ -69,19 +75,7 @@
 <div style="width:64px;height:64px;border-radius:8px;border:1px solid #fbe646;background:#2a1608;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;">EO</div>
 <div><div style="font-size:13px;font-weight:700;">YESTERDAY 11:15 PM CUT</div><div style="font-size:20px;font-weight:800;">EasyOne23</div></div></div></div>
 </div>
-<div style="background:#ff2ad4;padding:14px 12px;text-align:center;font-family:'Comic Sans MS',Comic Sans,cursive;font-weight:800;font-size:22px;line-height:1.35;color:#111;white-space:nowrap;">
-<a href="https://www.myleague.com/diamondspaders/tournament/11950560/" style="color:#111;text-decoration:none;">8:15 AM EST 3Bid3Bags</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11948623/" style="color:#111;text-decoration:none;">9:15 AM EST Untouchable_One — SINGLES</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11949683/" style="color:#111;text-decoration:none;">10:15 AM EST Untouchable_One — CUT</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11949688/" style="color:#111;text-decoration:none;">11:15 AM EST Untouchable_One — CUT</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11949977/" style="color:#111;text-decoration:none;">2:15 PM EST Untouchable_One — CUT</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11950670/" style="color:#111;text-decoration:none;">4:15 PM EST Fetch_it_up — PARDS</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11950314/" style="color:#111;text-decoration:none;">5:15 PM EST AceyLynn — PARDS</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11950315/" style="color:#111;text-decoration:none;">6:15 PM EST AceyLynn — CUT</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11950316/" style="color:#111;text-decoration:none;">7:15 PM EST AceyLynn — PARDS</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11950317/" style="color:#111;text-decoration:none;">8:15 PM EST AceyLynn — CUT</a><br>
-<a href="https://www.myleague.com/diamondspaders/tournament/11950318/" style="color:#111;text-decoration:none;">9:15 PM EST AceyLynn — PARDS</a>
-</div>
+<div id="ds-tours" class="ds-tour"></div>
 <div style="padding:16px;border-top:3px solid #fbe646;">
 <div style="font-size:14px;font-weight:800;letter-spacing:0.14em;margin-bottom:10px;">TOP 10 RANKED PLAYERS</div>
 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
@@ -100,53 +94,66 @@
 <img src="https://github.com/SF2021-dev/spades/blob/main/diamondspaderslogo.jpg?raw=true" alt="Diamond Spaders" style="width:100%;height:auto;display:block;">
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:16px 10px 12px;">
 <a class="ds-link" href="https://www.myleague.com/diamondspaders/" target="_blank">
-<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/home.jpg?raw=true" alt="">
-HOME</a>
+<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/home.jpg?raw=true" alt="">HOME</a>
 <a class="ds-link" href="https://www.myleague.com/diamondspaders/free-signup" target="_blank">
-<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/sign%20up.jpg?raw=true" alt="">
-JOIN DIAMOND SPADERS</a>
+<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/sign%20up.jpg?raw=true" alt="">JOIN DIAMOND SPADERS</a>
 <a class="ds-link" href="https://tourneyking.com/app/home/" target="_blank">
-<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/tourney%20king.jpg?raw=true" alt="">
-TOURNEYKING</a>
+<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/tourney%20king.jpg?raw=true" alt="">TOURNEYKING</a>
 <a class="ds-link" href="https://www.myleague.com/dagreathoudini/" target="_blank">
-<svg class="ds-ico" viewBox="0 0 36 36"><rect width="36" height="36" rx="8" fill="#120c08" stroke="#fbe646"/><circle cx="18" cy="14" r="5" fill="#fbe646"/><path d="M10 28 C10 22 26 22 26 28 Z" fill="#fbe646"/></svg>
-DAGREATHOUDINI</a>
+<svg class="ds-ico" viewBox="0 0 36 36"><rect width="36" height="36" rx="8" fill="#120c08" stroke="#fbe646"/><circle cx="18" cy="14" r="5" fill="#fbe646"/><path d="M10 28 C10 22 26 22 26 28 Z" fill="#fbe646"/></svg>DAGREATHOUDINI</a>
 <a class="ds-link" href="https://docs.google.com/document/u/0/" target="_blank">
-<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/docs.jpg?raw=true" alt="">
-GOOGLE DOCS</a>
+<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/docs.jpg?raw=true" alt="">GOOGLE DOCS</a>
 <a class="ds-link" href="https://drive.google.com/drive/my-drive" target="_blank">
-<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/drive.jpg?raw=true" alt="">
-GOOGLE DRIVE</a>
+<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/drive.jpg?raw=true" alt="">GOOGLE DRIVE</a>
 <a class="ds-link" href="https://sites.google.com/view/how-to-make-a-myleague-tour?usp=sharing" target="_blank">
-<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/how%20to%20create%20a%20tour.jpg?raw=true" alt="">
-HOW TO CREATE A TOURNAMENT</a>
+<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/how%20to%20create%20a%20tour.jpg?raw=true" alt="">HOW TO CREATE A TOURNAMENT</a>
 <a class="ds-link" href="https://sites.google.com/view/copy-paste-0072?usp=sharing" target="_blank">
-<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/windows%20cliopboard.jpg?raw=true" alt="">
-COPY &amp; PASTE, WINDOWS CLIPBOARD</a>
+<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/windows%20cliopboard.jpg?raw=true" alt="">COPY &amp; PASTE, WINDOWS CLIPBOARD</a>
 <a class="ds-link" href="#" target="_blank">
-<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/king%20coyote%20bind%20maker.jpg?raw=true" alt="">
-KING COYOTE BIND EDITOR</a>
+<img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/king%20coyote%20bind%20maker.jpg?raw=true" alt="">KING COYOTE BIND EDITOR</a>
 </div>
 <img src="https://github.com/SF2021-dev/spades/blob/main/antifascist.jpg?raw=true" alt="" style="display:block;margin:12px auto 8px;max-width:180px;height:auto;">
 <div style="text-align:center;padding:16px 10px 24px;color:#c9a227;font-size:13px;font-weight:700;">©copyright 2026 Diamond Spaders, Wayward Cats &amp; Ochwiay</div>
 </div>
 <script>
 (function () {
-  var GAMES = [
-    { h: 8, m: 15, label: "8:15 AM  3Bid3Bags" },
-    { h: 9, m: 15, label: "9:15 AM  SINGLES" },
-    { h: 10, m: 15, label: "10:15 AM  CUT" },
-    { h: 11, m: 15, label: "11:15 AM  CUT" },
-    { h: 14, m: 15, label: "2:15 PM  CUT" },
-    { h: 16, m: 15, label: "4:15 PM  PARDS" },
-    { h: 17, m: 15, label: "5:15 PM  PARDS" },
-    { h: 18, m: 15, label: "6:15 PM  CUT" },
-    { h: 19, m: 15, label: "7:15 PM  PARDS" },
-    { h: 20, m: 15, label: "8:15 PM  CUT" },
-    { h: 21, m: 15, label: "9:15 PM  PARDS" }
+  var TOURS = [
+    { h: 8, m: 15, game: "3Bid3Bags", td: "3Bid3Bags", url: "https://www.myleague.com/diamondspaders/tournament/11950560/" },
+    { h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11948623/" },
+    { h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11949683/" },
+    { h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11949688/" },
+    { h: 14, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11949977/" },
+    { h: 16, m: 15, game: "PARDS", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournament/11950670/" },
+    { h: 17, m: 15, game: "PARDS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950314/" },
+    { h: 18, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950315/" },
+    { h: 19, m: 15, game: "PARDS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950316/" },
+    { h: 20, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950317/" },
+    { h: 21, m: 15, game: "PARDS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950318/" }
   ];
+  var GAMES = TOURS.map(function (t) {
+    var ap = t.h >= 12 ? "PM" : "AM";
+    var h12 = t.h % 12 || 12;
+    return { h: t.h, m: t.m, label: h12 + ":15 " + ap + "  " + t.game };
+  });
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function etNow() { return new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" })); }
+  function amp(h) { return (h % 12 || 12) + ":" + "15 " + (h >= 12 ? "PM" : "AM"); }
+  function drawTours() {
+    var now = etNow();
+    var box = document.getElementById("ds-tours");
+    var html = "";
+    for (var i = 0; i < TOURS.length; i++) {
+      var t = TOURS[i];
+      var start = new Date(now.getTime());
+      start.setHours(t.h, t.m, 0, 0);
+      var gone = now.getTime() >= start.getTime() + 15 * 60 * 1000;
+      html += '<div class="ds-tour-item">';
+      html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
+      html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + amp(t.h) + " " + t.game + " w/ " + t.td + "</a></div>";
+      html += "</div>";
+    }
+    box.innerHTML = html;
+  }
   function tick() {
     var now = etNow();
     var live = null, next = null, i;
@@ -177,6 +184,7 @@ KING COYOTE BIND EDITOR</a>
       document.getElementById("ds-next-main").textContent = live ? "Last game of the day" : "See you tomorrow";
       document.getElementById("ds-next-count").textContent = "00:00:00";
     }
+    drawTours();
   }
   tick();
   setInterval(tick, 1000);

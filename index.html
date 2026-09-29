@@ -10,7 +10,7 @@
 </head>
 <body>
 <div style="width:100%;max-width:1100px;margin:0 auto;background:#0a0a0a;font-family:Arial,Helvetica,sans-serif;color:#fbe646;">
-<img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/ds%20banner.jpg" alt="Diamond Spaders" style="width:100%;height:72px;object-fit:cover;object-position:center;display:block;">
+<img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/ds%20banner.jpg" alt="Diamond Spaders" style="width:100%;height:72px;max-height:72px;object-fit:cover;object-position:center;display:block;">
 <div id="ds-clock" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;background:#120c08;border-bottom:2px solid #fbe646;padding:12px 16px;">
   <div>
     <div id="ds-now-label" style="font-size:12px;font-weight:800;letter-spacing:0.16em;color:#c9a227;">NOW</div>
@@ -71,7 +71,7 @@
 <div style="color:#fff;font-size:16px;font-weight:700;font-style:italic;line-height:1.4;">JBaby1, ReginaldAnderson, Looks___, waskelwabbit, illbid13 &amp; deaddly, Loffe_Dawg, Looks___ &amp; deaddly, peakoh, CLaSSiKSPaDZPLaR &amp; Huskernut50265, Huskernut50265 &amp; MEL1c1ous_1, 0UTLAND3R, GOLDENGIRL2026 &amp; Eager_1, Zappycow, CBL3355 &amp; Zappycow, SILKROLLZ</div>
 </div>
 </div>
-<div style="padding:16px 16px 160px;border-top:3px solid #fbe646;">
+<div style="padding:16px;border-top:3px solid #fbe646;">
 <div style="font-size:14px;font-weight:800;letter-spacing:0.14em;margin-bottom:10px;">TOP 10 RANKED PLAYERS</div>
 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
 <div style="background:#2a1608;border:1px solid #fbe646;border-radius:8px;padding:12px 6px;text-align:center;"><div style="font-size:13px;font-weight:800;">1</div><div style="color:#fff;font-size:16px;font-weight:700;margin-top:4px;">Looks__</div></div>
@@ -87,7 +87,6 @@
 </div>
 </div>
 </div>
-<canvas id="ds-analog" width="140" height="140" style="position:fixed;left:16px;bottom:16px;z-index:50;border-radius:50%;"></canvas>
 <script>
 (function () {
   var TZ = "America/New_York";
@@ -130,35 +129,6 @@
     else { document.getElementById("ds-next-main").textContent = live ? "Last game of the day" : "See you tomorrow"; document.getElementById("ds-next-count").textContent = live ? fmtCount((live.start.getTime() + LIVE_MS) - nowET.getTime()) : "--:--:--"; }
   }
   tick(); setInterval(tick, 1000);
-})();
-(function () {
-  var c = document.getElementById("ds-analog"); if (!c) return;
-  var ctx = c.getContext("2d"); var size = 140; var r = size / 2;
-  function etParts() {
-    var f = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
-    var o = {}; f.formatToParts(new Date()).forEach(function (p) { o[p.type] = p.value; });
-    return { h: +o.hour, m: +o.minute, s: +o.second };
-  }
-  function hand(ang, len, width, color) {
-    ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = "round";
-    ctx.moveTo(r, r); ctx.lineTo(r + Math.sin(ang) * len, r - Math.cos(ang) * len); ctx.stroke();
-  }
-  function draw() {
-    var t = etParts(); ctx.clearRect(0, 0, size, size);
-    ctx.beginPath(); ctx.arc(r, r, r - 3, 0, Math.PI * 2); ctx.fillStyle = "#120c08"; ctx.fill();
-    ctx.strokeStyle = "#fbe646"; ctx.lineWidth = 3; ctx.stroke();
-    for (var i = 0; i < 12; i++) {
-      var a = (i * Math.PI) / 6;
-      ctx.beginPath(); ctx.strokeStyle = "#fbe646"; ctx.lineWidth = i % 3 === 0 ? 3 : 1;
-      ctx.moveTo(r + Math.sin(a) * (r - 14), r - Math.cos(a) * (r - 14));
-      ctx.lineTo(r + Math.sin(a) * (r - 8), r - Math.cos(a) * (r - 8)); ctx.stroke();
-    }
-    hand(((t.h % 12) + t.m / 60) * Math.PI / 6, r * 0.5, 5, "#fbe646");
-    hand((t.m + t.s / 60) * Math.PI / 30, r * 0.68, 3, "#fbe646");
-    hand(t.s * Math.PI / 30, r * 0.74, 1.5, "#c9a227");
-    ctx.beginPath(); ctx.fillStyle = "#fbe646"; ctx.arc(r, r, 4, 0, Math.PI * 2); ctx.fill();
-  }
-  draw(); setInterval(draw, 1000);
 })();
 </script>
 </body>

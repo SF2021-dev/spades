@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diamond Spaders — Sept 28</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+  </style>
+</head>
+<body>
+<div style="width:100%;height:100vh;overflow:hidden;background:#0a0a0a;font-family:Arial,Helvetica,sans-serif;">
+<a href="https://raw.githubusercontent.com/SF2021-dev/spades/main/ds%20banner.jpg" target="_blank">
+<img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/ds%20banner.jpg" alt="Diamond Spaders" style="width:100%;aspect-ratio:10/1;height:auto;object-fit:cover;object-position:center;display:block;">
+</a>
+<div id="ds-clock" style="display:grid;grid-template-columns:1.1fr 1.4fr;gap:12px;align-items:center;background:#120c08;border-bottom:2px solid #fbe646;padding:8px 16px;color:#fbe646;font-family:Arial,Helvetica,sans-serif;">
+  <div>
+    <div id="ds-now-label" style="font-size:11px;font-weight:800;letter-spacing:0.16em;color:#c9a227;">NOW</div>
+    <div id="ds-now-main" style="font-size:20px;font-weight:800;line-height:1.15;color:#fff;margin-top:2px;">Board open</div>
+    <div id="ds-now-sub" style="font-size:12px;font-weight:700;color:#fbe646;margin-top:2px;">—</div>
+  </div>
+  <div style="text-align:right;">
+    <div id="ds-next-label" style="font-size:11px;font-weight:800;letter-spacing:0.16em;color:#c9a227;">NEXT</div>
+    <div id="ds-next-main" style="font-size:20px;font-weight:800;line-height:1.15;color:#fbe646;margin-top:2px;">—</div>
+    <div id="ds-next-count" style="font-size:28px;font-weight:800;line-height:1;color:#fbe646;margin-top:2px;letter-spacing:0.04em;">--:--:--</div>
+  </div>
+</div>
+<div style="background:#0a0a0a;color:#fbe646;">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;width:100%;">
+<div style="display:flex;flex-direction:column;padding:8px 8px;min-width:0;">
+<div style="display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;">
+<a href="https://github.com/SF2021-dev/spades/blob/main/tats%20avatar.png?raw=true" target="_blank">
+<img src="https://github.com/SF2021-dev/spades/blob/main/tats%20avatar.png?raw=true" alt="Winner avatar" width="56" height="56" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #333;background:#000;">
+</a>
+<div>
+<div style="font-size:12px;font-weight:700;line-height:1.2;">8:15 AM CUT WINNER...
+Congratulations,</div>
+<div style="font-size:20px;font-weight:800;line-height:1.05;margin-top:2px;">TATSUJIN</div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;padding:8px 8px;min-width:0;background:#000;">
+<div style="display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;">
+<a href="https://github.com/SF2021-dev/spades/blob/main/pauji%20icon.png?raw=true" target="_blank">
+<img src="https://github.com/SF2021-dev/spades/blob/main/pauji%20icon.png?raw=true" alt="Winner avatar" width="56" height="56" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #333;background:#000;">
+</a>
+<div>
+<div style="font-size:12px;font-weight:700;line-height:1.2;color:#fbe646;">9:15 AM SINGLES WINNER...
+Congratulations,</div>
+<div style="font-size:20px;font-weight:800;line-height:1.05;margin-top:2px;color:#fbe646;">MaKinpa</div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;padding:8px 8px;min-width:0;">
+<div style="display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;">
+<a href="https://github.com/SF2021-dev/spades/blob/main/solo%20avater.png?raw=true" target="_blank">
+<img src="https://github.com/SF2021-dev/spades/blob/main/solo%20avater.png?raw=true" alt="Winner avatar" width="56" height="56" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #333;background:#000;">
+</a>
+<div>
+<div style="font-size:12px;font-weight:700;line-height:1.2;">10:15 AM CUT WINNER...
+Congratulations,</div>
+<div style="font-size:20px;font-weight:800;line-height:1.05;margin-top:2px;">SoloRyder</div>
+</div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;width:100%;">
+<div style="display:flex;flex-direction:column;padding:8px 8px;min-width:0;background:#000;">
+<div style="display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;">
+<a href="https://github.com/SF2021-dev/spades/blob/main/c%20ava.png?raw=true" target="_blank">
+<img src="https://github.com/SF2021-dev/spades/blob/main/c%20ava.png?raw=true" alt="Winner avatar" width="56" height="56" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #333;background:#000;">
+</a>
+<div>
+<div style="font-size:12px;font-weight:700;line-height:1.2;color:#fbe646;">11:15 AM CUT WINNER...
+Congratulations,</div>
+<div style="font-size:18px;font-weight:800;line-height:1.05;margin-top:2px;color:#fbe646;">Rookie_Bagger</div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;padding:8px 8px;min-width:0;">
+<div style="display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;">
+<a href="https://github.com/SF2021-dev/spades/blob/main/maggiemay%20ava.png?raw=true" target="_blank">
+<img src="https://github.com/SF2021-dev/spades/blob/main/maggiemay%20ava.png?raw=true" alt="Winner avatar" width="56" height="56" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #333;background:#000;">
+</a>
+<div>
+<div style="font-size:12px;font-weight:700;line-height:1.2;">12:15 PM PAB SUI WINNER...
+Congratulations,</div>
+<div style="font-size:18px;font-weight:800;line-height:1.05;margin-top:2px;">Maggie_May</div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;padding:8px 8px;min-width:0;background:#000;">
+<div style="display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;">
+<a href="https://github.com/SF2021-dev/spades/blob/main/gryzz%20ava.png?raw=true" target="_blank">
+<img src="https://github.com/SF2021-dev/spades/blob/main/gryzz%20ava.png?raw=true" alt="Winner avatar" width="56" height="56" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #333;background:#000;">
+</a>
+<div>
+<div style="font-size:12px;font-weight:700;line-height:1.2;color:#fbe646;">1:15 PM CUT WINNER...
+Congratulations,</div>
+<div style="font-size:18px;font-weight:800;line-height:1.05;margin-top:2px;color:#fbe646;">Gryzzlybear</div>
+</div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;width:100%;">
+<div style="display:flex;flex-direction:column;padding:8px 8px;min-width:0;">
+<div style="display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;">
+<a href="https://github.com/SF2021-dev/spades/blob/main/jop%20ava.png?raw=true" target="_blank">
+<img src="https://github.com/SF2021-dev/spades/blob/main/jop%20ava.png?raw=true" alt="Winner avatar" width="56" height="56" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #333;background:#000;">
+</a>
+<div>
+<div style="font-size:12px;font-weight:700;line-height:1.2;">4:15 PM SUI PASS 2 WINNER...
+Congratulations,</div>
+<div style="font-size:18px;font-weight:800;line-height:1.05;margin-top:2px;">Jopisme</div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;padding:8px 8px;min-width:0;background:#000;">
+<div style="display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;">
+<svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:56px;height:56px;border-radius:8px;border:1px solid #fbe646;background:#120c08;display:block;">
+  <rect width="56" height="56" rx="8" fill="#120c08"/>
+  <path d="M28 8 L36 22 L28 20 L20 22 Z" fill="#fbe646"/>
+  <path d="M28 16 C20 26 16 30 16 36 C16 42 22 46 28 42 C34 46 40 42 40 36 C40 30 36 26 28 16 Z" fill="#fbe646"/>
+  <rect x="26" y="40" width="4" height="8" rx="1" fill="#c9a227"/>
+  <circle cx="18" cy="14" r="2" fill="#c9a227"/>
+  <circle cx="38" cy="14" r="2" fill="#c9a227"/>
+</svg>
+<div>
+<div style="font-size:12px;font-weight:700;line-height:1.2;color:#fbe646;">7:15 PM PARDS SUI WINNERS...
+Congratulations,</div>
+<div style="font-size:16px;font-weight:800;line-height:1.05;margin-top:2px;color:#fbe646;">0UTLAND3R &amp; whocantplay</div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;padding:8px 8px;min-width:0;">
+<div style="display:grid;grid-template-columns:56px 1fr;gap:8px;align-items:center;">
+<div style="width:56px;height:56px;border-radius:8px;border:1px solid #444;background:#161616;display:flex;align-items:center;justify-content:center;color:#c9a227;font-size:11px;font-weight:800;">9:15</div>
+<div>
+<div style="font-size:12px;font-weight:700;line-height:1.2;">9:15 PM REG PARDS
+Up next</div>
+<div style="font-size:16px;font-weight:800;line-height:1.05;margin-top:2px;">Jump 11950664</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1.25fr 1fr;gap:16px;background:#ff2ad4;padding:10px 20px 10px;margin:0;">
+<div style="font-size:16px;font-weight:800;color:#111;line-height:1.4;">
+<a href="https://www.myleague.com/diamondspaders/tournament/11950182/" style="color:#111;text-decoration:none;">8:15 AM EST 3Bid3Bags — CUT 400/100</a><br>
+<a href="https://www.myleague.com/diamondspaders/tournament/11950409/" style="color:#111;text-decoration:none;">9:15 AM EST Untouchable_One, SINGLES </a><br>
+<a href="https://www.myleague.com/diamondspaders/tournament/11950416/" style="color:#111;text-decoration:none;">10:15 AM EST Untouchable_One, CUT 400</a><br>
+<a href="https://www.myleague.com/diamondspaders/tournament/11950499/" style="color:#111;text-decoration:none;">11:15 AM EST Untouchable_One — CUT 400/100</a><br>
+<a href="https://www.myleague.com/diamondspaders/tournament/11950500/" style="color:#111;text-decoration:none;">12:15 PM EST Untouchable_One, PAB SUI</a><br>
+<a href="https://www.myleague.com/diamondspaders/tournament/11950605/" style="color:#111;text-decoration:none;">1:15 PM EST Untouchable_One, CUT 400/100</a><br>
+<a href="https://www.myleague.com/diamondspaders/tournament/11949857/" style="color:#111;text-decoration:none;">4:15 PM EST Fetch_it_up, SUI PASS 2</a><br>
+<a href="https://www.myleague.com/diamondspaders/tournament/11950622/" style="color:#111;text-decoration:none;">6:15 PM EST Untouchable_One — CUT 400/100</a><br>
+<a href="https://www.myleague.com/diamondspaders/tournament/11950501/" style="color:#111;text-decoration:none;">7:15 PM EST Untouchable_One, PARDS SUI</a><br>
+<a href="https://www.myleague.com/diamondspaders/tournament/11950664/" style="color:#111;text-decoration:none;">9:15 PM EST Untouchable_One — REG PARDS 500/100</a>
+</div>
+<div>
+<div style="color:#111;font-size:15px;font-weight:800;letter-spacing:0.06em;margin:4px 0 10px;">YESTERDAY'S WINNERS</div>
+<div style="color:#fff;font-size:16px;font-weight:700;font-style:italic;line-height:1.35;">JBaby1, ReginaldAnderson, Looks___, waskelwabbit, illbid13 &amp; deaddly, Loffe_Dawg, Looks___ &amp; deaddly, peakoh, CLaSSiKSPaDZPLaR &amp; Huskernut50265, Huskernut50265 &amp; MEL1c1ous_1, 0UTLAND3R, GOLDENGIRL2026 &amp; Eager_1, Zappycow, CBL3355 &amp; Zappycow, SILKROLLZ</div>
+</div>
+</div>
+<div style="background:linear-gradient(180deg,#1a1020 0%,#0a0a0a 100%);padding:10px 16px 12px;border-top:3px solid #fbe646;">
+<div style="color:#fbe646;font-size:12px;font-weight:800;letter-spacing:0.18em;margin-bottom:8px;">TOP 10 RANKED PLAYERS</div>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;">
+<div style="background:#2a1608;border:1px solid #fbe646;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#fbe646;font-size:11px;font-weight:800;">1</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">Looks__</div></div>
+<div style="background:#2a1608;border:1px solid #c0c0c0;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#c0c0c0;font-size:11px;font-weight:800;">2</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">illbid13</div></div>
+<div style="background:#2a1608;border:1px solid #cd7f32;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#cd7f32;font-size:11px;font-weight:800;">3</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">Me6052</div></div>
+<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#fbe646;font-size:11px;font-weight:800;">4</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">MsZigs</div></div>
+<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#fbe646;font-size:11px;font-weight:800;">5</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">CLaSSiKSPaDZPlaR</div></div>
+<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#fbe646;font-size:11px;font-weight:800;">6</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">MEL1c1ous_1</div></div>
+<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#fbe646;font-size:11px;font-weight:800;">7</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">SILKROLLZ</div></div>
+<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#fbe646;font-size:11px;font-weight:800;">8</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">Rookie_Bagger</div></div>
+<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#fbe646;font-size:11px;font-weight:800;">9</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">Huskernut50265</div></div>
+<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:8px 6px;text-align:center;"><div style="color:#fbe646;font-size:11px;font-weight:800;">10</div><div style="color:#fff;font-size:12px;font-weight:700;margin-top:3px;">Jbmusket42</div></div>
+</div>
+</div>
+</div>
+<script>
+(function () {
+  var TZ = "America/New_York";
+  var GAMES = [
+    { h: 8, m: 15, label: "8:15 AM  3Bid3Bags — CUT 400/100" },
+    { h: 9, m: 15, label: "9:15 AM  SINGLES" },
+    { h: 10, m: 15, label: "10:15 AM  CUT 400" },
+    { h: 11, m: 15, label: "11:15 AM  CUT 400/100" },
+    { h: 12, m: 15, label: "12:15 PM  PAB SUI" },
+    { h: 13, m: 15, label: "1:15 PM  CUT 400/100" },
+    { h: 16, m: 15, label: "4:15 PM  SUI PASS 2" },
+    { h: 18, m: 15, label: "6:15 PM  CUT 400/100" },
+    { h: 19, m: 15, label: "7:15 PM  PARDS SUI" },
+    { h: 21, m: 15, label: "9:15 PM  REG PARDS 500/100" }
+  ];
+  var LIVE_MS = 50 * 60 * 1000;
+  function parts(d) {
+    var f = new Intl.DateTimeFormat("en-US", {
+      timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+      weekday: "short"
+    });
+    var o = {};
+    f.formatToParts(d).forEach(function (p) { o[p.type] = p.value; });
+    return o;
+  }
+  function etDate(d) {
+    var p = parts(d);
+    return new Date(Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second));
+  }
+  function gameET(base, g) {
+    return new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate(), g.h, g.m, 0));
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function fmtClock(p) {
+    var h = +p.hour;
+    var ampm = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return p.weekday + "  " + h12 + ":" + p.minute + ":" + p.second + " " + ampm + " ET";
+  }
+  function fmtCount(ms) {
+    if (ms < 0) ms = 0;
+    var s = Math.floor(ms / 1000);
+    var h = Math.floor(s / 3600); s -= h * 3600;
+    var m = Math.floor(s / 60); s -= m * 60;
+    return pad(h) + ":" + pad(m) + ":" + pad(s);
+  }
+  function tick() {
+    var now = new Date();
+    var p = parts(now);
+    var nowET = etDate(now);
+    var games = GAMES.map(function (g) {
+      return { start: gameET(nowET, g), label: g.label };
+    });
+    var live = null, next = null, i;
+    for (i = 0; i < games.length; i++) {
+      var start = games[i].start;
+      var end = new Date(start.getTime() + LIVE_MS);
+      if (nowET >= start && nowET < end) live = games[i];
+      if (nowET < start && !next) next = games[i];
+    }
+    document.getElementById("ds-now-sub").textContent = fmtClock(p);
+    var nowLabel = document.getElementById("ds-now-label");
+    var nowMain = document.getElementById("ds-now-main");
+    var nextMain = document.getElementById("ds-next-main");
+    var nextCount = document.getElementById("ds-next-count");
+    if (live) {
+      nowLabel.textContent = "LIVE";
+      nowLabel.style.color = "#fbe646";
+      nowMain.textContent = live.label;
+      nowMain.style.color = "#fbe646";
+    } else {
+      nowLabel.textContent = "NOW";
+      nowLabel.style.color = "#c9a227";
+      nowMain.textContent = next ? "Board open" : "Board closed";
+      nowMain.style.color = "#fff";
+    }
+    if (next) {
+      nextMain.textContent = next.label;
+      nextCount.textContent = fmtCount(next.start - nowET);
+    } else {
+      nextMain.textContent = live ? "Last game of the day" : "See you tomorrow";
+      nextCount.textContent = live ? fmtCount((live.start.getTime() + LIVE_MS) - nowET.getTime()) : "--:--:--";
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

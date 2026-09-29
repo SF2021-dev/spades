@@ -112,6 +112,7 @@
 <a class="ds-link" href="https://www.webmd.com/" target="_blank"><svg class="ds-ico" viewBox="0 0 48 48"><rect width="48" height="48" rx="8" fill="#120c08" stroke="#fbe646"/><path d="M22 10 H26 V22 H38 V26 H26 V38 H22 V26 H10 V22 H22 Z" fill="#fbe646"/></svg>WEB MD</a>
 <a class="ds-link" href="https://www.wikipedia.org/" target="_blank"><svg class="ds-ico" viewBox="0 0 48 48"><rect width="48" height="48" rx="8" fill="#120c08" stroke="#fbe646"/><circle cx="24" cy="22" r="10" fill="none" stroke="#fbe646" stroke-width="2"/><text x="24" y="27" text-anchor="middle" font-size="16" font-weight="800" fill="#fbe646" font-family="Arial">W</text></svg>WIKIPEDIA</a>
 <a class="ds-link" href="https://www.petmd.com/" target="_blank"><svg class="ds-ico" viewBox="0 0 48 48"><rect width="48" height="48" rx="8" fill="#120c08" stroke="#fbe646"/><circle cx="16" cy="16" r="4" fill="#fbe646"/><circle cx="32" cy="16" r="4" fill="#fbe646"/><circle cx="12" cy="26" r="3.5" fill="#fbe646"/><circle cx="36" cy="26" r="3.5" fill="#fbe646"/><ellipse cx="24" cy="32" rx="8" ry="6" fill="#fbe646"/></svg>PET MD</a>
+<a class="ds-link" href="https://www.merriam-webster.com/" target="_blank"><svg class="ds-ico" viewBox="0 0 48 48"><rect width="48" height="48" rx="8" fill="#120c08" stroke="#fbe646"/><path d="M10 14 L24 18 L38 14 V36 L24 32 L10 36 Z" fill="none" stroke="#fbe646" stroke-width="2"/><path d="M24 18 V32" stroke="#fbe646" stroke-width="2"/></svg>DICTIONARY</a>
 </div>
 <img src="https://github.com/SF2021-dev/spades/blob/main/antifascist.jpg?raw=true" alt="" style="display:block;margin:12px auto 8px;max-width:180px;height:auto;">
 <div style="text-align:center;padding:16px 10px 24px;color:#c9a227;font-size:13px;font-weight:700;">©copyright 2026 Diamond Spaders, Wayward Cats &amp; Ochwiay</div>
@@ -158,9 +159,10 @@
       start.setHours(t.h, t.m, 0, 0);
       var gone = now.getTime() >= start.getTime() + 15 * 60 * 1000;
       html += '<div class="ds-tour-item">';
-      html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
-      html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + amp(t.h) + " " + t.game + " w/ " + t.td + "</a></div>";
+      html += '<div class="ds-tour-text">' + amp(t.h) + '</div>';
       if (t.ava) html += '<img class="ds-td" src="' + t.ava + '" alt="">';
+      html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
+      html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + t.game + " w/ " + t.td + "</a></div>";
       html += "</div>";
     }
     box.innerHTML = html;

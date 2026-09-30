@@ -3,19 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diamond Spaders — Sept 29</title>
+  <title>Diamond Spaders — Sept 30</title>
   <style>
     html, body { margin: 0; padding: 0; background: #0a0a0a; overflow: auto; }
     .ds-link { display:flex; flex-direction:column; align-items:center; gap:6px; text-decoration:none; color:#fbe646; padding:10px 6px; border:1px solid #444; border-radius:10px; background:#161616; font-size:11px; font-weight:800; letter-spacing:0.04em; text-align:center; line-height:1.2; }
     .ds-link:hover { border-color:#fbe646; background:#2a1608; }
     .ds-ico { width:48px; height:48px; object-fit:cover; border-radius:8px; display:block; }
     .ds-tour { display:flex; flex-direction:column; gap:8px; background:#ff2ad4; padding:14px 12px; }
-    .ds-tour-item { display:flex; align-items:center; gap:10px; white-space:nowrap; }
-    .ds-join { flex:0 0 auto; background:#120c08; color:#fbe646; font-family:'Comic Sans MS',Comic Sans,cursive; font-weight:800; font-size:18px; text-decoration:none; padding:6px 12px; border-radius:6px; }
+    .ds-tour-item { display:flex; flex-direction:row; justify-content:flex-start; align-items:center; gap:10px; white-space:nowrap; }
+    .ds-join { order:-1; flex:0 0 auto; background:#120c08; color:#fbe646; font-family:'Comic Sans MS',Comic Sans,cursive; font-weight:800; font-size:18px; text-decoration:none; padding:6px 12px; border-radius:6px; }
     .ds-join.hide { display:none; }
     .ds-tour-text { font-family:'Comic Sans MS',Comic Sans,cursive; font-weight:800; font-size:22px; color:#111; line-height:1.2; white-space:nowrap; }
     .ds-tour-text a { color:#111; text-decoration:none; }
     .ds-td { width:28px; height:28px; object-fit:cover; border-radius:6px; border:1px solid #120c08; flex:0 0 auto; }
+    .rk { position:relative; width:22px; height:22px; flex:0 0 auto; }
+    .rk b { position:absolute; top:-7px; left:-8px; font-size:10px; font-weight:800; color:#fbe646; }
+    .rk img, .rk svg { width:22px; height:22px; display:block; border-radius:4px; }
   </style>
 </head>
 <body>
@@ -34,117 +37,47 @@
   </div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;">
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/ochwiay-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;">
-<div><div style="font-size:13px;font-weight:700;">TODAY 8:15 AM CUT</div><div style="font-size:22px;font-weight:800;">Ochwiay</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/Untouchable_One-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;">
-<div><div style="font-size:13px;font-weight:700;">TODAY 9:15 AM SINGLES</div><div style="font-size:18px;font-weight:800;">Untouchable_One</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/makinpa-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;">
-<div><div style="font-size:13px;font-weight:700;">TODAY 10:15 AM CUT</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/Eager_1-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;">
-<div><div style="font-size:13px;font-weight:700;">TODAY 11:15 AM CUT</div><div style="font-size:22px;font-weight:800;">Eager_1</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/oooLAURAooo-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;">
-<div><div style="font-size:13px;font-weight:700;">TODAY 12:15 PM SUI PAB</div><div style="font-size:18px;font-weight:800;">oooLAURAooo</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/makinpa-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;">
-<div><div style="font-size:13px;font-weight:700;">TODAY 1:15 PM CUT</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/makinpa-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;">
-<div><div style="font-size:13px;font-weight:700;">TODAY 2:15 PM CUT MIRRORS</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/tatsujin-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;">
-<div><div style="font-size:13px;font-weight:700;">TODAY 3:15 PM CUT</div><div style="font-size:22px;font-weight:800;">TATSUJIN</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;">
-  <div style="font-size:13px;font-weight:700;margin-bottom:6px;">TODAY 4:15 PM SUI PASS 2</div>
-  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><img src="https://github.com/SF2021-dev/spades/blob/main/Looks__-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">Looks__</div></div>
-  <div style="display:flex;align-items:center;gap:6px;"><img src="https://github.com/SF2021-dev/spades/blob/main/MEL1c1ous_1-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">MEL1c1ous_1</div></div>
-</div>
-<div style="padding:14px 10px;background:#000;">
-  <div style="font-size:13px;font-weight:700;margin-bottom:6px;">TODAY 5:15 PM PARDS</div>
-  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><img src="https://github.com/SF2021-dev/spades/blob/main/Lil_shopper-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">Lil_Shopper</div></div>
-  <div style="display:flex;align-items:center;gap:6px;"><img src="https://github.com/SF2021-dev/spades/blob/main/SOLORYDER-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">Duke413</div></div>
-</div>
-<div style="padding:14px 10px;background:#1a1200;">
-  <div style="font-size:13px;font-weight:700;margin-bottom:6px;">TODAY 7:15 PM PARDS</div>
-  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><img src="https://github.com/SF2021-dev/spades/blob/main/oooLAURAooo-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">oooLAURAooo</div></div>
-  <div style="display:flex;align-items:center;gap:6px;"><img src="https://github.com/SF2021-dev/spades/blob/main/SOLORYDER-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">0UTLAND3R</div></div>
-</div>
-<div style="padding:14px 10px;background:#000;">
-  <div style="font-size:13px;font-weight:700;margin-bottom:6px;">TODAY 9:15 PM PARDS</div>
-  <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg><div style="font-size:16px;font-weight:800;">K3ssy</div></div>
-  <div style="display:flex;align-items:center;gap:6px;"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg><div style="font-size:16px;font-weight:800;">slovell_too</div></div>
-</div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<svg width="64" height="64" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg>
-<div><div style="font-size:13px;font-weight:700;">TODAY 10:15 PM LOSER WINS</div><div style="font-size:16px;font-weight:800;">Huskernut50265</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/fetch_it_up-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;">
-<div><div style="font-size:13px;font-weight:700;">TODAY 11:15 PM CUT</div><div style="font-size:20px;font-weight:800;">Fetch_it_up</div></div></div></div>
-</div>
-<div id="todays-winners" style="display:grid;grid-template-columns:1fr 1fr 1fr;">
-<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/tatsujin-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;">
-<div><div style="font-size:13px;font-weight:700;">YESTERDAY 8:15 AM CUT</div><div style="font-size:22px;font-weight:800;">TATSUJIN</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/makinpa-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;">
-<div><div style="font-size:13px;font-weight:700;">YESTERDAY 9:15 AM SINGLES</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
-<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/SOLORYDER-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;">
-<div><div style="font-size:13px;font-weight:700;">YESTERDAY 10:15 AM CUT</div><div style="font-size:22px;font-weight:800;">SoloRyder</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://github.com/SF2021-dev/spades/blob/main/rookie_bagger-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;">
-<div><div style="font-size:13px;font-weight:700;">YESTERDAY 11:15 AM CUT</div><div style="font-size:20px;font-weight:800;">Rookie_Bagger</div></div></div></div>
-<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/maggie_may-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;">
-<div><div style="font-size:13px;font-weight:700;">YESTERDAY 12:15 PM PAB SUI</div><div style="font-size:20px;font-weight:800;">Maggie_May</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/Gryzzlybear-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;">
-<div><div style="font-size:13px;font-weight:700;">YESTERDAY 1:15 PM CUT</div><div style="font-size:20px;font-weight:800;">Gryzzlybear</div></div></div></div>
-<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/jopisme-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;">
-<div><div style="font-size:13px;font-weight:700;">YESTERDAY 4:15 PM SUI PASS 2</div><div style="font-size:16px;font-weight:800;">Looks__ &amp; Jopisme</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<svg width="64" height="64" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg>
-<div><div style="font-size:13px;font-weight:700;">YESTERDAY 7:15 PM PARDS SUI</div><div style="font-size:16px;font-weight:800;">0UTLAND3R &amp; whocantplay</div></div></div></div>
-<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-<svg width="64" height="64" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg>
-<div><div style="font-size:13px;font-weight:700;">YESTERDAY 11:15 PM CUT</div><div style="font-size:20px;font-weight:800;">EasyOne23</div></div></div></div>
+<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/ochwiay-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"><div><div style="font-size:13px;font-weight:700;">YESTERDAY 8:15 AM CUT</div><div style="font-size:22px;font-weight:800;">Ochwiay</div></div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/Untouchable_One-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"><div><div style="font-size:13px;font-weight:700;">YESTERDAY 9:15 AM SINGLES</div><div style="font-size:18px;font-weight:800;">Untouchable_One</div></div></div></div>
+<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/makinpa-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"><div><div style="font-size:13px;font-weight:700;">YESTERDAY 10:15 AM CUT</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/Eager_1-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"><div><div style="font-size:13px;font-weight:700;">YESTERDAY 11:15 AM CUT</div><div style="font-size:22px;font-weight:800;">Eager_1</div></div></div></div>
+<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/oooLAURAooo-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"><div><div style="font-size:13px;font-weight:700;">YESTERDAY 12:15 PM SUI PAB</div><div style="font-size:18px;font-weight:800;">oooLAURAooo</div></div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/makinpa-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"><div><div style="font-size:13px;font-weight:700;">YESTERDAY 1:15 PM CUT</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
+<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/makinpa-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"><div><div style="font-size:13px;font-weight:700;">YESTERDAY 2:15 PM CUT MIRRORS</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/tatsujin-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"><div><div style="font-size:13px;font-weight:700;">YESTERDAY 3:15 PM CUT</div><div style="font-size:22px;font-weight:800;">TATSUJIN</div></div></div></div>
+<div style="padding:14px 10px;background:#1a1200;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">YESTERDAY 4:15 PM SUI PASS 2</div><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><img src="https://github.com/SF2021-dev/spades/blob/main/Looks__-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">Looks__</div></div><div style="display:flex;align-items:center;gap:6px;"><img src="https://github.com/SF2021-dev/spades/blob/main/MEL1c1ous_1-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">MEL1c1ous_1</div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">YESTERDAY 5:15 PM PARDS</div><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><img src="https://github.com/SF2021-dev/spades/blob/main/Lil_shopper-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">Lil_Shopper</div></div><div style="display:flex;align-items:center;gap:6px;"><img src="https://github.com/SF2021-dev/spades/blob/main/SOLORYDER-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">Duke413</div></div></div>
+<div style="padding:14px 10px;background:#1a1200;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">YESTERDAY 7:15 PM PARDS</div><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><img src="https://github.com/SF2021-dev/spades/blob/main/oooLAURAooo-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">oooLAURAooo</div></div><div style="display:flex;align-items:center;gap:6px;"><img src="https://github.com/SF2021-dev/spades/blob/main/SOLORYDER-ava.png?raw=true" width="22" height="22" style="width:22px;height:22px;object-fit:cover;border-radius:4px;border:1px solid #fbe646;"><div style="font-size:16px;font-weight:800;">0UTLAND3R</div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">YESTERDAY 9:15 PM PARDS</div><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg><div style="font-size:16px;font-weight:800;">K3ssy</div></div><div style="display:flex;align-items:center;gap:6px;"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg><div style="font-size:16px;font-weight:800;">slovell_too</div></div></div>
+<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><svg width="64" height="64" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg><div><div style="font-size:13px;font-weight:700;">YESTERDAY 10:15 PM LOSER WINS</div><div style="font-size:16px;font-weight:800;">Huskernut50265</div></div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/fetch_it_up-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"><div><div style="font-size:13px;font-weight:700;">YESTERDAY 11:15 PM CUT</div><div style="font-size:20px;font-weight:800;">Fetch_it_up</div></div></div></div>
 </div>
 <div id="ds-tours" class="ds-tour"></div>
-<div style="padding:16px;border-top:3px solid #fbe646;">
-<div style="font-size:14px;font-weight:800;letter-spacing:0.14em;margin-bottom:10px;">TOP 10 RANKED PLAYERS</div>
-<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
-<div style="background:#2a1608;border:1px solid #fbe646;border-radius:8px;padding:10px 6px;text-align:center;"><div style="font-size:13px;font-weight:800;">1</div><div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;"><img src="https://github.com/SF2021-dev/spades/blob/main/Looks__-ava.png?raw=true" width="18" height="18" style="width:18px;height:18px;object-fit:cover;border-radius:4px;"><div style="color:#fff;font-size:15px;font-weight:700;">Looks__</div></div></div>
-<div style="background:#2a1608;border:1px solid #c0c0c0;border-radius:8px;padding:10px 6px;text-align:center;"><div style="color:#c0c0c0;font-size:13px;font-weight:800;">2</div><div style="color:#fff;font-size:16px;font-weight:700;margin-top:4px;">illbid13</div></div>
-<div style="background:#2a1608;border:1px solid #cd7f32;border-radius:8px;padding:10px 6px;text-align:center;"><div style="color:#cd7f32;font-size:13px;font-weight:800;">3</div><div style="color:#fff;font-size:16px;font-weight:700;margin-top:4px;">MsZigs</div></div>
-<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:10px 6px;text-align:center;"><div style="font-size:13px;font-weight:800;">4</div><div style="color:#fff;font-size:16px;font-weight:700;margin-top:4px;">Me6052</div></div>
-<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:10px 6px;text-align:center;"><div style="font-size:13px;font-weight:800;">5</div><div style="color:#fff;font-size:13px;font-weight:700;margin-top:4px;">CLaSSiKSPaDZPlaR</div></div>
-<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:10px 6px;text-align:center;"><div style="font-size:13px;font-weight:800;">6</div><div style="color:#fff;font-size:16px;font-weight:700;margin-top:4px;">slovell_too</div></div>
-<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:10px 6px;text-align:center;"><div style="font-size:13px;font-weight:800;">7</div><div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;"><img src="https://github.com/SF2021-dev/spades/blob/main/MEL1c1ous_1-ava.png?raw=true" width="18" height="18" style="width:18px;height:18px;object-fit:cover;border-radius:4px;"><div style="color:#fff;font-size:14px;font-weight:700;">MEL1c1ous_1</div></div></div>
-<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:10px 6px;text-align:center;"><div style="font-size:13px;font-weight:800;">8</div><div style="color:#fff;font-size:16px;font-weight:700;margin-top:4px;">K3ssy</div></div>
-<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:10px 6px;text-align:center;"><div style="font-size:13px;font-weight:800;">9</div><div style="color:#fff;font-size:16px;font-weight:700;margin-top:4px;">SILKROLLZ</div></div>
-<div style="background:#161616;border:1px solid #444;border-radius:8px;padding:10px 6px;text-align:center;"><div style="font-size:13px;font-weight:800;">10</div><div style="color:#fff;font-size:15px;font-weight:700;margin-top:4px;">whocantplay</div></div>
+<div id="todays-winners" style="display:grid;grid-template-columns:1fr 1fr 1fr;">
+<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/tatsujin-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;"><div><div style="font-size:13px;font-weight:700;">TUESDAY 8:15 AM CUT</div><div style="font-size:22px;font-weight:800;">TATSUJIN</div></div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/makinpa-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;"><div><div style="font-size:13px;font-weight:700;">TUESDAY 9:15 AM SINGLES</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
+<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/SOLORYDER-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;"><div><div style="font-size:13px;font-weight:700;">TUESDAY 10:15 AM CUT</div><div style="font-size:22px;font-weight:800;">SoloRyder</div></div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://github.com/SF2021-dev/spades/blob/main/rookie_bagger-ava.png?raw=true" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;"><div><div style="font-size:13px;font-weight:700;">TUESDAY 11:15 AM CUT</div><div style="font-size:20px;font-weight:800;">Rookie_Bagger</div></div></div></div>
+<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/maggie_may-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;"><div><div style="font-size:13px;font-weight:700;">TUESDAY 12:15 PM PAB SUI</div><div style="font-size:20px;font-weight:800;">Maggie_May</div></div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/Gryzzlybear-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;"><div><div style="font-size:13px;font-weight:700;">TUESDAY 1:15 PM CUT</div><div style="font-size:20px;font-weight:800;">Gryzzlybear</div></div></div></div>
+<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><img src="https://raw.githubusercontent.com/SF2021-dev/spades/main/jopisme-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #333;"><div><div style="font-size:13px;font-weight:700;">TUESDAY 4:15 PM SUI PASS 2</div><div style="font-size:16px;font-weight:800;">Looks__ &amp; Jopisme</div></div></div></div>
+<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><svg width="64" height="64" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg><div><div style="font-size:13px;font-weight:700;">TUESDAY 7:15 PM PARDS SUI</div><div style="font-size:16px;font-weight:800;">0UTLAND3R &amp; whocantplay</div></div></div></div>
+<div style="padding:14px 10px;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><svg width="64" height="64" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg><div><div style="font-size:13px;font-weight:700;">TUESDAY 11:15 PM CUT</div><div style="font-size:20px;font-weight:800;">EasyOne23</div></div></div></div>
 </div>
+<div style="padding:16px;border-top:3px solid #fbe646;">
+<div style="font-size:14px;font-weight:800;letter-spacing:0.14em;margin-bottom:10px;">TOP 25 RANKED PLAYERS</div>
+<div id="ds-rank" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;"></div>
 </div>
 <img src="https://github.com/SF2021-dev/spades/blob/main/diamondspaderslogo.jpg?raw=true" alt="Diamond Spaders" style="width:100%;height:auto;display:block;">
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:16px 10px 12px;">
 <a class="ds-link" href="https://www.myleague.com/diamondspaders/" target="_blank"><img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/home.jpg?raw=true" alt="">HOME</a>
 <a class="ds-link" href="https://www.myleague.com/diamondspaders/free-signup" target="_blank"><img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/sign%20up.jpg?raw=true" alt="">JOIN DIAMOND SPADERS</a>
 <a class="ds-link" href="https://tourneyking.com/app/home/" target="_blank"><img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/tourney%20king.jpg?raw=true" alt="">TOURNEYKING</a>
-<a class="ds-link" href="https://www.myleague.com/dagreathoudini/" target="_blank"><svg class="ds-ico" viewBox="0 0 36 36"><rect width="36" height="36" rx="8" fill="#120c08" stroke="#fbe646"/><circle cx="18" cy="14" r="5" fill="#fbe646"/><path d="M10 28 C10 22 26 22 26 28 Z" fill="#fbe646"/></svg>DAGREATHOUDINI</a>
+<a class="ds-link" href="https://sf2021-dev.github.io/spades/houdini.html" target="_blank"><svg class="ds-ico" viewBox="0 0 36 36"><rect width="36" height="36" rx="8" fill="#120c08" stroke="#fbe646"/><circle cx="18" cy="14" r="5" fill="#fbe646"/><path d="M10 28 C10 22 26 22 26 28 Z" fill="#fbe646"/></svg>DA GREAT HOUDINI</a>
 <a class="ds-link" href="https://docs.google.com/document/u/0/" target="_blank"><img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/docs.jpg?raw=true" alt="">GOOGLE DOCS</a>
 <a class="ds-link" href="https://drive.google.com/drive/my-drive" target="_blank"><img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/drive.jpg?raw=true" alt="">GOOGLE DRIVE</a>
 <a class="ds-link" href="https://sites.google.com/view/how-to-make-a-myleague-tour?usp=sharing" target="_blank"><img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/how%20to%20create%20a%20tour.jpg?raw=true" alt="">HOW TO CREATE A TOURNAMENT</a>
 <a class="ds-link" href="https://sites.google.com/view/copy-paste-0072?usp=sharing" target="_blank"><img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/windows%20cliopboard.jpg?raw=true" alt="">COPY &amp; PASTE, WINDOWS CLIPBOARD</a>
-<a class="ds-link" href="#" target="_blank"><img class="ds-ico" src="https://github.com/SF2021-dev/spades/blob/main/king%20coyote%20bind%20maker.jpg?raw=true" alt="">KING COYOTE BIND EDITOR</a>
-<a class="ds-link" href="https://www.webmd.com/" target="_blank"><svg class="ds-ico" viewBox="0 0 48 48"><rect width="48" height="48" rx="8" fill="#120c08" stroke="#fbe646"/><path d="M22 10 H26 V22 H38 V26 H26 V38 H22 V26 H10 V22 H22 Z" fill="#fbe646"/></svg>WEB MD</a>
-<a class="ds-link" href="https://www.wikipedia.org/" target="_blank"><svg class="ds-ico" viewBox="0 0 48 48"><rect width="48" height="48" rx="8" fill="#120c08" stroke="#fbe646"/><circle cx="24" cy="22" r="10" fill="none" stroke="#fbe646" stroke-width="2"/><text x="24" y="27" text-anchor="middle" font-size="16" font-weight="800" fill="#fbe646" font-family="Arial">W</text></svg>WIKIPEDIA</a>
-<a class="ds-link" href="https://www.petmd.com/" target="_blank"><svg class="ds-ico" viewBox="0 0 48 48"><rect width="48" height="48" rx="8" fill="#120c08" stroke="#fbe646"/><circle cx="16" cy="16" r="4" fill="#fbe646"/><circle cx="32" cy="16" r="4" fill="#fbe646"/><circle cx="12" cy="26" r="3.5" fill="#fbe646"/><circle cx="36" cy="26" r="3.5" fill="#fbe646"/><ellipse cx="24" cy="32" rx="8" ry="6" fill="#fbe646"/></svg>PET MD</a>
-<a class="ds-link" href="https://www.merriam-webster.com/" target="_blank"><svg class="ds-ico" viewBox="0 0 48 48"><rect width="48" height="48" rx="8" fill="#120c08" stroke="#fbe646"/><path d="M10 14 L24 18 L38 14 V36 L24 32 L10 36 Z" fill="none" stroke="#fbe646" stroke-width="2"/><path d="M24 18 V32" stroke="#fbe646" stroke-width="2"/></svg>DICTIONARY</a>
 </div>
 <img src="https://github.com/SF2021-dev/spades/blob/main/antifascist.jpg?raw=true" alt="" style="display:block;margin:12px auto 8px;max-width:180px;height:auto;">
 <div style="text-align:center;padding:16px 10px 24px;color:#c9a227;font-size:13px;font-weight:700;">©copyright 2026 Diamond Spaders, Wayward Cats &amp; Ochwiay</div>
@@ -153,24 +86,47 @@
 (function () {
   var U1 = "https://github.com/SF2021-dev/spades/blob/main/Untouchable_One-ava.png?raw=true";
   var FETCH = "https://github.com/SF2021-dev/spades/blob/main/fetch_it_up-ava.png?raw=true";
-  var ACEY = "https://raw.githubusercontent.com/SF2021-dev/spades/main/maggie_may-ava.png";
-  var BID = "https://github.com/SF2021-dev/spades/blob/main/SOLORYDER-ava.png?raw=true";
+  var BLU = "https://github.com/SF2021-dev/spades/blob/main/bluangel1953-ava.png?raw=true";
+  var SOLO = "https://github.com/SF2021-dev/spades/blob/main/SOLORYDER-ava.png?raw=true";
+  var SPADE = '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg>';
+  var SPADE_TD = '<svg class="ds-td" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#120c08"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg>';
+  var RANK = [
+    { n:"Looks__", a:"https://github.com/SF2021-dev/spades/blob/main/Looks__-ava.png?raw=true" },
+    { n:"illbid13" }, { n:"MsZigs" }, { n:"Me6052" }, { n:"slovell_too" },
+    { n:"CLaSSiKSPaDZPlaR" },
+    { n:"oooLAURAooo", a:"https://github.com/SF2021-dev/spades/blob/main/oooLAURAooo-ava.png?raw=true" },
+    { n:"K3ssy" }, { n:"0UTLAND3R", a:SOLO },
+    { n:"MEL1c1ous_1", a:"https://github.com/SF2021-dev/spades/blob/main/MEL1c1ous_1-ava.png?raw=true" },
+    { n:"Lil_Shopper", a:"https://github.com/SF2021-dev/spades/blob/main/Lil_shopper-ava.png?raw=true" },
+    { n:"SILKROLLZ" }, { n:"Huskernut50265" }, { n:"GOLDENGIRL2026" },
+    { n:"Duke413", a:SOLO }, { n:"whocantplay" }, { n:"Jbmusket42" }, { n:"deaddly" },
+    { n:"Untouchable_One", a:U1 },
+    { n:"Ochwiay", a:"https://github.com/SF2021-dev/spades/blob/main/ochwiay-ava.png?raw=true" },
+    { n:"MaKinpa", a:"https://github.com/SF2021-dev/spades/blob/main/makinpa-ava.png?raw=true" },
+    { n:"Eager_1", a:"https://github.com/SF2021-dev/spades/blob/main/Eager_1-ava.png?raw=true" },
+    { n:"CBL3355" }, { n:"chameleon3388" }, { n:"gooneybird" }
+  ];
+  var border = ["#fbe646","#c0c0c0","#cd7f32"];
+  var rh = "";
+  for (var i = 0; i < RANK.length; i++) {
+    var r = RANK[i];
+    rh += '<div style="background:#161616;border:1px solid '+(border[i]||"#444")+';border-radius:8px;padding:12px 6px 10px;"><div style="display:flex;align-items:center;justify-content:center;gap:6px;"><div class="rk">'+(r.a?'<img src="'+r.a+'" alt="">':SPADE)+'<b>#'+(i+1)+'</b></div><div style="color:#fff;font-size:13px;font-weight:700;">'+r.n+'</div></div></div>';
+  }
+  document.getElementById("ds-rank").innerHTML = rh;
   var TOURS = [
-    { h: 8, m: 15, game: "3Bid3Bags", td: "3Bid3Bags", url: "https://www.myleague.com/diamondspaders/tournament/11950560/", ava: BID },
-    { h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11948623/", ava: U1 },
-    { h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11949683/", ava: U1 },
-    { h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11949688/", ava: U1 },
-    { h: 12, m: 15, game: "SUI PAB", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11950723/", ava: U1 },
-    { h: 13, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11950722/", ava: U1 },
-    { h: 14, m: 15, game: "CUT MIRRORS", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11949977/", ava: U1 },
-    { h: 15, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11950816/", ava: U1 },
-    { h: 16, m: 15, game: "SUI PASS 2", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournament/11950670/", ava: FETCH },
-    { h: 17, m: 15, game: "PARDS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950314/", ava: ACEY },
-    { h: 19, m: 15, game: "PARDS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950316/", ava: ACEY },
-    { h: 20, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950317/", ava: ACEY },
-    { h: 21, m: 15, game: "PARDS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950318/", ava: ACEY },
-    { h: 22, m: 15, game: "LOSER WINS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950320/", ava: ACEY },
-    { h: 23, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950321/", ava: ACEY }
+    { h: 8, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournaments", ava: U1 },
+    { h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournaments", ava: U1 },
+    { h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournaments", ava: U1 },
+    { h: 11, m: 15, game: "CUT", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournaments", ava: FETCH },
+    { h: 15, m: 15, game: "CUT", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournaments", ava: FETCH },
+    { h: 16, m: 15, game: "2vs2", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournaments", ava: BLU },
+    { h: 17, m: 15, game: "REG PARTNERS", td: "BoneBidder", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 18, m: 15, game: "CUT", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournaments", ava: BLU },
+    { h: 19, m: 15, game: "SUICIDE PASS 2", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 20, m: 15, game: "SETTERS CHOICE SINGLES", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 21, m: 15, game: "REG PARTNERS", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 22, m: 15, game: "LOSER WINS SINGLES 1000/1", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 23, m: 15, game: "CUT", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" }
   ];
   var GAMES = TOURS.map(function (t) {
     var ap = t.h >= 12 ? "PM" : "AM";
@@ -191,9 +147,9 @@
       if (now.getTime() >= start.getTime() + 50 * 60 * 1000) continue;
       var gone = now.getTime() >= start.getTime() + 15 * 60 * 1000;
       html += '<div class="ds-tour-item">';
-      html += '<div class="ds-tour-text">' + amp(t.h) + '</div>';
-      if (t.ava) html += '<img class="ds-td" src="' + t.ava + '" alt="">';
       html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
+      html += '<div class="ds-tour-text">' + amp(t.h) + '</div>';
+      html += t.ava ? '<img class="ds-td" src="' + t.ava + '" alt="">' : SPADE_TD;
       html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + t.game + " w/ " + t.td + "</a></div>";
       html += "</div>";
     }

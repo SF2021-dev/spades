@@ -101,22 +101,20 @@
   var FETCH = "https://github.com/SF2021-dev/spades/blob/main/fetch_it_up-ava.png?raw=true";
   var ACEY = "https://raw.githubusercontent.com/SF2021-dev/spades/main/maggie_may-ava.png";
   var BID = "https://github.com/SF2021-dev/spades/blob/main/SOLORYDER-ava.png?raw=true";
-  var TOURS = [
-    { h: 8, m: 15, game: "3Bid3Bags", td: "3Bid3Bags", url: "https://www.myleague.com/diamondspaders/tournament/11950560/", ava: BID },
-    { h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11948623/", ava: U1 },
-    { h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11949683/", ava: U1 },
-    { h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11949688/", ava: U1 },
-    { h: 12, m: 15, game: "SUI PAB", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11950723/", ava: U1 },
-    { h: 13, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11950722/", ava: U1 },
-    { h: 14, m: 15, game: "CUT MIRRORS", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11949977/", ava: U1 },
-    { h: 15, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11950816/", ava: U1 },
-    { h: 16, m: 15, game: "SUI PASS 2", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournament/11950670/", ava: FETCH },
-    { h: 17, m: 15, game: "PARDS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950314/", ava: ACEY },
-    { h: 19, m: 15, game: "PARDS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950316/", ava: ACEY },
-    { h: 20, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950317/", ava: ACEY },
-    { h: 21, m: 15, game: "PARDS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950318/", ava: ACEY },
-    { h: 22, m: 15, game: "LOSER WINS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950320/", ava: ACEY },
-    { h: 23, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11950321/", ava: ACEY }
+   var TOURS = [
+    { h: 8, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournaments", ava: U1 },
+    { h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournaments", ava: U1 },
+    { h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournaments", ava: U1 },
+    { h: 11, m: 15, game: "CUT", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournaments", ava: FETCH },
+    { h: 15, m: 15, game: "CUT", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournaments", ava: FETCH },
+    { h: 16, m: 15, game: "2vs2", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 17, m: 15, game: "REG PARTNERS", td: "BoneBidder", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 18, m: 15, game: "CUT", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 19, m: 15, game: "SUICIDE PASS 2", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 20, m: 15, game: "SETTERS CHOICE SINGLES", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 21, m: 15, game: "REG PARTNERS", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 22, m: 15, game: "LOSER WINS SINGLES 1000/1", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" },
+    { h: 23, m: 15, game: "CUT", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournaments", ava: "" }
   ];
   var GAMES = TOURS.map(function (t) {
     var ap = t.h >= 12 ? "PM" : "AM";

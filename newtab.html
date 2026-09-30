@@ -54,7 +54,7 @@
             bottom: 56px;
             display: flex;
             flex-direction: column;
-            gap: 26px;
+            gap: 22px;
             z-index: 20;
             pointer-events: none;
         }
@@ -62,14 +62,14 @@
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 26px;
+            gap: 22px;
             pointer-events: auto;
         }
         .icon-wrapper {
-            height: 96px; width: 96px; border-radius: 14px; overflow: hidden;
+            height: clamp(110px, 8.5vw, 160px); width: clamp(110px, 8.5vw, 160px); border-radius: 18px; overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.75); transition: all 0.35s;
             cursor: pointer;
-            flex: 0 0 96px;
+            flex: 0 0 auto;
             background: rgba(0,0,0,0.25);
         }
         .icon-wrapper:hover {

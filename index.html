@@ -133,9 +133,9 @@
       if (now.getTime() >= start.getTime() + 50 * 60 * 1000) continue;
       var gone = now.getTime() >= start.getTime() + 15 * 60 * 1000;
       html += '<div class="ds-tour-item">';
-      html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
       html += '<div class="ds-tour-text">' + amp(t.h) + '</div>';
       if (t.ava) html += '<img class="ds-td" src="' + t.ava + '" alt="">';
+      html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
       html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + t.game + " w/ " + t.td + "</a></div>";
       html += "</div>";
     }

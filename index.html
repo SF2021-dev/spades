@@ -173,7 +173,7 @@
       html += '<span style="margin-left:-6px;display:flex;">' + (t.ava ? '<img class="ds-td" src="' + t.ava + '" alt="">' : SPADE_TD) + '</span>';
       html += "</div>";
     }
-    box.innerHTML = html;
+    if (box.getAttribute('data-h') !== html) { box.setAttribute('data-h', html); box.innerHTML = html; }
   }
   function tick() {
     var now = etNow();

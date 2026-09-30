@@ -149,8 +149,8 @@
       html += '<div class="ds-tour-item">';
       html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
       html += '<div class="ds-tour-text">' + amp(t.h) + '</div>';
-      html += t.ava ? '<img class="ds-td" src="' + t.ava + '" alt="">' : SPADE_TD;
       html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + t.game + " w/ " + t.td + "</a></div>";
+      html += '<span style="margin-left:auto;display:flex;">' + (t.ava ? '<img class="ds-td" src="' + t.ava + '" alt="">' : SPADE_TD) + '</span>';
       html += "</div>";
     }
     box.innerHTML = html;

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root { --bg: #0a0a0a; --text: #f0f0f0; --accent: #00d4ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg) center/cover no-repeat fixed;
+            color: var(--text);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            transition: background-image 0.8s ease;
+        }
+        .background {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(0, 212, 255, 0.06) 0%, rgba(10, 10, 10, 0.85) 65%);
+            pointer-events: none; z-index: 1;
+        }
+        .search {
+            position: absolute;
+            top: 12px; left: 20px;
+            width: calc(100% - 280px); max-width: 520px; padding: 0; z-index: 10;
+        }
+        .search-input {
+            width: 100%; padding: 14px 24px; font-size: 1.25rem; font-weight: 500;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08);
+            border-radius: 9999px; color: white; outline: none;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .search-input:focus {
+            border-color: var(--accent); background: rgba(255,255,255,0.11);
+            box-shadow: 0 0 0 14px rgba(0,212,255,0.18); transform: scale(1.015);
+        }
+        .clock {
+            position: absolute; top: 8px; right: 24px; font-size: 1.15rem; font-weight: 500;
+            color: rgba(255,255,255,0.85); z-index: 30; text-align: right;
+            line-height: 1.35;
+        }
+        .clock .est {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.7);
+            margin-top: 2px;
+        }
+        .icons-area {
+            position: absolute;
+            left: 24px;
+            right: 24px;
+            bottom: 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .icon-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+            pointer-events: auto;
+        }
+        .icon-wrapper {
+            height: 72px; width: 72px; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.75); transition: all 0.35s;
+            cursor: pointer;
+            flex: 0 0 72px;
+            background: rgba(0,0,0,0.25);
+        }
+        .icon-wrapper:hover {
+            transform: scale(1.08) translateY(-6px);
+            box-shadow: 0 16px 40px rgba(0,212,255,0.28);
+        }
+        .icon-wrapper img {
+            height: 100%; width: 100%; object-fit: contain; display: block;
+        }
+        .hint {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+            font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15;
+            white-space: nowrap;
+        }
+        .board { position: relative; height: 100vh; background: #000; }
+        .board iframe { width: 100%; height: calc(100% - 48px); border: 0; display: block; }
+        .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 48px; display: flex; align-items: center;
+               justify-content: center; background: #111; border-top: 2px solid var(--accent); color: #fff;
+               font: 600 1rem 'Inter', system-ui, sans-serif; text-decoration: none; z-index: 45; }
+        .bar:hover { background: #1c1c1c; color: var(--accent); }
+        .jump { position: absolute; right: 24px; top: 70px; z-index: 40; padding: 8px 16px;
+            font: 600 0.85rem 'Inter', system-ui, sans-serif; color: #fff; text-decoration: none;
+            background: rgba(0,0,0,0.65); border: 1px solid rgba(255,255,255,0.25); border-radius: 9999px; }
+        .jump:hover { border-color: var(--accent); color: var(--accent); }
+        .links { position: relative; height: 100vh; overflow: hidden; }
+    </style>
+</head>
+<body>
+    <section class="board" id="board">
+        <iframe id="board-frame" src="https://sf2021-dev.github.io/spades/" title="Diamond Spaders board"></iframe>
+        <a class="bar" href="#links">&#9660;&nbsp; My links (click here) &nbsp;&#9660;</a>
+    </section>
+    <section class="links" id="links">
+    <a class="jump" href="#board">Board &#9650;</a>
+    <div class="background"></div>
+    <div class="clock">
+        <div class="time" id="time">12:00 PM</div>
+        <div class="date" id="date">Tue, Apr 21</div>
+        <div class="est" id="est">EST 12:00:00</div>
+    </div>
+
+    <div class="search">
+        <form id="search-form" action="https://www.google.com/search" method="get" target="_blank">
+            <input type="text" id="search-input" class="search-input" name="q"
+                   placeholder="Search Google or ask anything..." autocomplete="off">
+        </form>
+    </div>
+
+    <div class="icons-area">
+        <div class="icon-row">
+            <a href="https://www.igl.net/tk/headtd/" target="_blank" class="icon-wrapper" title="IGL TD">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.igl.net&sz=128'" src="icons/htd.png" alt="htd">
+            </a>
+            <a href="https://tourneyking.com/app/home/" target="_blank" class="icon-wrapper" title="Tourney King">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=tourneyking.com&sz=128'" src="icons/tk.png" alt="Tourney King">
+            </a>
+            <a href="https://www.myleague.com/allspaders/tournament/11946653/" target="_blank" class="icon-wrapper" title="Tourney Kit">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="icons/ta.png" alt="Tourney Kit">
+            </a>
+            <a href="https://github.com/" target="_blank" class="icon-wrapper" title="GitHub">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=github.com&sz=128'" src="icons/gh.png" alt="github">
+            </a>
+            <a href="https://sites.google.com/" target="_blank" class="icon-wrapper" title="Google Sites">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=sites.google.com&sz=128'" src="icons/sites.png" alt="sites">
+            </a>
+            <a href="https://sf2021-dev.github.io/spades/" target="_blank" class="icon-wrapper" title="tours">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=sf2021-dev.github.io&sz=128'" src="icons/tours.png" alt="tours">
+            </a>
+            <a href="http://diamondspaders.com/" target="_blank" class="icon-wrapper" title="Diamond Spaders site">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.com&sz=128'" src="icons/dsalt.jpg" alt="dsalt">
+            </a>
+        </div>
+
+        <div class="icon-row">
+            <a href="https://www.myleague.com/allspaders/admin.html" target="_blank" class="icon-wrapper" title="MyLeague Administration">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="icons/admin.png" alt="admin">
+            </a>
+            <a href="https://www.myleague.com/allspaders/" target="_blank" class="icon-wrapper" title="All Spaders">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="icons/as.png" alt="All Spaders">
+            </a>
+            <a href="https://www.myleague.com/diamondspaders/" target="_blank" class="icon-wrapper" title="Diamond Spaders">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="icons/ds.png" alt="Diamond Spaders">
+            </a>
+            <a href="https://www.myleague.com/dagreathoudini/" target="_blank" class="icon-wrapper" title="houdini">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="icons/houdini.png" alt="houdini">
+            </a>
+            <a href="https://www.myleague.com/ams/" target="_blank" class="icon-wrapper" title="ams">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="icons/ams.png" alt="ams">
+            </a>
+            <a href="https://www.myleague.com/teamtfriends/index.php/" target="_blank" class="icon-wrapper" title="Team T Friends">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="icons/tfs.png" alt="Team T Friends">
+            </a>
+            <a href="https://docs.google.com/document/u/0/" target="_blank" class="icon-wrapper" title="Google Docs">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=docs.google.com&sz=128'" src="icons/docs.png" alt="docs">
+            </a>
+            <a href="https://drive.google.com/drive/my-drive" target="_blank" class="icon-wrapper" title="Google Drive">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=drive.google.com&sz=128'" src="icons/docs.png" alt="drive">
+            </a>
+            <a href="https://notepad.uk.com/" target="_blank" class="icon-wrapper" title="notepad">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=notepad.uk.com&sz=128'" src="icons/np.png" alt="np">
+            </a>
+        </div>
+
+        <div class="icon-row">
+            <a href="https://grok.com" target="_blank" class="icon-wrapper" title="Grok">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=grok.com&sz=128'" src="icons/grok.png" alt="Grok">
+            </a>
+            <a href="https://messages.google.com/web/" target="_blank" class="icon-wrapper" title="Messages">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=messages.google.com&sz=128'" src="icons/messages.png" alt="Messages">
+            </a>
+            <a href="https://mail.google.com" target="_blank" class="icon-wrapper" title="Gmail">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=mail.google.com&sz=128'" src="icons/gmail.png" alt="Gmail">
+            </a>
+            <a href="https://www.youtube.com" target="_blank" class="icon-wrapper" title="YouTube">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.youtube.com&sz=128'" src="icons/youtube.png" alt="YouTube">
+            </a>
+            <a href="https://www.walmart.com/" target="_blank" class="icon-wrapper" title="Walmart">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.walmart.com&sz=128'" src="icons/walmart.png" alt="walmart">
+            </a>
+            <a href="https://www.amazon.com" target="_blank" class="icon-wrapper" title="Amazon">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.amazon.com&sz=128'" src="icons/amazon.png" alt="Amazon">
+            </a>
+            <a href="https://www.giphy.com" target="_blank" class="icon-wrapper" title="Giphy">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.giphy.com&sz=128'" src="icons/giphy.png" alt="Giphy">
+            </a>
+            <a href="https://thepiratebay.org/index.html" target="_blank" class="icon-wrapper" title="The Pirate Bay">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=thepiratebay.org&sz=128'" src="icons/pb.png" alt="pb">
+            </a>
+        </div>
+    </div>
+
+    <div class="hint">
+        Press <span style="color:var(--accent)">Enter</span> to search Google •
+        <span style="color:var(--accent)">Esc</span> to clear
+    </div>
+    </section>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            document.getElementById('time').textContent = hours + ':' + minutes + ' ' + ampm;
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            document.getElementById('date').textContent = now.toLocaleDateString('en-US', options);
+            const estOptions = {
+                timeZone: 'America/New_York',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            };
+            document.getElementById('est').textContent = 'EST ' + now.toLocaleTimeString('en-US', estOptions);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        const form = document.getElementById('search-form');
+        const input = document.getElementById('search-input');
+        form.addEventListener('submit', function (e) {
+            const query = input.value.trim();
+            if (!query) {
+                e.preventDefault();
+                return;
+            }
+            setTimeout(function () { input.value = ''; }, 300);
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                input.value = '';
+                input.focus({ preventScroll: true });
+            }
+        });
+
+        setInterval(function () {
+            document.getElementById('board-frame').src = 'https://sf2021-dev.github.io/spades/?t=' + Date.now();
+        }, 300000);
+
+        document.body.addEventListener('click', function(e) {
+            if (e.target === document.body || e.target.classList.contains('background')) {
+                input.focus({ preventScroll: true });
+            }
+        });
+    </script>
+</body>
+</html>>

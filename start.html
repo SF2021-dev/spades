@@ -86,6 +86,20 @@
             white-space: nowrap;
         }
     </style>
+<script>
+/* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */
+(function () {
+  function check() {
+    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      var lm = new Date(r.headers.get("last-modified")).getTime(), mine = new Date(document.lastModified).getTime();
+      var tag = "stale-" + location.pathname + "-" + lm;
+      if (lm && mine && Math.abs(lm - mine) > 2000 && !sessionStorage.getItem(tag)) { sessionStorage.setItem(tag, "1"); location.reload(); }
+    }).catch(function () {});
+  }
+  check();
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
+})();
+</script>
 </head>
 <body>
     <div class="background"></div>

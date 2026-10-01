@@ -151,24 +151,29 @@
   var GAMES = TOURS.map(function (t) {
     var ap = t.h >= 12 ? "PM" : "AM";
     var h12 = t.h % 12 || 12;
-    return { h: t.h, m: t.m, label: h12 + ":15 " + ap + "  " + t.game };
+    return { dt: t.dt, h: t.h, m: t.m, label: h12 + ":15 " + ap + "  " + t.game };
   });
   function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function etDate(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
   function etNow() { return new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" })); }
   function amp(h) { return (h % 12 || 12) + ":15 " + (h >= 12 ? "PM" : "AM"); }
   function drawTours() {
     var now = etNow();
     var box = document.getElementById("ds-tours");
     var html = "";
+    var todayStr = etDate(now);
     for (var i = 0; i < TOURS.length; i++) {
       var t = TOURS[i];
+      var later = t.dt && t.dt > todayStr;
+      if (t.dt && t.dt < todayStr) continue;
       var start = new Date(now.getTime());
       start.setHours(t.h, t.m, 0, 0);
-      if (now.getTime() >= start.getTime() + 50 * 60 * 1000) continue;
-      var gone = now.getTime() >= start.getTime() + 15 * 60 * 1000;
+      if (!later && now.getTime() >= start.getTime() + 50 * 60 * 1000) continue;
+      var gone = !later && now.getTime() >= start.getTime() + 15 * 60 * 1000;
+      var dayTag = later ? ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(t.dt + "T12:00:00").getDay()] + " " : "";
       html += '<div class="ds-tour-item">';
       html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
-      html += '<div class="ds-tour-text">' + amp(t.h) + '</div>';
+      html += '<div class="ds-tour-text">' + dayTag + amp(t.h) + '</div>';
       html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + t.game + " w/ " + t.td + "</a></div>";
       html += '<span style="margin-left:-6px;display:flex;">' + (t.ava ? '<img class="ds-td" src="' + t.ava + '" alt="">' : SPADE_TD) + '</span>';
       html += "</div>";
@@ -179,6 +184,7 @@
     var now = etNow();
     var live = null, next = null, i;
     for (i = 0; i < GAMES.length; i++) {
+      if (GAMES[i].dt && GAMES[i].dt !== etDate(now)) continue;
       var start = new Date(now.getTime());
       start.setHours(GAMES[i].h, GAMES[i].m, 0, 0);
       var end = new Date(start.getTime() + 50 * 60 * 1000);

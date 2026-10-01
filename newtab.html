@@ -10,9 +10,12 @@
 </style>
 </head>
 <body>
-<iframe id="board-frame" src="https://diamondspaders.online/" title="Diamond Spaders board"></iframe>
+<iframe id="board-frame" src="about:blank" title="Diamond Spaders board"></iframe>
 <script>
-  setInterval(function () { document.getElementById('board-frame').src = 'https://diamondspaders.online/?t=' + Date.now(); }, 300000);
+  setInterval(load, 120000);
+  function load() { document.getElementById("board-frame").src = "https://diamondspaders.online/?t=" + Date.now(); }
+  load();
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) load(); });
 </script>
 </body>
 </html>

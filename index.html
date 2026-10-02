@@ -31,7 +31,7 @@
     }).catch(function () {});
   }
   check();
-  setInterval(function () { if (!document.hidden) location.reload(); }, 300000);
+  setInterval(function () { if (!document.hidden) check(); }, 120000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
 })();
 </script>

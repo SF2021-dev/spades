@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spades Leagues — Daily Stats</title>
+<style>
+  :root{--gold:#fbe646;--dim:#c9a227;--bg:#0a0a0a;--card:#151008;--line:#2e2410;}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 500px at 50% -100px,#2a1a06 0,#0a0a0a 70%) no-repeat,#0a0a0a;color:#fff;font-family:Arial,Helvetica,sans-serif;min-height:100vh}
+  .wrap{max-width:1100px;margin:0 auto;padding:18px 14px 40px}
+  header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--gold);padding-bottom:10px}
+  h1{margin:0;font-size:28px;color:var(--gold);letter-spacing:.04em}
+  .sub{color:var(--dim);font-size:13px;margin-top:3px}
+  a.back{color:var(--gold);text-decoration:none;border:1px solid #444;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;background:#161616}
+  a.back:hover{border-color:var(--gold)}
+  .bar{display:flex;flex-wrap:wrap;gap:10px 18px;margin:16px 0 10px;align-items:center}
+  .seg{display:inline-flex;border:1px solid #444;border-radius:9px;overflow:hidden}
+  .seg button{background:#161616;color:#ddd;border:0;border-right:1px solid #333;padding:8px 13px;font-size:13px;font-weight:700;cursor:pointer}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--gold);color:#111}
+  label.sw{font-size:13px;color:#ddd;display:flex;gap:6px;align-items:center;cursor:pointer}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px}
+  .chip{display:flex;align-items:center;gap:7px;border:1px solid #444;border-radius:20px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;background:#161616;user-select:none}
+  .chip i{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .chip.off{opacity:.38}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;position:relative}
+  svg{width:100%;height:auto;display:block}
+  .tip{position:absolute;pointer-events:none;background:#000d;border:1px solid var(--gold);border-radius:8px;padding:7px 10px;font-size:12px;line-height:1.5;display:none;z-index:5;white-space:nowrap}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-top:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;border-left-width:5px}
+  .card h3{margin:0 0 8px;font-size:17px;display:flex;justify-content:space-between;align-items:center}
+  .big{font-size:34px;font-weight:800;color:var(--gold);line-height:1}
+  .big small{font-size:13px;color:var(--dim);font-weight:700;margin-left:6px}
+  .trend{font-size:13px;font-weight:800;padding:3px 9px;border-radius:12px}
+  .up{background:#12351a;color:#52e07a}.down{background:#3a1414;color:#ff6b6b}.flat{background:#2b2b2b;color:#bbb}
+  .mini{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;font-size:12px;color:var(--dim)}
+  .mini b{display:block;color:#fff;font-size:16px}
+  .spark{margin-top:8px}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+  th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--dim);font-size:12px;letter-spacing:.08em;font-weight:800}
+  h2{color:var(--gold);font-size:18px;margin:22px 0 6px;letter-spacing:.04em}
+  .note{color:#8a7a50;font-size:12px;margin-top:18px;line-height:1.5}
+  .ds{box-shadow:0 0 0 1px #fbe64633}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>♠ LEAGUE STATS</h1><div class="sub" id="upd">Loading…</div></div>
+    <a class="back" href="/">← Back to the tour board</a>
+  </header>
+
+  <div class="bar">
+    <div class="seg" id="metric"></div>
+    <div class="seg" id="range"></div>
+    <label class="sw"><input type="checkbox" id="smooth" checked> 7-day average</label>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div class="panel"><svg id="chart" viewBox="0 0 1000 380"></svg><div class="tip" id="tip"></div></div>
+
+  <h2>Leagues at a glance</h2>
+  <div class="grid" id="cards"></div>
+
+  <h2>Ranking</h2>
+  <div class="panel"><table id="tbl"></table></div>
+
+  <div class="note">Counts come from each league's public tournament player lists, one entry per player per tour (partner tours count each person). A day is a full Eastern-time day and is added the next morning. History starts Aug 27, 2026 and grows daily. Trend compares the latest stretch with the stretch just before it.</div>
+</div>
+
+<script>
+(function(){
+var COLORS={diamondspaders:"#fbe646",hardwood:"#4fc3f7",teamtfriends:"#ff6fb5",ams:"#7be07b",dagreathoudini:"#ff9a3c",fantasyspaders:"#b48cff"};
+var METRICS=[["entries","Entries"],["uniq","Unique players"],["tours","Tours"],["ppt","Players per tour"]];
+var RANGES=[["7","7 days"],["14","14 days"],["30","30 days"],["all","All"]];
+var S={metric:"entries",range:"30",smooth:true,off:{}};
+var D=null, days=[];
+
+function val(day,L,m){var r=D.days[day]&&D.days[day][L];if(!r)return null;
+  if(m==="tours")return r[0]; if(m==="entries")return r[1]; if(m==="uniq")return r[2];
+  return r[0]?r[1]/r[0]:0;}
+function avg(a){var s=0,n=0;a.forEach(function(x){if(x!=null){s+=x;n++}});return n?s/n:0}
+function fmt(x,m){return m==="ppt"?x.toFixed(1):(x>=100?Math.round(x):x.toFixed(x<10?1:0))}
+function el(t,a,h){var e=document.createElement(t);for(var k in a||{})e.setAttribute(k,a[k]);if(h!=null)e.innerHTML=h;return e}
+function nice(day){var d=new Date(day+"T12:00:00");return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})}
+
+function visibleDays(){var n=S.range==="all"?days.length:Math.min(+S.range,days.length);return days.slice(days.length-n)}
+function series(L,m,ds){
+  var out=ds.map(function(d){return val(d,L,m)});
+  if(!S.smooth)return out;
+  return ds.map(function(d,i){var idx=days.indexOf(d),w=[];for(var k=Math.max(0,idx-6);k<=idx;k++)w.push(val(days[k],L,m));return avg(w)})
+}
+
+function buildControls(){
+  var m=document.getElementById("metric"),r=document.getElementById("range");
+  METRICS.forEach(function(x){var b=el("button",{},x[1]);b.onclick=function(){S.metric=x[0];render()};b.dataset.k=x[0];m.appendChild(b)});
+  RANGES.forEach(function(x){var b=el("button",{},x[1]);b.onclick=function(){S.range=x[0];render()};b.dataset.k=x[0];r.appendChild(b)});
+  document.getElementById("smooth").onchange=function(){S.smooth=this.checked;render()};
+  var c=document.getElementById("chips");
+  D.leagues.forEach(function(L){var ch=el("div",{"class":"chip"},'<i style="background:'+COLORS[L.id]+'"></i>'+L.name);
+    ch.onclick=function(){S.off[L.id]=!S.off[L.id];render()};ch.dataset.k=L.id;c.appendChild(ch)});
+}
+
+function svg0(){return document.getElementById("chart")}
+function drawChart(){
+  var svg=document.getElementById("chart"),W=Math.max(320,svg0().parentNode.clientWidth-24),H=W<600?300:380,P={l:44,r:14,t:16,b:34};
+  svg.setAttribute("viewBox","0 0 "+W+" "+H);svg.setAttribute("preserveAspectRatio","xMidYMid meet");
+  svg.innerHTML="";
+  var ds=visibleDays(),ls=D.leagues.filter(function(L){return !S.off[L.id]});
+  var all=[],ser={};
+  ls.forEach(function(L){ser[L.id]=series(L.id,S.metric,ds);ser[L.id].forEach(function(v){if(v!=null)all.push(v)})});
+  var max=Math.max.apply(null,all.concat([1]));
+  var step=Math.pow(10,Math.floor(Math.log10(max)));var top=Math.ceil(max/(step/2))*(step/2);if(top<=0)top=1;
+  function X(i){return P.l+(ds.length<2?0:i*(W-P.l-P.r)/(ds.length-1))}
+  function Y(v){return H-P.b-(v/top)*(H-P.t-P.b)}
+  var g="";
+  for(var k=0;k<=5;k++){var v=top*k/5,y=Y(v);g+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'" stroke="#2e2410"/><text x="'+(P.l-8)+'" y="'+(y+4)+'" fill="#c9a227" font-size="12" text-anchor="end">'+(S.metric==="ppt"?v.toFixed(1):Math.round(v))+'</text>'}
+  var every=Math.ceil(ds.length/9);
+  ds.forEach(function(d,i){if(i%every===0||i===ds.length-1)g+='<text x="'+X(i)+'" y="'+(H-10)+'" fill="#c9a227" font-size="12" text-anchor="middle">'+nice(d)+'</text>'});
+  ls.forEach(function(L){
+    var pts=ser[L.id],path="";
+    pts.forEach(function(v,i){if(v==null)return;path+=(path?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)});
+    var w=L.id==="diamondspaders"?3.6:2.4;
+    g+='<path d="'+path+'" fill="none" stroke="'+COLORS[L.id]+'" stroke-width="'+w+'" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
+    if(ds.length<=31)pts.forEach(function(v,i){if(v!=null)g+='<circle cx="'+X(i)+'" cy="'+Y(v)+'" r="2.6" fill="'+COLORS[L.id]+'"/>'});
+  });
+  g+='<line id="hl" x1="0" x2="0" y1="'+P.t+'" y2="'+(H-P.b)+'" stroke="#fbe646" stroke-opacity=".5" style="display:none"/>';
+  svg.innerHTML=g;
+  var tip=document.getElementById("tip"),hl=svg.querySelector("#hl"),panel=svg.parentNode;
+  svg.onmousemove=function(e){
+    var rc=svg.getBoundingClientRect(),x=(e.clientX-rc.left)/rc.width*W;
+    var i=Math.round((x-P.l)/((W-P.l-P.r)/Math.max(1,ds.length-1)));i=Math.max(0,Math.min(ds.length-1,i));
+    hl.setAttribute("x1",X(i));hl.setAttribute("x2",X(i));hl.style.display="";
+    var rows=ls.map(function(L){var v=ser[L.id][i];return '<div><span style="color:'+COLORS[L.id]+'">●</span> '+L.name+': <b>'+(v==null?"–":fmt(v,S.metric))+'</b></div>'}).join("");
+    tip.innerHTML='<div style="color:#fbe646;font-weight:800">'+nice(ds[i])+'</div>'+rows;tip.style.display="block";
+    var px=X(i)/W*rc.width, pr=panel.getBoundingClientRect();
+    tip.style.left=Math.min(px+22, pr.width-tip.offsetWidth-14)+"px";tip.style.top="20px";
+  };
+  svg.onmouseleave=function(){tip.style.display="none";hl.style.display="none"};
+}
+
+function stats(L,m){
+  var n=days.length,N=S.range==="all"?Math.floor(n/2):Math.min(+S.range,Math.floor(n/2));
+  var cur=days.slice(n-N).map(function(d){return val(d,L,m)}), prev=days.slice(n-2*N,n-N).map(function(d){return val(d,L,m)});
+  var vd=visibleDays().map(function(d){return val(d,L,m)});
+  var a=avg(vd),c=avg(cur),p=avg(prev),ch=p?(c-p)/p*100:0;
+  return {avg:a,cur:c,prev:p,ch:ch,N:N,vals:vd};
+}
+function trendHTML(ch){var cls=ch>3?"up":ch<-3?"down":"flat",ar=ch>3?"▲":ch<-3?"▼":"▬";return '<span class="trend '+cls+'">'+ar+' '+(ch>0?"+":"")+ch.toFixed(0)+'%</span>'}
+function spark(vals,color){
+  var W=300,H=46,mx=Math.max.apply(null,vals.concat([1])),mn=Math.min.apply(null,vals.concat([mx]));
+  if(mx===mn){mx=mn+1}
+  var d="";vals.forEach(function(v,i){var x=i*(W/Math.max(1,vals.length-1)),y=H-3-((v-mn)/(mx-mn))*(H-8);d+=(i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1)});
+  return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="height:46px"><path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="2.4" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>'
+}
+
+function drawCards(){
+  var cards=document.getElementById("cards");cards.innerHTML="";
+  var order=D.leagues.slice().sort(function(a,b){return stats(b.id,"entries").avg-stats(a.id,"entries").avg});
+  var mlabel=METRICS.filter(function(x){return x[0]===S.metric})[0][1];
+  order.forEach(function(L){
+    var s=stats(L.id,S.metric),t=stats(L.id,"tours"),e=stats(L.id,"entries"),u=stats(L.id,"uniq");
+    var c=el("div",{"class":"card"+(L.id==="diamondspaders"?" ds":""),style:"border-left-color:"+COLORS[L.id]});
+    c.innerHTML='<h3><span>'+L.name+'</span>'+trendHTML(s.ch)+'</h3>'+
+      '<div class="big">'+fmt(s.avg,S.metric)+'<small>'+mlabel.toLowerCase()+' / day</small></div>'+
+      spark(s.vals.map(function(v){return v==null?0:v}),COLORS[L.id])+
+      '<div class="mini"><div><b>'+fmt(t.avg,"tours")+'</b>tours / day</div><div><b>'+fmt(e.avg,"entries")+'</b>entries / day</div><div><b>'+fmt(u.avg,"uniq")+'</b>players / day</div></div>';
+    cards.appendChild(c);
+  });
+}
+function drawTable(){
+  var rows=D.leagues.map(function(L){var e=stats(L.id,"entries"),t=stats(L.id,"tours"),u=stats(L.id,"uniq");return {L:L,e:e,t:t,u:u,ppt:t.avg?e.avg/t.avg:0}}).sort(function(a,b){return b.e.avg-a.e.avg});
+  var h='<tr><th>LEAGUE</th><th>TOURS / DAY</th><th>ENTRIES / DAY</th><th>PLAYERS / DAY</th><th>PER TOUR</th><th>TREND</th></tr>';
+  rows.forEach(function(r){h+='<tr><td><span style="color:'+COLORS[r.L.id]+'">●</span> <b>'+r.L.name+'</b></td><td>'+fmt(r.t.avg,"tours")+'</td><td>'+fmt(r.e.avg,"entries")+'</td><td>'+fmt(r.u.avg,"uniq")+'</td><td>'+r.ppt.toFixed(1)+'</td><td>'+trendHTML(r.e.ch)+'</td></tr>'});
+  document.getElementById("tbl").innerHTML=h;
+}
+function render(){
+  document.querySelectorAll("#metric button").forEach(function(b){b.classList.toggle("on",b.dataset.k===S.metric)});
+  document.querySelectorAll("#range button").forEach(function(b){b.classList.toggle("on",b.dataset.k===S.range)});
+  document.querySelectorAll(".chip").forEach(function(c){c.classList.toggle("off",!!S.off[c.dataset.k])});
+  drawChart();drawCards();drawTable();
+}
+window.addEventListener("resize",function(){if(D)drawChart()});
+fetch("data.json?t="+Date.now()).then(function(r){return r.json()}).then(function(d){
+  D=d;days=Object.keys(d.days).sort();
+  document.getElementById("upd").textContent="Updated "+d.updated+" · "+days.length+" days of history ("+nice(days[0])+" – "+nice(days[days.length-1])+")";
+  buildControls();render();
+}).catch(function(){document.getElementById("upd").textContent="Couldn't load the stats data."});
+})();
+</script>
+</body>
+</html>

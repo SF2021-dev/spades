@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Play in a Diamonds Tournament — Diamond Spaders</title>
+  <meta name="description" content="Four quick steps to play in a Diamond Spaders tournament: install Hardwood Spades, join the league on MyLeague, register for a tour, and play.">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #0a0a0a; overflow-x: hidden; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #fbe646; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+    img { max-width: 100%; height: auto; }
+    a { color: #fbe646; }
+    .wrap { width: 100%; max-width: 1100px; margin: 0 auto; background: #0a0a0a; }
+    .banner { width: 100%; height: auto; max-height: 160px; object-fit: contain; display: block; background: #0a0a0a; }
+
+    .hero { text-align: center; padding: 28px 20px 26px; background: #120c08; border-top: 2px solid #fbe646; border-bottom: 2px solid #fbe646; }
+    .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.22em; color: #c9a227; text-transform: uppercase; }
+    .hero h1 { margin: 8px 0 10px; font-size: clamp(26px, 4.6vw, 44px); line-height: 1.1; font-weight: 800; color: #fbe646; letter-spacing: 0.01em; }
+    .hero p { margin: 0 auto; max-width: 640px; font-size: clamp(14px, 1.7vw, 17px); color: #e8dca0; }
+    .jump { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
+    .jump a { text-decoration: none; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 12px; border: 1px solid #444; border-radius: 999px; background: #161616; color: #fbe646; }
+    .jump a:hover, .jump a:focus-visible { border-color: #fbe646; background: #2a1608; }
+
+    .steps { padding: 22px 16px 8px; display: grid; gap: 18px; }
+    .step { display: grid; grid-template-columns: 120px minmax(0, 1fr); background: #161616; border: 1px solid #3a3020; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.45); scroll-margin-top: 12px; }
+    .num { display: flex; align-items: flex-start; justify-content: center; padding: 18px 0 0; background: linear-gradient(180deg, #2a1608 0%, #120c08 100%); border-right: 2px solid #c9a227; }
+    .num span { font-size: 84px; line-height: 1; font-weight: 800; color: #fbe646; text-shadow: 0 2px 0 #7a5f10, 0 0 18px rgba(251,230,70,0.25); font-variant-numeric: tabular-nums; }
+    .body { padding: 20px 24px 22px; min-width: 0; }
+    .step h2 { margin: 0 0 4px; font-size: clamp(20px, 2.6vw, 28px); line-height: 1.2; font-weight: 800; color: #fbe646; }
+    .lead { margin: 0 0 14px; color: #c9a227; font-size: 14px; font-weight: 700; letter-spacing: 0.04em; }
+    .step p, .step li { color: #f1e7b8; font-size: 16px; }
+    .step p { margin: 0 0 12px; }
+    ol.list { margin: 0 0 14px; padding: 0; list-style: none; counter-reset: li; }
+    ol.list li { position: relative; padding: 0 0 0 38px; margin: 0 0 10px; counter-increment: li; overflow-wrap: anywhere; }
+    ol.list li::before { content: counter(li); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: #120c08; border: 1px solid #c9a227; color: #fbe646; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+    .step strong { color: #fbe646; }
+    .shot { margin: 4px 0 16px; border: 1px solid #c9a227; border-radius: 10px; overflow: hidden; background: #000; }
+    .shot img { display: block; width: 100%; height: auto; }
+    .btns { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 12px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 16px; letter-spacing: 0.03em; padding: 13px 20px; border-radius: 10px; border: 2px solid #fbe646; color: #120c08; background: linear-gradient(180deg, #fbe646 0%, #c9a227 100%); box-shadow: 0 3px 0 #7a5f10; max-width: 100%; text-align: center; }
+    .btn:hover, .btn:focus-visible { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn.alt { background: #120c08; color: #fbe646; box-shadow: none; border-color: #c9a227; font-size: 14px; padding: 11px 16px; }
+    .btn.alt:hover, .btn.alt:focus-visible { background: #2a1608; border-color: #fbe646; }
+    .btn svg { width: 22px; height: 22px; flex: 0 0 auto; }
+    .tip { margin: 6px 0 0; padding: 12px 14px; border-left: 4px solid #c9a227; background: #120c08; border-radius: 0 8px 8px 0; color: #e8dca0; font-size: 14px; }
+    .tip b { color: #fbe646; }
+
+    .back { text-align: center; padding: 18px 16px 26px; }
+    .back a { display: inline-block; text-decoration: none; font-weight: 800; font-size: 18px; letter-spacing: 0.05em; padding: 12px 22px; border: 2px solid #fbe646; border-radius: 10px; background: #120c08; color: #fbe646; }
+    .back a:hover, .back a:focus-visible { background: #2a1608; }
+
+    .logo { width: 100%; height: auto; display: block; border-top: 3px solid #fbe646; }
+    .links { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 16px 10px 12px; }
+    .ds-link { display:flex; flex-direction:column; align-items:center; gap:6px; text-decoration:none; color:#fbe646; padding:10px 6px; border:1px solid #444; border-radius:10px; background:#161616; font-size:11px; font-weight:800; letter-spacing:0.04em; text-align:center; line-height:1.2; overflow-wrap:anywhere; }
+    .ds-link:hover { border-color:#fbe646; background:#2a1608; }
+    .ds-ico { width:48px; height:48px; object-fit:cover; border-radius:8px; display:block; }
+    .copy { text-align:center; padding:16px 10px 24px; color:#c9a227; font-size:13px; font-weight:700; }
+
+    @media (max-width: 760px) {
+      .step { grid-template-columns: minmax(0, 1fr); }
+      .num { justify-content: flex-start; align-items: center; padding: 12px 20px; border-right: 0; border-bottom: 2px solid #c9a227; }
+      .num span { font-size: 56px; }
+      .body { padding: 16px 16px 18px; }
+      .links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .btn { width: 100%; }
+    }
+    @media (max-width: 380px) {
+      .steps { padding: 16px 10px 6px; }
+      .step p, .step li { font-size: 15px; }
+    }
+  </style>
+<script>
+/* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */
+(function () {
+  function check() {
+    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      var lm = new Date(r.headers.get("last-modified")).getTime(), mine = new Date(document.lastModified).getTime();
+      var tag = "stale-" + location.pathname + "-" + lm;
+      if (lm && mine && Math.abs(lm - mine) > 2000 && !sessionStorage.getItem(tag)) { sessionStorage.setItem(tag, "1"); location.reload(); }
+    }).catch(function () {});
+  }
+  check();
+  setInterval(function () { if (!document.hidden) check(); }, 120000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
+})();
+</script>
+<script data-goatcounter="https://ochwiay.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+<a href="https://diamondspaders.online/"><img class="banner" src="https://diamondspaders.online/dsaltbanner.png" alt="Diamond Spaders"></a>
+
+<header class="hero">
+  <div class="eyebrow">Diamond Spaders &middot; New player guide</div>
+  <h1>How to Play in a Diamonds Tournament</h1>
+  <p>Four quick steps from download to your first table. All tour times are Eastern (ET).</p>
+  <nav class="jump" aria-label="Steps">
+    <a href="#install">1 &middot; Install</a>
+    <a href="#join">2 &middot; Join</a>
+    <a href="#register">3 &middot; Register</a>
+    <a href="#play">4 &middot; Play</a>
+  </nav>
+</header>
+
+<main class="steps">
+
+  <section class="step" id="install">
+    <div class="num" aria-hidden="true"><span>1</span></div>
+    <div class="body">
+      <h2>Install Hardwood Spades</h2>
+      <div class="lead">Free to play &middot; this is where every tour is played</div>
+      <figure class="shot" style="margin-left:0;margin-right:0;">
+        <img src="hardwood-spades.jpg" width="1052" height="591" alt="Hardwood Spades game table with players around a stone courtyard and a hand of cards" loading="lazy">
+      </figure>
+      <div class="btns">
+        <a class="btn" href="https://play.google.com/store/apps/details?id=com.silvercrk.spades_free" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#120c08" d="M4 2.5v19c0 .4.4.6.7.4L21 12.4c.3-.2.3-.6 0-.8L4.7 2.1c-.3-.2-.7 0-.7.4Z"/></svg>
+          Get it on Google Play
+        </a>
+        <a class="btn alt" href="https://apps.apple.com/us/app/hardwood-spades/id897713434" target="_blank" rel="noopener">iPhone / iPad (App Store)</a>
+        <a class="btn alt" href="https://www.hardwoodgames.com/downloads/" target="_blank" rel="noopener">Windows / Mac download</a>
+      </div>
+      <p>Install the game, open it, and create your Hardwood account. <strong>Remember your username</strong> &mdash; you will use the same name on MyLeague.</p>
+    </div>
+  </section>
+
+  <section class="step" id="join">
+    <div class="num" aria-hidden="true"><span>2</span></div>
+    <div class="body">
+      <h2>Join Diamond Spaders</h2>
+      <div class="lead">Our league lives on MyLeague.com &middot; free</div>
+      <ol class="list">
+        <li>Open the <a href="https://www.myleague.com/diamondspaders/" target="_blank" rel="noopener">Diamond Spaders league page</a>.</li>
+        <li>Click <strong>FREE Sign Up</strong> (top menu) to open the &ldquo;Join diamondspaders&rdquo; form.</li>
+        <li>Pick a <strong>Username</strong> &mdash; use the <strong>same name you use in Hardwood Spades</strong> so the TDs can find you.</li>
+        <li>Enter a password (min 8 characters, letters &amp; numbers), your birthday and email, then click <strong>Join MyLeague</strong> and finish the second step.</li>
+        <li>Already have a MyLeague account? Just log in at the top of the league page.</li>
+      </ol>
+      <div class="btns">
+        <a class="btn" href="https://www.myleague.com/diamondspaders/free-signup" target="_blank" rel="noopener">Join Diamond Spaders</a>
+        <a class="btn alt" href="https://www.myleague.com/diamondspaders/" target="_blank" rel="noopener">League home</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="step" id="register">
+    <div class="num" aria-hidden="true"><span>3</span></div>
+    <div class="body">
+      <h2>Register for a tour</h2>
+      <div class="lead">Sign up before the start time &middot; times are Eastern (ET)</div>
+      <ol class="list">
+        <li>Log in on MyLeague and find a tour under <strong>Upcoming Tournaments</strong> on the league home page, or in the <a href="https://www.myleague.com/diamondspaders/tournaments" target="_blank" rel="noopener">Tournament Calendar</a> on the Tournaments tab.</li>
+        <li>Pick a tour &mdash; each one lists its start time, format (CUT, SINGLES, PARDS&hellip;) and TD.</li>
+        <li>Click <strong>(Register)</strong> before the start time. For partners tours, sign up with your partner.</li>
+        <li>If the tour shows a check-in, check in as soon as it opens.</li>
+      </ol>
+      <div class="btns">
+        <a class="btn" href="https://www.myleague.com/diamondspaders/tournaments" target="_blank" rel="noopener">Tournament calendar</a>
+        <a class="btn alt" href="https://diamondspaders.online/" target="_blank" rel="noopener">Today&rsquo;s tours on diamondspaders.online</a>
+      </div>
+      <p class="tip"><b>Shortcut:</b> upcoming tours are listed on <a href="https://diamondspaders.online/">diamondspaders.online</a> with a <b>JOIN</b> button that takes you straight to the tour.</p>
+    </div>
+  </section>
+
+  <section class="step" id="play">
+    <div class="num" aria-hidden="true"><span>4</span></div>
+    <div class="body">
+      <h2>Instructions for play</h2>
+      <div class="lead">Short &amp; practical</div>
+      <ol class="list">
+        <li>Be online in Hardwood Spades a few minutes before start time, logged in with the <strong>same username</strong> you registered with.</li>
+        <li>Go to online play and head to the <strong>DiamondSpaders</strong> game room / tournament lobby.</li>
+        <li>Wait to be seated with your opponents (and your partner in partners tours).</li>
+        <li>Play your match. Results post automatically or are reported by the TD &mdash; follow the TD&rsquo;s instructions.</li>
+        <li>Keep advancing round after round until you are eliminated &mdash; or you win the tour.</li>
+        <li>Be a good sport: no quitting mid-game, keep chat friendly, and say &ldquo;gg&rdquo;.</li>
+      </ol>
+      <p class="tip"><b>Questions?</b> Ask the tour&rsquo;s TD or a league admin on the <a href="https://www.myleague.com/diamondspaders/" target="_blank" rel="noopener">league page</a>.</p>
+    </div>
+  </section>
+
+</main>
+
+<div class="back"><a href="https://diamondspaders.online/">&larr; Back to Diamond Spaders</a></div>
+
+<img class="logo" src="https://diamondspaders.online/diamondspaderslogo.jpg" alt="Diamond Spaders" loading="lazy">
+<div class="links">
+<a class="ds-link" href="https://www.myleague.com/diamondspaders/" target="_blank"><img class="ds-ico" src="https://diamondspaders.online/home.jpg" alt="">HOME</a>
+<a class="ds-link" href="https://www.myleague.com/diamondspaders/free-signup" target="_blank"><img class="ds-ico" src="https://diamondspaders.online/sign%20up.jpg" alt="">JOIN DIAMOND SPADERS</a>
+<a class="ds-link" href="https://tourneyking.com/app/home/" target="_blank"><img class="ds-ico" src="https://diamondspaders.online/tourney%20king.jpg" alt="">TOURNEYKING</a>
+<a class="ds-link" href="https://www.myleague.com/dagreathoudini/" target="_blank"><svg class="ds-ico" viewBox="0 0 36 36"><rect width="36" height="36" rx="8" fill="#120c08" stroke="#fbe646"/><circle cx="18" cy="14" r="5" fill="#fbe646"/><path d="M10 28 C10 22 26 22 26 28 Z" fill="#fbe646"/></svg>DA GREAT HOUDINI</a>
+<a class="ds-link" href="https://docs.google.com/document/u/0/" target="_blank"><img class="ds-ico" src="https://diamondspaders.online/docs.jpg" alt="">GOOGLE DOCS</a>
+<a class="ds-link" href="https://drive.google.com/drive/my-drive" target="_blank"><img class="ds-ico" src="https://diamondspaders.online/drive.jpg" alt="">GOOGLE DRIVE</a>
+<a class="ds-link" href="https://sites.google.com/view/how-to-make-a-myleague-tour?usp=sharing" target="_blank"><img class="ds-ico" src="https://diamondspaders.online/how%20to%20create%20a%20tour.jpg" alt="">HOW TO CREATE A TOURNAMENT</a>
+<a class="ds-link" href="https://sites.google.com/view/copy-paste-0072?usp=sharing" target="_blank"><img class="ds-ico" src="https://diamondspaders.online/windows%20cliopboard.jpg" alt="">COPY &amp; PASTE, WINDOWS CLIPBOARD</a>
+</div>
+<img src="https://diamondspaders.online/antifascist.jpg" alt="" style="display:block;margin:12px auto 8px;max-width:180px;height:auto;" loading="lazy">
+<div class="copy">©copyright 2026 Diamond Spaders, Wayward Cats &amp; Ochwiay</div>
+</div>
+</body>
+</html>

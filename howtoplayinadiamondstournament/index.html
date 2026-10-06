@@ -36,6 +36,9 @@
     ol.list li::before { content: counter(li); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: #120c08; border: 1px solid #c9a227; color: #fbe646; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
     .step strong { color: #fbe646; }
     .shot { margin: 4px 0 16px; border: 1px solid #c9a227; border-radius: 10px; overflow: hidden; background: #000; }
+    .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 4px 0 16px; }
+    .shots .shot { margin: 0; }
+    @media (max-width: 480px) { .shots { grid-template-columns: 1fr; } }
     .shot img { display: block; width: 100%; height: auto; }
     .btns { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 12px; }
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; font-weight: 800; font-size: 16px; letter-spacing: 0.03em; padding: 13px 20px; border-radius: 10px; border: 2px solid #fbe646; color: #120c08; background: linear-gradient(180deg, #fbe646 0%, #c9a227 100%); box-shadow: 0 3px 0 #7a5f10; max-width: 100%; text-align: center; }
@@ -110,12 +113,14 @@
     <div class="body">
       <h2>Install Hardwood Spades</h2>
       <div class="lead">Free to play &middot; this is where every tour is played</div>
+      <div class="shots">
       <figure class="shot" style="margin-left:0;margin-right:0;">
         <img src="hardwood-table.jpg" width="1915" height="1072" alt="Hardwood Spades game in progress with BluAngel1950, SILK ROLLZ and Im_Already_Gone" loading="lazy">
       </figure>
       <figure class="shot" style="margin-left:0;margin-right:0;">
         <img src="hardwood-lobby.jpg" width="1920" height="1080" alt="Hardwood Spades Diamonds Spaders game room with the TD running a tour in chat" loading="lazy">
       </figure>
+      </div>
       <div class="btns">
         <a class="btn" href="https://play.google.com/store/apps/details?id=com.silvercrk.spades_free" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#120c08" d="M4 2.5v19c0 .4.4.6.7.4L21 12.4c.3-.2.3-.6 0-.8L4.7 2.1c-.3-.2-.7 0-.7.4Z"/></svg>

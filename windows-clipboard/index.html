@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>copy/paste -- Windows clipboard | Diamond Spaders</title>
+<style>
+body{margin:0;background:#000;color:#eee;font-family:Verdana,Arial,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 48px}
+h1{color:#fbe646;font-size:26px;margin:6px 0 4px}
+h2{color:#fbe646;font-size:15px;letter-spacing:2px;text-transform:uppercase;border-bottom:2px solid #fbe646;padding-bottom:6px;margin:30px 0 12px}
+.card{background:#1a1200;border:1px solid #3a2c00;border-radius:8px;padding:14px 16px;margin-bottom:14px;font-size:16px;line-height:1.6}
+.card p{margin:0 0 10px}.card p:last-child{margin:0}
+ul{margin:0;padding-left:22px}li{margin-bottom:8px}
+.note{border-left:4px solid #fbe646}
+.note b{color:#fbe646}
+img.shot{display:block;max-width:100%;height:auto;margin:12px auto 0;border-radius:6px;border:1px solid #3a2c00;background:#fff}
+.practice-text{display:inline-block;background:#fbe646;color:#000;font-weight:700;padding:2px 10px;border-radius:4px}
+textarea,.pastebox{width:100%;box-sizing:border-box;margin-top:10px;background:#0a0a0a;color:#eee;border:1px dashed #fbe646;border-radius:6px;padding:10px;font:15px Verdana,Arial,sans-serif}
+textarea{height:170px}
+.pastebox{min-height:150px;overflow:auto}
+.pastebox img{max-width:120px;height:auto;margin:4px}
+.pastebox:empty:before{content:attr(data-ph);color:#777}
+a{color:#fbe646}.back{font-size:13px}
+</style>
+<script data-goatcounter="https://ochwiay.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head><body><div class="wrap">
+<div class="back"><a href="https://diamondspaders.online/">&larr; diamondspaders.online</a></div>
+<h1>copy/paste -- Windows clipboard</h1>
+
+<h2>1- highlighting text</h2>
+<div class="card"><ul>
+<li>Place your mouse cursor at the beginning of the text you want to highlight. Hold down the left mouse button and slide the cursor to the right.</li>
+<li>Release the left button.</li>
+<li>Hover over the text you highlighted and press your right mouse button-- a menu will appear. Select "copy".</li>
+</ul></div>
+<div class="card"><p>The text you copied will stay on your clipboard until you remove it, or Windows removes it when you copy something new and it has become the oldest item on your clipboard.</p>
+<img class="shot" src="step1.jpg" width="784" height="1168" alt="Example image" style="max-width:min(100%,420px)" loading="lazy"></div>
+
+<h2>2- copying an image</h2>
+<div class="card"><p>To copy an image, hover over with your mouse cursor and press your right mouse button. A menu will appear. If your clipboard has access to the image, one of the options will be 'copy'.</p>
+<img class="shot" src="step2.png" width="836" height="708" alt="Right-click menu with Copy image" loading="lazy"></div>
+
+<h2>3- pasting</h2>
+<div class="card"><p>To paste an item from your clipboard, if it is the last item you copied, position your cursor where you want it to go and press your right mouse button-- from the menu, select 'paste'.</p>
+<img class="shot" src="step3.png" width="167" height="485" alt="Right-click menu with Paste" loading="lazy"></div>
+<div class="card"><p>If it is not the last item, position your cursor where you want it, then hold down the Windows key and press the letter 'V' (for "view"). Scroll down until you find the item you want and click on it with your mouse-- left mouse key.</p>
+<img class="shot" src="step4.png" width="559" height="556" alt="Windows clipboard history (Windows key + V)" loading="lazy"></div>
+<div class="card note"><p><b>note:</b> this doesn't work unless you have clipboard history turned on in Windows settings.</p>
+<img class="shot" src="step5.png" width="729" height="449" alt="Searching Settings for clipboard" loading="lazy">
+<img class="shot" src="step6.png" width="989" height="807" alt="Settings, System, Clipboard: Clipboard history On" loading="lazy"></div>
+<div class="card note"><p><b>note:</b> to remove an item from your clipboard, mouseclick the three dots, upper right, then select the trash can icon.</p>
+<img class="shot" src="step7.png" width="499" height="488" alt="Clipboard item with Delete (trash can)" loading="lazy"></div>
+<div class="card note"><p><b>note:</b> to prevent an item from being removed, select the push pin icon, lower right.</p>
+<img class="shot" src="step8.png" width="455" height="461" alt="Clipboard items with push pin icons" loading="lazy"></div>
+
+<h2>practice</h2>
+<div class="card"><p><span class="practice-text">practice---</span> &nbsp;&lt;--- copy this text and paste it here in your text field</p>
+<p>repeat 10 times</p>
+<textarea placeholder="paste here" aria-label="Practice pasting text"></textarea></div>
+<div class="card"><p>practice--- copy this image and paste it here</p>
+<img class="shot" src="step9.png" width="225" height="225" alt="Coffee mug practice image" style="margin-left:0">
+<p style="margin-top:10px">repeat 5 times</p>
+<div class="pastebox" contenteditable="true" data-ph="click here, then paste" aria-label="Practice pasting images"></div></div>
+</div></body></html>

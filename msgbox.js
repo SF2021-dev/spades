@@ -74,7 +74,7 @@
         msgs = [{name: name, message: msg, t: Date.now()}].concat(msgs).slice(0, 50);
         saveMsgs(msgs);
         renderMsgs(msgs);
-        st.textContent = "Thanks! Your message was sent.";
+        st.textContent = "";
       }).catch(function(){ st.textContent = "Sorry, that didn't send. Please try again later."; })
       .finally(function(){ btn.disabled = false; });
   });

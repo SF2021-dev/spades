@@ -11,11 +11,25 @@ export async function pinRow(env, name) {
   return env.DB.prepare("SELECT name, pin_hash, fails, locked_until FROM msg_pins WHERE name = ? COLLATE NOCASE").bind(name).first();
 }
 
-export async function setPin(env, name, pin) {
+// Address: free text (street/city etc.), required when a PIN is created. Stored only as SHA-256 of the normalized text.
+export const MAX_ADDR = 120;
+export const normAddr = (s) => String(s ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+export function checkAddr(a) {
+  const raw = String(a ?? "").replace(/\s+/g, " ").trim(), n = normAddr(raw);
+  if (raw.length > MAX_ADDR) throw new HttpError(400, `Address must be ${MAX_ADDR} characters or less.`);
+  if (n.replace(/ /g, "").length < 5 || !/\p{L}/u.test(n) || n.split(" ").length < 2)
+    throw new HttpError(400, "Please enter your address (street and city, for example).");
+  return n;
+}
+const sha256hex = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))]
+  .map((b) => b.toString(16).padStart(2, "0")).join("");
+
+export async function setPin(env, name, pin, address) {
   if (!name || name.length > 40) throw new HttpError(400, "Name is required.");
   if (!validPin(pin)) throw new HttpError(400, "PIN must be exactly 3 digits (000-999).");
-  const r = await env.DB.prepare("INSERT OR IGNORE INTO msg_pins (name, pin_hash, created_at) VALUES (?, ?, ?)")
-    .bind(name, await hashPassword(String(pin)), Date.now()).run();
+  const addrHash = await sha256hex("ds-addr:" + checkAddr(address));
+  const r = await env.DB.prepare("INSERT OR IGNORE INTO msg_pins (name, pin_hash, addr_hash, created_at) VALUES (?, ?, ?, ?)")
+    .bind(name, await hashPassword(String(pin)), addrHash, Date.now()).run();
   if (!r.meta || !r.meta.changes) throw new HttpError(409, "That name already has a PIN. Enter it instead.");
 }
 

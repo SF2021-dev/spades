@@ -7,3 +7,7 @@ CREATE TABLE IF NOT EXISTS msg_pins (
   locked_until INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL
 );
+-- Address given on first use (anti-fake-name speed bump). Only a SHA-256 of the normalized address is kept
+-- (lowercase, punctuation/extra spaces removed), so names sharing an address can be spotted without storing the text.
+ALTER TABLE msg_pins ADD COLUMN addr_hash TEXT;
+CREATE INDEX IF NOT EXISTS idx_msg_pins_addr ON msg_pins(addr_hash);

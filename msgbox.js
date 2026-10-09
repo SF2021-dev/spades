@@ -18,10 +18,10 @@
     "#ds-msgbox .mb-title{color:#fbe646;font-size:18px;font-weight:700;margin-bottom:8px}" +
     "#ds-msgbox .mb-msgs{background:#0a0a0a;border:1px solid #fbe646;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;max-height:min(50vh,480px);overflow:auto}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#888;font-size:14px}" +
-    "#ds-msgbox .mb-msg{#ds-msgbox .mb-line{font-size:15px;color:#eee;line-height:1.35;padding:8px 0;border-bottom:1px solid #3a2c00;overflow-wrap:anywhere}#ds-msgbox .mb-line:last-child{border-bottom:0}#ds-msgbox .mb-who{color:#fbe646;font-weight:700}#ds-msgbox .mb-when{color:#888;font-size:13px;white-space:nowrap}#ds-msgbox .mb-msg{border-bottom:1px solid #3a2c00;padding:8px 0;font-size:15px;color:#eee;line-height:1.35}" +
+    "#ds-msgbox .mb-msg{#ds-msgbox .mb-line{font-size:15px;color:#eee;line-height:1.35;padding:8px 0;border-bottom:1px solid #3a2c00;overflow-wrap:anywhere}#ds-msgbox .mb-line:last-child{border-bottom:0}#ds-msgbox .mb-who{color:#fbe646;font-weight:700}#ds-msgbox .mb-msg{border-bottom:1px solid #3a2c00;padding:8px 0;font-size:15px;color:#eee;line-height:1.35}" +
     "#ds-msgbox .mb-msg:last-child{border-bottom:0}" +
     "#ds-msgbox .mb-who{color:#fbe646;font-weight:700;margin-bottom:2px}" +
-    "#ds-msgbox .mb-when{color:#998a3a;font-weight:400;font-size:12px;margin-left:8px}" +
+    "" +
     "#ds-msgbox .mb-body{white-space:pre-wrap;overflow-wrap:anywhere}" +
     "#ds-msgbox label{color:#fbe646;font-size:15px}" +
     "#ds-msgbox input[type=text],#ds-msgbox textarea{display:block;width:100%;box-sizing:border-box;background:#0a0a0a;color:#eee;border:1px solid #fbe646;border-radius:6px;padding:8px 10px;font:16px " + F + ";margin:4px 0 10px}" +
@@ -65,11 +65,6 @@
   function migrated(){ try { return !!localStorage.getItem("ds-mb-migrated"); } catch(e){ return true; } }
   function localList(){ try { return parseList(localStorage.getItem(LOCAL) || "[]"); } catch(e){ return []; } }
   function saveLocal(list){ try { localStorage.setItem(LOCAL, JSON.stringify(list.slice(0, SHOW))); } catch(e){} }
-  function when(t){
-    if (!t) return "";
-    try { return new Date(t).toLocaleString([], {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"}); }
-    catch(e){ return ""; }
-  }
   function render(list){
     var el = document.getElementById("mb-msgs");
     el.innerHTML = "";

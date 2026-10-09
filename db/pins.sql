@@ -11,3 +11,6 @@ CREATE TABLE IF NOT EXISTS msg_pins (
 -- (lowercase, punctuation/extra spaces removed), so names sharing an address can be spotted without storing the text.
 ALTER TABLE msg_pins ADD COLUMN addr_hash TEXT;
 CREATE INDEX IF NOT EXISTS idx_msg_pins_addr ON msg_pins(addr_hash);
+-- 2026-10-09: email replaces street address. SHA-256 of "ds-email:" + lowercased/trimmed email; addr_hash is no longer written.
+ALTER TABLE msg_pins ADD COLUMN email_hash TEXT;
+CREATE INDEX IF NOT EXISTS idx_msg_pins_email ON msg_pins(email_hash);

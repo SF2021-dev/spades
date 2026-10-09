@@ -3,7 +3,7 @@
    then also emailed via FormSubmit as a notification. /messages.json is a backup archive, shown only if the API is down.
    Shown oldest first; under the list a compose line reads "username: <type here>" (Enter sends, Shift+Enter newline, click the name to change it).
    PIN: each name has a 3-digit PIN on the server (/api/pin, hashed in D1). First time a name is used the box asks to create
-   one (typed twice) plus an address (street/city, free text; server keeps only a hash); after that the PIN is asked once per browser tab session and sent with every message (server checks it). */
+   one (typed twice) plus an email address (server keeps only a hash); after that the PIN is asked once per browser tab session and sent with every message (server checks it). */
 (function(){
   var ENDPOINT = "https://formsubmit.co/ajax/f865a31f1882069405c71e61dc656f64";
   var API = "/api/messages", PIN_API = "/api/pin";
@@ -32,7 +32,7 @@
     "#ds-msgbox #mb-text{flex:1;min-width:0;background:transparent;color:#000;border:0;outline:0;resize:none;padding:2px 0;margin:0;font:15px " + F + ";line-height:1.35;height:22px;overflow:hidden}" +
     "#ds-msgbox #mb-text::placeholder{color:#6b5310;font-style:italic}" +
     "#ds-msgbox #mb-pin{width:5.5em;background:#fff8e6;color:#000;border:1px solid #cb972e;border-radius:4px;outline:0;padding:1px 6px;margin:0;font:700 15px " + F + ";letter-spacing:4px}" +
-    "#ds-msgbox #mb-addr{flex:1;min-width:0;background:#fff8e6;color:#000;border:1px solid #cb972e;border-radius:4px;outline:0;padding:1px 6px;margin:0;font:700 15px " + F + "}" +
+    "#ds-msgbox #mb-email{flex:1;min-width:0;background:#fff8e6;color:#000;border:1px solid #cb972e;border-radius:4px;outline:0;padding:1px 6px;margin:0;font:700 15px " + F + "}" +
     "#ds-msgbox .mb-pinhint{color:#6b5310;font-style:italic;padding:2px 0 0 8px;font-size:14px}" +
     "#ds-msgbox .mb-compose:focus-within{background:#f7cf78}" +
     "#ds-msgbox .mb-status{color:#f3bf56;font-size:14px;min-height:20px;margin-top:4px}";
@@ -105,16 +105,16 @@
     '<div class="mb-compose" id="mb-compose"><span class="mb-who" id="mb-who" title="Click to change your name"></span><span class="mb-colon" id="mb-colon">: </span>' +
     '<textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message"></textarea>' +
     '<input type="password" id="mb-pin" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="3-digit PIN" style="display:none">' +
-    '<input type="text" id="mb-addr" maxlength="120" autocomplete="street-address" aria-label="Your address" placeholder="street and city" style="display:none">' +
+    '<input type="email" id="mb-email" maxlength="254" autocomplete="email" aria-label="Your email address" placeholder="you@example.com" style="display:none">' +
     '<span class="mb-pinhint" id="mb-pinhint" style="display:none"></span></div></div>' +
     '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
 
   var form = document.getElementById("mb-form"), st = document.getElementById("mb-status");
   var ta = document.getElementById("mb-text"), who = document.getElementById("mb-who"), colon = document.getElementById("mb-colon");
-  var addrIn = document.getElementById("mb-addr"), pinIn = document.getElementById("mb-pin"), pinHint = document.getElementById("mb-pinhint");
+  var addrIn = document.getElementById("mb-email"), pinIn = document.getElementById("mb-pin"), pinHint = document.getElementById("mb-pinhint");
   var sending = false, askingName = false;
-  var pinMode = "", firstPin = "", sendAfterPin = false;   // pinMode: "" | "check" (looking up) | "new" | "confirm" | "address" | "enter"
+  var pinMode = "", firstPin = "", sendAfterPin = false;   // pinMode: "" | "check" (looking up) | "new" | "confirm" | "email" | "enter"
   var msgs = merge(localList());
   render(msgs);
   var savedName = ""; try { savedName = (localStorage.getItem("ds-mb-name") || "").trim().slice(0, 40); } catch(e){}
@@ -123,21 +123,21 @@
   var PINKEY = "ds-mb-pin";   // sessionStorage: {name, pin} once verified for this tab
   function getPin(){ try { var d = JSON.parse(sessionStorage.getItem(PINKEY) || "null"); return d && d.name === savedName ? d.pin : ""; } catch(e){ return ""; } }
   function savePin(p){ try { if (p) sessionStorage.setItem(PINKEY, JSON.stringify({name: savedName, pin: p})); else sessionStorage.removeItem(PINKEY); } catch(e){} }
-  function pinPost(action, pin, address){
+  function pinPost(action, pin, email){
     return fetch(PIN_API, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
-      body: JSON.stringify({name: savedName, pin: pin, address: address, action: action})})
+      body: JSON.stringify({name: savedName, pin: pin, email: email, action: action})})
       .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ d.status = r.status; d.ok = r.ok && d.ok; return d; }); });
   }
   function showCompose(){
     var pinning = !!pinMode && !askingName;
     ta.style.display = pinning ? "none" : "";
-    pinIn.style.display = (pinning && pinMode !== "check" && pinMode !== "address") ? "" : "none";
-    addrIn.style.display = (pinning && pinMode === "address") ? "" : "none";
+    pinIn.style.display = (pinning && pinMode !== "check" && pinMode !== "email") ? "" : "none";
+    addrIn.style.display = (pinning && pinMode === "email") ? "" : "none";
     pinHint.style.display = pinning ? "" : "none";
     if (pinning) {
       who.textContent = savedName; colon.textContent = ": ";
       pinHint.textContent = {check: "checking PIN…", "new": "create a 3-digit PIN (000-999), then press Enter",
-        confirm: "type the same PIN again to confirm", address: "Enter to save",
+        confirm: "type the same PIN again to confirm", email: "Enter to save",
         enter: "enter your 3-digit PIN, then press Enter"}[pinMode];
       return;
     }
@@ -167,7 +167,7 @@
       .catch(function(){ if (pinMode === "check") { pinMode = ""; showCompose(); st.textContent = "Couldn't check your PIN (network). Click the message line to try again."; } });
     return true;
   }
-  function startPin(mode){ pinMode = mode; pinIn.value = ""; showCompose(); (mode === "address" ? addrIn : pinIn).focus(); }
+  function startPin(mode){ pinMode = mode; pinIn.value = ""; showCompose(); (mode === "email" ? addrIn : pinIn).focus(); }
   function pinDone(p){
     savePin(p); pinMode = ""; firstPin = ""; pinIn.value = ""; addrIn.value = ""; showCompose(); ta.focus();
     if (sendAfterPin && ta.value.trim()) { sendAfterPin = false; form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", {cancelable: true})); }
@@ -178,13 +178,13 @@
     if (ev.key === "Escape") { cancelPin(); return; }
     if (ev.key !== "Enter" || ev.isComposing) return;
     ev.preventDefault();
-    var a = addrIn.value.replace(/\s+/g, " ").trim(), p = firstPin;
-    if (a.replace(/[^A-Za-z0-9\u00C0-\uFFFF]/g, "").length < 5 || a.indexOf(" ") < 0) { st.textContent = "Please enter your address (street and city, for example)."; return; }
+    var a = addrIn.value.trim().toLowerCase(), p = firstPin;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(a)) { st.textContent = "Please enter a valid email address (like name@example.com)."; return; }
     st.textContent = "Saving PIN…"; addrIn.readOnly = true;
     pinPost("set", p, a).then(function(d){
       if (d.ok) { st.textContent = "PIN saved. Remember it: you'll need it to send messages as " + savedName + "."; pinDone(p); return; }
       if (d.status === 409) { firstPin = ""; st.textContent = "That name already has a PIN. Please enter it."; startPin("enter"); return; }
-      if (d.status === 400 && /address/i.test(d.error || "")) { st.textContent = d.error; addrIn.focus(); return; }
+      if (d.status === 400 && /email/i.test(d.error || "")) { st.textContent = d.error; addrIn.focus(); return; }
       st.textContent = d.error || "Couldn't save the PIN. Please try again."; firstPin = ""; startPin("new");
     }).catch(function(){ st.textContent = "Couldn't save the PIN (network). Please press Enter to try again."; addrIn.focus(); })
       .finally(function(){ addrIn.readOnly = false; });
@@ -199,7 +199,7 @@
     if (pinMode === "new") { firstPin = p; st.textContent = ""; startPin("confirm"); return; }
     if (pinMode === "confirm") {
       if (p !== firstPin) { firstPin = ""; st.textContent = "Those PINs didn't match. Please create your PIN again."; startPin("new"); return; }
-      st.textContent = "Now type your address (street and city), then press Enter."; startPin("address"); return;
+      st.textContent = "Now type your email address, then press Enter."; startPin("email"); return;
     }
     if (pinMode === "enter") {
       st.textContent = "Checking PIN…"; pinIn.readOnly = true;
@@ -216,7 +216,7 @@
     if (ev.target === who) { ev.preventDefault(); if (!askingName) askName(); return; }
     if (ev.target === pinIn) return;
     if (ev.target === addrIn) return;
-    if (pinMode) { ev.preventDefault(); if (pinMode === "address") addrIn.focus(); else if (pinMode !== "check") pinIn.focus(); return; }
+    if (pinMode) { ev.preventDefault(); if (pinMode === "email") addrIn.focus(); else if (pinMode !== "check") pinIn.focus(); return; }
     if (ev.target !== ta) { ev.preventDefault(); ta.focus(); }
   });
   ta.addEventListener("focus", function(){ if (!savedName && !askingName) askName(); else needPin(); });

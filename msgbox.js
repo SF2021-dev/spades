@@ -18,7 +18,7 @@
     "#ds-msgbox .mb-title{color:#fbe646;font-size:18px;font-weight:700;margin-bottom:8px}" +
     "#ds-msgbox .mb-msgs{background:#0a0a0a;border:1px solid #fbe646;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;max-height:min(50vh,480px);overflow:auto}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#888;font-size:14px}" +
-    "#ds-msgbox .mb-msg{border-bottom:1px solid #3a2c00;padding:8px 0;font-size:15px;color:#eee;line-height:1.35}" +
+    "#ds-msgbox .mb-msg{#ds-msgbox .mb-line{font-size:15px;color:#eee;line-height:1.35;padding:8px 0;border-bottom:1px solid #3a2c00;overflow-wrap:anywhere}#ds-msgbox .mb-line:last-child{border-bottom:0}#ds-msgbox .mb-who{color:#fbe646;font-weight:700}#ds-msgbox .mb-when{color:#888;font-size:13px;white-space:nowrap}#ds-msgbox .mb-msg{border-bottom:1px solid #3a2c00;padding:8px 0;font-size:15px;color:#eee;line-height:1.35}" +
     "#ds-msgbox .mb-msg:last-child{border-bottom:0}" +
     "#ds-msgbox .mb-who{color:#fbe646;font-weight:700;margin-bottom:2px}" +
     "#ds-msgbox .mb-when{color:#998a3a;font-weight:400;font-size:12px;margin-left:8px}" +
@@ -76,10 +76,10 @@
     list.slice().sort(function(a, b){ return (a.t||0) - (b.t||0); }).slice(0, SHOW).forEach(function(m){
       var d = document.createElement("div");
       d.className = "mb-msg";
-      d.innerHTML = '<div class="mb-who"><span></span><span class="mb-when"></span></div><div class="mb-body"></div>';
-      d.querySelector(".mb-who span").textContent = m.name;     // textContent = HTML escaped
-      d.querySelector(".mb-when").textContent = when(m.t);
+      d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span><span class="mb-when"></span></div>';
+      d.querySelector(".mb-who").textContent = m.name;
       d.querySelector(".mb-body").textContent = m.message;
+      d.querySelector(".mb-when").textContent = when(m.t) ? " (" + when(m.t) + ")" : "";
       el.appendChild(d);
     });
   }

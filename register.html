@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diamond Spaders · Sign up / Log in</title>
+<style>
+  :root { --gold:#f3bf56; --gold2:#cb972e; }
+  html,body { margin:0; background:#0a0a0a; color:var(--gold); font-family:'Comic Sans MS','Comic Sans',cursive; }
+  .wrap { max-width:460px; margin:0 auto; padding:16px; }
+  .banner { width:100%; max-height:140px; object-fit:contain; display:block; }
+  .card { background:#000; border:1px solid var(--gold); border-radius:10px; padding:16px 18px; margin-top:14px; }
+  .tabs { display:flex; gap:8px; margin-bottom:12px; }
+  .tabs button { flex:1; background:#000; color:var(--gold); border:1px solid var(--gold2); border-radius:8px; padding:8px; font:700 16px inherit; font-family:inherit; cursor:pointer; }
+  .tabs button.on { background:var(--gold); color:#000; }
+  label { display:block; font-size:14px; margin:10px 0 4px; }
+  input { width:100%; box-sizing:border-box; background:var(--gold); color:#000; border:1px solid var(--gold2); border-radius:8px; padding:9px 10px; font:15px 'Comic Sans MS','Comic Sans',cursive; outline:0; }
+  input:focus { background:#f7cf78; }
+  .go { margin-top:14px; width:100%; background:var(--gold); color:#000; border:0; border-radius:8px; padding:10px; font:700 17px 'Comic Sans MS','Comic Sans',cursive; cursor:pointer; }
+  .go:disabled { opacity:.6; cursor:wait; }
+  .msg { min-height:20px; margin-top:10px; font-size:14px; }
+  .msg.err { color:#ff6b6b; } .msg.ok { color:#7CFC00; }
+  .who { color:#00b000; font-weight:700; }
+  a { color:var(--gold); }
+  .hide { display:none; }
+  .small { font-size:13px; margin-top:8px; }
+  .linkbtn { background:none; border:0; color:var(--gold); text-decoration:underline; cursor:pointer; font:inherit; padding:0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="/"><img class="banner" src="/dsaltbanner.png" alt="Diamond Spaders"></a>
+
+  <div class="card hide" id="me-card">
+    <div style="font-size:18px">Logged in as <span class="who" id="me-name"></span></div>
+    <div class="small" id="me-email"></div>
+    <div class="msg ok" id="me-msg"></div>
+    <button class="go" id="logout">Log out</button>
+    <div class="small"><a href="/">← Back to Diamond Spaders</a></div>
+  </div>
+
+  <div class="card" id="auth-card">
+    <div class="tabs"><button id="tab-signup" class="on">Sign up</button><button id="tab-login">Log in</button></div>
+
+    <form id="signup" autocomplete="on">
+      <label for="su-user">Username</label><input id="su-user" name="username" autocomplete="username" required minlength="3" maxlength="20">
+      <label for="su-email">Email</label><input id="su-email" name="email" type="email" autocomplete="email" required>
+      <label for="su-pass">Password (8+ characters)</label><input id="su-pass" name="password" type="password" autocomplete="new-password" required minlength="8">
+      <button class="go" type="submit">Sign up</button>
+      <div class="msg" id="su-msg"></div>
+    </form>
+
+    <form id="login" class="hide" autocomplete="on">
+      <label for="li-id">Email or username</label><input id="li-id" name="login" autocomplete="username" required>
+      <label for="li-pass">Password</label><input id="li-pass" name="password" type="password" autocomplete="current-password" required>
+      <button class="go" type="submit">Log in</button>
+      <div class="msg" id="li-msg"></div>
+      <div class="small hide" id="resend-wrap"><button type="button" class="linkbtn" id="resend">Resend confirmation email</button></div>
+    </form>
+  </div>
+</div>
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  function api(path, body){
+    return fetch("/api/auth/" + path, body === undefined ? {credentials:"same-origin"} :
+      {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)})
+      .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ d._status = r.status; return d; }); });
+  }
+  function say(el, text, ok){ el.textContent = text || ""; el.className = "msg " + (ok ? "ok" : "err"); }
+  function tab(which){
+    $("tab-signup").className = which === "signup" ? "on" : ""; $("tab-login").className = which === "login" ? "on" : "";
+    $("signup").className = which === "signup" ? "" : "hide"; $("login").className = which === "login" ? "" : "hide";
+  }
+  $("tab-signup").onclick = function(){ tab("signup"); };
+  $("tab-login").onclick = function(){ tab("login"); };
+  function showMe(u, note){
+    $("me-name").textContent = u.username; $("me-email").textContent = u.email;
+    $("me-msg").textContent = note || "";
+    $("me-card").className = "card"; $("auth-card").className = "card hide";
+    try { localStorage.setItem("ds-mb-name", u.username); } catch(e){}
+  }
+  function busy(form, on){ form.querySelector("button[type=submit]").disabled = on; }
+
+  $("signup").onsubmit = function(e){
+    e.preventDefault(); var f = this; busy(f, true); say($("su-msg"), "");
+    api("register", {username:$("su-user").value, email:$("su-email").value, password:$("su-pass").value}).then(function(d){
+      busy(f, false);
+      if (d.ok && d.emailSent !== false) { say($("su-msg"), "Check your email! We sent a confirmation link to " + $("su-email").value + ".", true); f.reset(); }
+      else if (d.ok) say($("su-msg"), d.reason === "wait" ? "Check your email for the confirmation link (we just sent one)." : "Account created, but we couldn't send the confirmation email yet. Please try \"Resend\" later.", d.reason === "wait");
+      else say($("su-msg"), d.error || "Something went wrong.");
+    }, function(){ busy(f, false); say($("su-msg"), "Network error. Try again."); });
+  };
+  $("login").onsubmit = function(e){
+    e.preventDefault(); var f = this; busy(f, true); say($("li-msg"), ""); $("resend-wrap").className = "small hide";
+    api("login", {login:$("li-id").value, password:$("li-pass").value}).then(function(d){
+      busy(f, false);
+      if (d.ok) showMe(d.user, "Welcome back!");
+      else { say($("li-msg"), d.error || "Login failed."); if (d.unverified) $("resend-wrap").className = "small"; }
+    }, function(){ busy(f, false); say($("li-msg"), "Network error. Try again."); });
+  };
+  $("resend").onclick = function(){
+    var id = $("li-id").value.trim();
+    if (id.indexOf("@") < 0) { say($("li-msg"), "Type your email address above, then click Resend."); return; }
+    api("resend", {email:id}).then(function(d){ say($("li-msg"), d.message || "Sent.", true); });
+  };
+  $("logout").onclick = function(){
+    api("logout", {}).then(function(){ $("me-card").className = "card hide"; $("auth-card").className = "card"; tab("login"); });
+  };
+
+  var q = new URLSearchParams(location.search);
+  if (q.get("confirm") === "invalid") { tab("login"); say($("li-msg"), "That confirmation link is invalid or expired. Log in to request a new one."); }
+  if (q.get("login") !== null) tab("login");
+  api("me").then(function(d){ if (d.user) showMe(d.user, q.get("confirmed") ? "Email confirmed. You're logged in!" : ""); });
+})();
+</script>
+</body>
+</html>

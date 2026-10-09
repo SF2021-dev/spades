@@ -14,20 +14,20 @@
   box.style.cssText = "max-width:100%;width:100%;margin:24px 0 8px;padding:0 8px;box-sizing:border-box;font-family:" + F + ";";
   var css = document.createElement("style");
   css.textContent =
-    "#ds-msgbox .mb-card{background:#fff;border:1px solid #cb972e;border-radius:10px;padding:14px 16px}" +
-    "#ds-msgbox .mb-title{color:#000;font-size:18px;font-weight:700;margin-bottom:8px}" +
+    "#ds-msgbox .mb-card{background:#000;border:1px solid #f3bf56;border-radius:10px;padding:14px 16px}" +
+    "#ds-msgbox .mb-title{color:#f3bf56;font-size:18px;font-weight:700;margin-bottom:8px}" +
     "#ds-msgbox .mb-msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;max-height:min(50vh,480px);overflow:auto}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}" +
     "#ds-msgbox .mb-line{font-size:15px;color:#000;line-height:1.35;padding:8px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere}" +
     "#ds-msgbox .mb-line:last-child{border-bottom:0}" +
     "#ds-msgbox .mb-who{color:#008000;font-weight:700}" +
     "#ds-msgbox .mb-body{white-space:pre-wrap;overflow-wrap:anywhere;color:#000}" +
-    "#ds-msgbox label{color:#000;font-size:15px}" +
-    "#ds-msgbox input[type=text],#ds-msgbox textarea{display:block;width:100%;box-sizing:border-box;background:#fff;color:#000;border:1px solid #000;border-radius:6px;padding:8px 10px;font:16px " + F + ";margin:4px 0 10px}" +
+    "#ds-msgbox label{color:#f3bf56;font-size:15px}" +
+    "#ds-msgbox input[type=text],#ds-msgbox textarea{display:block;width:100%;box-sizing:border-box;background:#111;color:#f3bf56;border:1px solid #f3bf56;border-radius:6px;padding:8px 10px;font:16px " + F + ";margin:4px 0 10px}" +
     "#ds-msgbox textarea{height:110px;resize:vertical}" +
     "#ds-msgbox button{background:#000;color:#f3bf56;border:0;border-radius:6px;padding:8px 22px;font:700 16px " + F + ";cursor:pointer}" +
     "#ds-msgbox button:disabled{opacity:.5;cursor:default}" +
-    "#ds-msgbox .mb-status{color:#000;font-size:14px;min-height:20px;margin-top:8px}";
+    "#ds-msgbox .mb-status{color:#f3bf56;font-size:14px;min-height:20px;margin-top:8px}";
   document.head.appendChild(css);
 
   function clean(m){

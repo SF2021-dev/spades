@@ -76,10 +76,9 @@
     list.slice().sort(function(a, b){ return (a.t||0) - (b.t||0); }).slice(0, SHOW).forEach(function(m){
       var d = document.createElement("div");
       d.className = "mb-msg";
-      d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span><span class="mb-when"></span></div>';
+      d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span></div>';
       d.querySelector(".mb-who").textContent = m.name;
       d.querySelector(".mb-body").textContent = m.message;
-      d.querySelector(".mb-when").textContent = when(m.t) ? " (" + when(m.t) + ")" : "";
       el.appendChild(d);
     });
   }

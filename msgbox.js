@@ -17,16 +17,15 @@
     "#ds-msgbox .mb-card{background:#f3bf56;border:1px solid #cb972e;border-radius:10px;padding:14px 16px}" +
     "#ds-msgbox .mb-title{color:#000;font-size:18px;font-weight:700;margin-bottom:8px}" +
     "#ds-msgbox .mb-msgs{background:#fff8dc;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;max-height:min(50vh,480px);overflow:auto}" +
-    "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#888;font-size:14px}" +
-    "#ds-msgbox .mb-msg{#ds-msgbox .mb-line{font-size:15px;color:#000;line-height:1.35;padding:8px 0;border-bottom:1px solid #c4a000;overflow-wrap:anywhere}#ds-msgbox .mb-line:last-child{border-bottom:0}#ds-msgbox .mb-who{color:#008000;font-weight:700}#ds-msgbox .mb-msg{border-bottom:1px solid #c4a000;padding:8px 0;font-size:15px;color:#000;line-height:1.35}" +
-    "#ds-msgbox .mb-msg:last-child{border-bottom:0}" +
-    "#ds-msgbox .mb-who{color:#fbe646;font-weight:700;margin-bottom:2px}" +
-    "" +
+    "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}" +
+    "#ds-msgbox .mb-line{font-size:15px;color:#000;line-height:1.35;padding:8px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere}" +
+    "#ds-msgbox .mb-line:last-child{border-bottom:0}" +
+    "#ds-msgbox .mb-who{color:#008000;font-weight:700}" +
     "#ds-msgbox .mb-body{white-space:pre-wrap;overflow-wrap:anywhere;color:#000}" +
     "#ds-msgbox label{color:#000;font-size:15px}" +
     "#ds-msgbox input[type=text],#ds-msgbox textarea{display:block;width:100%;box-sizing:border-box;background:#fff;color:#000;border:1px solid #000;border-radius:6px;padding:8px 10px;font:16px " + F + ";margin:4px 0 10px}" +
     "#ds-msgbox textarea{height:110px;resize:vertical}" +
-    "#ds-msgbox button{background:#000;color:#fbe646;border:0;border-radius:6px;padding:8px 22px;font:700 16px " + F + ";cursor:pointer}" +
+    "#ds-msgbox button{background:#000;color:#f3bf56;border:0;border-radius:6px;padding:8px 22px;font:700 16px " + F + ";cursor:pointer}" +
     "#ds-msgbox button:disabled{opacity:.5;cursor:default}" +
     "#ds-msgbox .mb-status{color:#000;font-size:14px;min-height:20px;margin-top:8px}";
   document.head.appendChild(css);

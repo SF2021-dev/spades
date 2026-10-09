@@ -73,7 +73,7 @@
   function render(list){
     var el = document.getElementById("mb-msgs");
     el.innerHTML = "";
-    list.slice(0, SHOW).forEach(function(m){
+    list.slice().sort(function(a, b){ return (b.t||0) - (a.t||0); }).slice(0, SHOW).forEach(function(m){
       var d = document.createElement("div");
       d.className = "mb-msg";
       d.innerHTML = '<div class="mb-who"><span></span><span class="mb-when"></span></div><div class="mb-body"></div>';

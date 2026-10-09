@@ -1,12 +1,12 @@
 /* Diamond Spaders message box: fills <div id="ds-msgbox">.
-   Messages are emailed via FormSubmit AND saved to a shared store (textdb.dev) so every visitor sees them.
-   The box also archives the store into https://diamondspaders.online/messages.json every few minutes (permanent copy).
+   Messages are saved to the site's own API (/api/messages, Cloudflare D1) so every visitor sees them,
+   then also emailed via FormSubmit as a notification. /messages.json is a backup archive, shown only if the API is down.
    Shown oldest first; under the list a compose line reads "username: <type here>" (Enter sends, Shift+Enter newline, click the name to change it). */
 (function(){
   var ENDPOINT = "https://formsubmit.co/ajax/f865a31f1882069405c71e61dc656f64";
-  var SHARED = "https://textdb.dev/api/data/ds-msgs-167a81f4-0419-4ca8-b5f6-cfda1cbf2745";
-  var ARCHIVE = "https://diamondspaders.online/messages.json";
-  var LOCAL = "ds-mb-msgs";           // old browser-only list (migrated once) + offline cache
+  var API = "/api/messages";
+  var ARCHIVE = "/messages.json";
+  var LOCAL = "ds-mb-msgs";           // offline cache of the last list seen
   var SHOW = 50, KEEP = 200;
   var box = document.getElementById("ds-msgbox");
   if (!box) return;
@@ -53,24 +53,29 @@
     catch(e){ return []; }
   }
   function getShared(){
-    return fetch(SHARED + "?t=" + Date.now(), {cache: "no-store"})
-      .then(function(r){ if (!r.ok) throw 0; return r.text(); }).then(parseList);
+    return fetch(API + "?t=" + Date.now(), {cache: "no-store"})
+      .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); }).then(parseList);
   }
-  function putShared(list){   // text/plain = simple CORS request, no preflight
-    return fetch(SHARED, {method: "POST", headers: {"Content-Type": "text/plain"},
-      body: JSON.stringify({messages: list.slice(0, KEEP)})}).then(function(r){ if (!r.ok) throw 0; });
+  function postShared(entry){
+    return fetch(API, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
+      body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message})})
+      .then(function(r){
+        return r.json().catch(function(){ return {}; }).then(function(d){
+          if (!r.ok || !d.ok) throw new Error(d.error || ("HTTP " + r.status));
+          return parseList(JSON.stringify(d));
+        });
+      });
   }
   function getArchive(){
     return fetch(ARCHIVE + "?t=" + Date.now(), {cache: "no-store"})
       .then(function(r){ return r.ok ? r.text() : "[]"; }).then(parseList).catch(function(){ return []; });
   }
-  function migrated(){ try { return !!localStorage.getItem("ds-mb-migrated"); } catch(e){ return true; } }
   function localList(){ try { return parseList(localStorage.getItem(LOCAL) || "[]"); } catch(e){ return []; } }
-  function saveLocal(list){ try { localStorage.setItem(LOCAL, JSON.stringify(list.slice(0, SHOW))); } catch(e){} }
+  function saveLocal(list){ try { localStorage.setItem(LOCAL, JSON.stringify(list.slice(-SHOW))); } catch(e){} }
   function render(list){
     var el = document.getElementById("mb-msgs");
     el.innerHTML = "";
-    list.slice().sort(function(a, b){ return (a.t||0) - (b.t||0); }).slice(0, SHOW).forEach(function(m){
+    list.slice().sort(function(a, b){ return (a.t||0) - (b.t||0); }).slice(-SHOW).forEach(function(m){
       var d = document.createElement("div");
       d.className = "mb-msg";
       d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span></div>';
@@ -135,22 +140,25 @@
     form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", {cancelable: true}));
   });
 
+  var apiDown = false;
   function refresh(){
-    return Promise.all([getShared().catch(function(){ return null; }), getArchive()]).then(function(r){
-      var shared = r[0], archive = r[1], local = localList();
-      if (shared && !shared.length && !archive.length && local.length && !migrated()) {
-        // one-time migration of messages that only lived in this browser
-        var mig = merge(local);
-        putShared(mig).then(function(){ try { localStorage.setItem("ds-mb-migrated", "1"); } catch(e){} }).catch(function(){});
-        shared = mig;
-      }
-      msgs = merge(shared || [], archive, shared ? [] : local);
-      saveLocal(msgs);
-      render(msgs);
+    return getShared().then(function(list){
+      apiDown = false;
+      msgs = merge(list);
+      saveLocal(msgs); render(msgs);
+      if (st.dataset.err === "load") { st.textContent = ""; st.dataset.err = ""; }
+    }).catch(function(){
+      // API unreachable: fall back to the backup archive (or this browser's last copy) so the box isn't empty
+      apiDown = true;
+      return getArchive().then(function(arch){
+        msgs = merge(arch.length ? arch : localList());
+        render(msgs);
+        st.textContent = "Messages are temporarily unavailable; showing a saved copy."; st.dataset.err = "load";
+      });
     });
   }
   refresh();
-  setInterval(function(){ if (!document.hidden) refresh(); }, 60000);
+  setInterval(function(){ if (!document.hidden) refresh(); }, 30000);
 
   form.addEventListener("submit", function(ev){
     ev.preventDefault();
@@ -159,22 +167,21 @@
     if (!name) { askName(); return; }
     if (!msg) { st.textContent = "Type a message, then press Enter."; return; }
     if (document.getElementById("mb-hp").value) return;   // bot filled the honeypot
-    sending = true; ta.readOnly = true; st.textContent = "Sending…";
+    sending = true; ta.readOnly = true; st.textContent = "Sending…"; st.dataset.err = "";
     var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: name, message: msg, t: Date.now()};
-    var mail = fetch(ENDPOINT, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
-      body: JSON.stringify({name: name, message: msg, _subject: "Diamond Spaders message from " + name,
-                            _template: "table", _captcha: "false", _honey: ""})})
-      .then(function(r){ return r.json(); }).then(function(d){ return String(d.success) === "true"; }).catch(function(){ return false; });
-    // re-read the latest shared list right before writing so we don't drop someone else's message
-    var store = getShared().then(function(cur){ var next = merge([entry], cur); return putShared(next).then(function(){ return next; }); })
-      .catch(function(){ return null; });
-    Promise.all([mail, store]).then(function(r){
-      if (!r[0] && !r[1]) { st.textContent = "Sorry, that didn't send. Please try again later."; return; }
+    postShared(entry).then(function(list){
       ta.value = ""; grow();
-      msgs = merge([entry], r[1] || [], msgs);
-      saveLocal(msgs);
-      render(msgs);
-      st.textContent = r[1] ? "" : "Sent, but it may take a moment to show for everyone.";
+      msgs = merge(list);
+      saveLocal(msgs); render(msgs);
+      st.textContent = "";
+      var el = document.getElementById("mb-msgs"); el.scrollTop = el.scrollHeight;
+      // email notification only after the message is saved for everyone; failures here don't matter to the poster
+      fetch(ENDPOINT, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
+        body: JSON.stringify({name: name, message: msg, _subject: "Diamond Spaders message from " + name,
+                              _template: "table", _captcha: "false", _honey: ""})}).catch(function(){});
+    }).catch(function(e){
+      st.textContent = "Sorry, your message was NOT posted (" + (e && e.message || "network error") + "). Please try again.";
+      st.dataset.err = "send";
     }).finally(function(){ sending = false; ta.readOnly = false; });
   });
 })();

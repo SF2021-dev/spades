@@ -11,12 +11,12 @@
   var box = document.getElementById("ds-msgbox");
   if (!box) return;
   var F = "'Comic Sans MS','Comic Sans',cursive";
-  box.style.cssText = "max-width:900px;margin:24px auto 8px;padding:0 12px;font-family:" + F + ";";
+  box.style.cssText = "max-width:100%;width:100%;margin:24px 0 8px;padding:0 8px;box-sizing:border-box;font-family:" + F + ";";
   var css = document.createElement("style");
   css.textContent =
     "#ds-msgbox .mb-card{background:#1a1200;border:1px solid #3a2c00;border-radius:10px;padding:14px 16px}" +
     "#ds-msgbox .mb-title{color:#fbe646;font-size:18px;font-weight:700;margin-bottom:8px}" +
-    "#ds-msgbox .mb-msgs{background:#0a0a0a;border:1px solid #fbe646;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:48px;max-height:220px;overflow:auto}" +
+    "#ds-msgbox .mb-msgs{background:#0a0a0a;border:1px solid #fbe646;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;max-height:min(50vh,480px);overflow:auto}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#888;font-size:14px}" +
     "#ds-msgbox .mb-msg{border-bottom:1px solid #3a2c00;padding:8px 0;font-size:15px;color:#eee;line-height:1.35}" +
     "#ds-msgbox .mb-msg:last-child{border-bottom:0}" +

@@ -46,7 +46,14 @@
     for (var i = 0; i < arguments.length; i++) (arguments[i] || []).forEach(function(m){
       m = clean(m); if (m && !seen[m.id]) { seen[m.id] = 1; out.push(m); }
     });
-    return out.sort(function(a, b){ return a.t - b.t; });
+    // drop exact name+message dupes (keep earliest)
+    var byKey = {}, uniq = [];
+    out.sort(function(a, b){ return a.t - b.t; }).forEach(function(m){
+      var k = m.name + "\0" + m.message;
+      if (byKey[k]) return;
+      byKey[k] = 1; uniq.push(m);
+    });
+    return uniq;
   }
   function parseList(txt){
     try { var d = JSON.parse(txt); return Array.isArray(d) ? d : (d && Array.isArray(d.messages) ? d.messages : []); }

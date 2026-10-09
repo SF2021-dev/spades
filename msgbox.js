@@ -102,7 +102,7 @@
     '<div class="mb-title">Messages</div>' +
     '<form id="mb-form" autocomplete="off"><div class="mb-wrap">' +
     '<div class="mb-msgs" id="mb-msgs"></div>' +
-    '<div class="mb-compose" id="mb-compose"><span class="mb-who" id="mb-who" title="Click to change your name"></span><span class="mb-colon" id="mb-colon">: </span>' +
+    '<div class="mb-compose" id="mb-compose"><span class="mb-who" id="mb-who" title="Click to change your name"></span><span class="mb-colon" id="mb-colon">:</span>' +
     '<textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message"></textarea>' +
     '<input type="password" id="mb-pin" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="3-digit PIN" style="display:none">' +
     '<input type="email" id="mb-email" maxlength="254" autocomplete="email" aria-label="Your email address" placeholder="you@example.com" style="display:none">' +

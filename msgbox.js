@@ -14,9 +14,9 @@
   box.style.cssText = "max-width:100%;width:100%;margin:24px 0 8px;padding:0 8px;box-sizing:border-box;font-family:" + F + ";";
   var css = document.createElement("style");
   css.textContent =
-    "#ds-msgbox .mb-card{background:#f3bf56;border:1px solid #cb972e;border-radius:10px;padding:14px 16px}" +
+    "#ds-msgbox .mb-card{background:#fff;border:1px solid #cb972e;border-radius:10px;padding:14px 16px}" +
     "#ds-msgbox .mb-title{color:#000;font-size:18px;font-weight:700;margin-bottom:8px}" +
-    "#ds-msgbox .mb-msgs{background:#fff8dc;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;max-height:min(50vh,480px);overflow:auto}" +
+    "#ds-msgbox .mb-msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;max-height:min(50vh,480px);overflow:auto}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}" +
     "#ds-msgbox .mb-line{font-size:15px;color:#000;line-height:1.35;padding:8px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere}" +
     "#ds-msgbox .mb-line:last-child{border-bottom:0}" +

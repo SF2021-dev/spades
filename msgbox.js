@@ -1,7 +1,7 @@
 /* Diamond Spaders message box: fills <div id="ds-msgbox">.
    Messages are emailed via FormSubmit AND saved to a shared store (textdb.dev) so every visitor sees them.
    The box also archives the store into https://diamondspaders.online/messages.json every few minutes (permanent copy).
-   Shown newest first above the form. */
+   Shown oldest first above the form. */
 (function(){
   var ENDPOINT = "https://formsubmit.co/ajax/f865a31f1882069405c71e61dc656f64";
   var SHARED = "https://textdb.dev/api/data/ds-msgs-167a81f4-0419-4ca8-b5f6-cfda1cbf2745";
@@ -44,7 +44,7 @@
     for (var i = 0; i < arguments.length; i++) (arguments[i] || []).forEach(function(m){
       m = clean(m); if (m && !seen[m.id]) { seen[m.id] = 1; out.push(m); }
     });
-    return out.sort(function(a, b){ return b.t - a.t; });
+    return out.sort(function(a, b){ return a.t - b.t; });
   }
   function parseList(txt){
     try { var d = JSON.parse(txt); return Array.isArray(d) ? d : (d && Array.isArray(d.messages) ? d.messages : []); }
@@ -73,7 +73,7 @@
   function render(list){
     var el = document.getElementById("mb-msgs");
     el.innerHTML = "";
-    list.slice().sort(function(a, b){ return (b.t||0) - (a.t||0); }).slice(0, SHOW).forEach(function(m){
+    list.slice().sort(function(a, b){ return (a.t||0) - (b.t||0); }).slice(0, SHOW).forEach(function(m){
       var d = document.createElement("div");
       d.className = "mb-msg";
       d.innerHTML = '<div class="mb-who"><span></span><span class="mb-when"></span></div><div class="mb-body"></div>';

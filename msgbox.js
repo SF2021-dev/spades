@@ -1,7 +1,7 @@
 /* Diamond Spaders message box: fills <div id="ds-msgbox">.
    Messages are saved to the site's own API (/api/messages, Cloudflare D1) so every visitor sees them,
    then also emailed via FormSubmit as a notification. /messages.json is a backup archive, shown only if the API is down.
-   Shown oldest first; under the list a compose line reads "username: <type here>" (Enter sends, Shift+Enter newline, click the name to change it).
+   Shown oldest first; under the list a compose line reads "username: <type here>" (Enter sends, Shift+Enter newline, click the name to change it). Hint "type here (enter to send)" shows only until first typing/send (localStorage ds-mb-hint-seen).
    PIN: each name has a 3-digit PIN on the server (/api/pin, hashed in D1). First time a name is used the box asks to create
    one (typed twice) plus an email address (server keeps only a hash); after that the PIN is asked once per browser tab session and sent with every message (server checks it). */
 (function(){
@@ -119,6 +119,9 @@
   render(msgs);
   var savedName = ""; try { savedName = (localStorage.getItem("ds-mb-name") || "").trim().slice(0, 40); } catch(e){}
 
+  var HINTKEY = "ds-mb-hint-seen", HINT = "type here (enter to send)";
+  function hintSeen(){ try { return localStorage.getItem(HINTKEY) === "1"; } catch(e){ return false; } }
+  function markHint(){ if (hintSeen()) return; try { localStorage.setItem(HINTKEY, "1"); } catch(e){} if (!askingName && !pinMode) ta.placeholder = ""; }
   function grow(){ ta.style.height = "22px"; ta.style.height = Math.min(ta.scrollHeight, 200) + "px"; ta.style.overflow = ta.scrollHeight > 200 ? "auto" : "hidden"; }
   var PINKEY = "ds-mb-pin";   // sessionStorage: {name, pin} once verified for this tab
   function getPin(){ try { var d = JSON.parse(sessionStorage.getItem(PINKEY) || "null"); return d && d.name === savedName ? d.pin : ""; } catch(e){ return ""; } }
@@ -146,10 +149,10 @@
       ta.placeholder = "type your name or username, then press Enter"; ta.maxLength = 40;
     } else if (savedName) {
       who.textContent = savedName + ":";
-      ta.placeholder = "click here to type a message (Enter to send)"; ta.maxLength = 1000;
+      ta.placeholder = hintSeen() ? "" : HINT; ta.maxLength = 1000;
     } else {
       who.textContent = ""; colon.textContent = "";
-      ta.placeholder = "click here to write a message"; ta.maxLength = 1000;
+      ta.placeholder = hintSeen() ? "" : HINT; ta.maxLength = 1000;
     }
     grow();
   }
@@ -219,8 +222,9 @@
     if (pinMode) { ev.preventDefault(); if (pinMode === "email") addrIn.focus(); else if (pinMode !== "check") pinIn.focus(); return; }
     if (ev.target !== ta) { ev.preventDefault(); ta.focus(); }
   });
-  ta.addEventListener("focus", function(){ if (!savedName && !askingName) askName(); else needPin(); });
-  ta.addEventListener("input", grow);
+  ta.addEventListener("focus", function(){ if (!askingName && !pinMode) { try { localStorage.setItem(HINTKEY, "1"); } catch(e){} }   // seen once: keep it this visit, gone next time
+    if (!savedName && !askingName) askName(); else needPin(); });
+  ta.addEventListener("input", function(){ grow(); if (!askingName && !pinMode && ta.value) markHint(); });
   ta.addEventListener("keydown", function(ev){
     if (ev.key === "Escape" && askingName && savedName) { askingName = false; ta.value = ta.dataset.draft || ""; showCompose(); return; }
     if (ev.key !== "Enter" || ev.shiftKey || ev.isComposing) return;
@@ -269,7 +273,7 @@
     sending = true; ta.readOnly = true; st.textContent = "Sending…"; st.dataset.err = "";
     var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: name, message: msg, pin: pin, t: Date.now()};
     postShared(entry).then(function(list){
-      ta.value = ""; grow();
+      ta.value = ""; markHint(); grow();
       msgs = merge(list);
       saveLocal(msgs); render(msgs);
       st.textContent = "";

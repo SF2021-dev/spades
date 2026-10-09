@@ -1,11 +1,13 @@
 // Shared message box store: GET/POST /api/messages (Cloudflare Pages Function + D1 binding "DB").
 // GET  -> {messages:[{id,name,message,t}]} oldest first (latest SHOW).
-// POST {name,message,id?} (or {messages:[...]} to append several) -> {ok:true, messages:[...]}.
+// POST {name,message,pin,id?} -> {ok:true, messages:[...]}. pin must match the name's 3-digit PIN (see /api/pin);
+//   401 wrong PIN, 428 name has no PIN yet, 429 locked after too many wrong PINs.
 // Writes are atomic inserts (no read-modify-write), so concurrent posts can't overwrite each other.
 // Delete a message: wr d1 execute diamondspaders-auth --remote --command "DELETE FROM messages WHERE id='...'"
 import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
+import { checkPin } from "../_shared/pins.js";
 
-const SHOW = 200, MAX_NAME = 40, MAX_MSG = 1000, MAX_BATCH = 20;
+const SHOW = 200, MAX_NAME = 40, MAX_MSG = 1000;
 
 async function list(env) {
   const r = await env.DB.prepare(
@@ -32,12 +34,11 @@ export const onRequestGet = wrap(async ({ env }) => json({ messages: await list(
 export const onRequestPost = wrap(async ({ request, env }) => {
   const b = await readJson(request);
   if (b && b.website) throw new HttpError(400, "Rejected");          // honeypot
-  const items = Array.isArray(b?.messages) ? b.messages : [b];
-  if (!items.length || items.length > MAX_BATCH) throw new HttpError(400, "Send 1-" + MAX_BATCH + " messages.");
   const now = Date.now();
-  const rows = items.map((m, i) => clean(m, now + i));
+  const m = clean(b, now);
+  m.name = await checkPin(env, m.name, b.pin);   // canonical spelling of the name the PIN was created with
   // INSERT OR IGNORE: a retried send with the same id is a no-op instead of a duplicate.
-  await env.DB.batch(rows.map((m) =>
-    env.DB.prepare("INSERT OR IGNORE INTO messages (id, name, message, t) VALUES (?, ?, ?, ?)").bind(m.id, m.name, m.message, m.t)));
+  await env.DB.prepare("INSERT OR IGNORE INTO messages (id, name, message, t) VALUES (?, ?, ?, ?)").bind(m.id, m.name, m.message, m.t).run();
+  const rows = [m];
   return json({ ok: true, ids: rows.map((m) => m.id), messages: await list(env) }, 201);
 });

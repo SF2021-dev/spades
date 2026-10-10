@@ -10,7 +10,7 @@
    message by prefixing [c=name] when it is sent; with text selected, the pick wraps just that text as [c=name]...[/c]. "remove color"
    clears it (default black text). Only names in COLORS render.
    Outline: the "outline" box opens an outline menu (black is the main one; also white/gold/red/blue/green). Saved in localStorage
-   ds-mb-outline, sent as [o=name] prefix (or [o=name]...[/o] around selected text). Rendered as a thick stroke (paint-order stroke fill,
+   ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a thick stroke (paint-order stroke fill,
    so the fill color stays fully visible) plus a small offset shadow for a slight 3D look. Color only = no outline.
    All [c=]/[o=] tags are stripped from the email notification. */
 (function(){
@@ -56,6 +56,8 @@
     el.style.textShadow = "2px 2px 0 " + h + ",3px 3px 0 " + h;
     el.style.letterSpacing = "0.03em";
   }
+  // outline with no color: light fill so the outline stays readable (white; dark fill kept for the light white/gold outlines)
+  function oFill(n){ return (n === "white" || n === "gold") ? "#000" : "#ffffff"; }
   function oClear(el){ el.style.webkitTextStroke = ""; el.style.paintOrder = ""; el.style.letterSpacing = ""; }
   function stripTags(t){ return t.replace(/\[(c|o)=[a-z]+\]|\[\/(c|o)\]/g, ""); }
   function fillRich(el, text){   // [c=name]..[/c] color and [o=name]..[/o] outline runs (unclosed run to end), then emoji inside
@@ -65,7 +67,7 @@
       if (!col && !ol) { fillBody(el, t); return; }
       var sp = document.createElement("span");
       if (col) { sp.style.color = CMAP[col]; sp.style.textShadow = cShadow(col); }
-      if (ol) oStyle(sp, ol);
+      if (ol) { oStyle(sp, ol); if (!col) sp.style.color = oFill(ol); }
       fillBody(sp, t); el.appendChild(sp);
     }
     while ((m = re.exec(text))) {
@@ -415,7 +417,7 @@
   function getOutline(){ return getPref(OKEY, OMAP); }
   function applyColor(){
     var c = getColor(), o = getOutline();
-    ta.style.color = c ? CMAP[c] : "#000"; ta.style.textShadow = c ? cShadow(c) : "";
+    ta.style.color = c ? CMAP[c] : (o ? oFill(o) : "#000"); ta.style.textShadow = c ? cShadow(c) : "";
     if (o) oStyle(ta, o); else oClear(ta);
   }
   applyColor();

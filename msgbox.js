@@ -6,9 +6,13 @@
    one (typed twice) plus an email address (server keeps only a hash); after that the PIN is asked once per browser session (sessionStorage + session cookie ds_pin_session) and sent with every message (server checks it).
    Emoji: the smiley button left of the compose line opens a 2-column wooden-shelf picker (sprites in /emoji/, cropped from the
    owner's MyLeague-style sheet, see emoji/SOURCE.txt). Picking one inserts a code like :smile: at the cursor; codes render as images.
-   Text color: the rainbow ball right of the smiley opens a color menu. The chosen color (localStorage ds-mb-color) is applied to the whole
+   Text color: the "color" box right of the smiley opens a color menu. The chosen color (localStorage ds-mb-color) is applied to the whole
    message by prefixing [c=name] when it is sent; with text selected, the pick wraps just that text as [c=name]...[/c]. "remove color"
-   clears it (default black text). Only names in COLORS render; tags are stripped from the email notification. */
+   clears it (default black text). Only names in COLORS render.
+   Outline: the "outline" box opens an outline menu (black is the main one; also white/gold/red/blue/green). Saved in localStorage
+   ds-mb-outline, sent as [o=name] prefix (or [o=name]...[/o] around selected text). Rendered as a thick stroke (paint-order stroke fill,
+   so the fill color stays fully visible) plus a small offset shadow for a slight 3D look. Color only = no outline.
+   All [c=]/[o=] tags are stripped from the email notification. */
 (function(){
   var ENDPOINT = "https://formsubmit.co/ajax/f865a31f1882069405c71e61dc656f64";
   var API = "/api/messages", PIN_API = "/api/pin";
@@ -43,16 +47,33 @@
   var CMAP = {}, CLABEL = {}, SHADE = ["light", "medium", "dark"];
   COLORS.forEach(function(h){ h[1].forEach(function(c, i){ CMAP[c[0]] = c[1]; CLABEL[c[0]] = (i === 1 ? "" : SHADE[i] + " ") + h[0]; }); });
   function cShadow(n){ return /white$/.test(n) ? "0 0 2px #000" : (/^light/.test(n) ? "0 0 1px #000" : ""); }
-  var CKEY = "ds-mb-color";
-  function stripTags(t){ return t.replace(/\[c=[a-z]+\]|\[\/c\]/g, ""); }
-  function fillRich(el, text){   // [c=name]..[/c] color spans (unclosed runs to end), then emoji inside
-    var re = /\[c=([a-z]+)\]|\[\/c\]/g, last = 0, m, cur = el;
-    function put(t){ if (t) fillBody(cur, t); }
+  var CKEY = "ds-mb-color", OKEY = "ds-mb-outline";
+  var OUTLINES = [["black","#000000"],["white","#ffffff"],["gold","#f3bf56"],["red","#c00000"],["blue","#0033cc"],["green","#006400"]];
+  var OMAP = {}; OUTLINES.forEach(function(o){ OMAP[o[0]] = o[1]; });
+  function oStyle(el, n){          // thick stroke behind the fill + slight offset shadow (3D)
+    var h = OMAP[n];
+    el.style.webkitTextStroke = "4px " + h; el.style.paintOrder = "stroke fill";
+    el.style.textShadow = "2px 2px 0 " + h + ",3px 3px 0 " + h;
+    el.style.letterSpacing = "0.03em";
+  }
+  function oClear(el){ el.style.webkitTextStroke = ""; el.style.paintOrder = ""; el.style.letterSpacing = ""; }
+  function stripTags(t){ return t.replace(/\[(c|o)=[a-z]+\]|\[\/(c|o)\]/g, ""); }
+  function fillRich(el, text){   // [c=name]..[/c] color and [o=name]..[/o] outline runs (unclosed run to end), then emoji inside
+    var re = /\[(c|o)=([a-z]+)\]|\[\/(c|o)\]/g, last = 0, m, col = "", ol = "";
+    function put(t){
+      if (!t) return;
+      if (!col && !ol) { fillBody(el, t); return; }
+      var sp = document.createElement("span");
+      if (col) { sp.style.color = CMAP[col]; sp.style.textShadow = cShadow(col); }
+      if (ol) oStyle(sp, ol);
+      fillBody(sp, t); el.appendChild(sp);
+    }
     while ((m = re.exec(text))) {
-      if (m[1] && !CMAP[m[1]]) continue;   // unknown color: leave as text
+      if (m[1] === "c" && !CMAP[m[2]]) continue;   // unknown name: leave as text
+      if (m[1] === "o" && !OMAP[m[2]]) continue;
       put(text.slice(last, m.index)); last = re.lastIndex;
-      if (m[1]) { var sp = document.createElement("span"); sp.style.color = CMAP[m[1]]; sp.style.textShadow = cShadow(m[1]); el.appendChild(sp); cur = sp; }
-      else cur = el;
+      if (m[1] === "c") col = m[2]; else if (m[1] === "o") ol = m[2];
+      else if (m[3] === "c") col = ""; else ol = "";
     }
     put(text.slice(last));
   }
@@ -100,6 +121,11 @@
     "#ds-emopick button{background:transparent;border:0;margin:0;padding:0 0 13px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:6px}" +
     "#ds-emopick button:hover,#ds-emopick button:focus-visible{background:rgba(243,191,86,.22);outline:0}" +
     "#ds-emopick img{pointer-events:none}" +
+    "#ds-msgbox .mb-txtbtn{flex:none;display:flex;align-items:center;gap:6px;background:#fff3d0;border:2px solid #6b5310;border-radius:6px;padding:2px 10px;margin:0;" +
+      "cursor:pointer;min-height:32px;font:900 15px " + F + ";color:#000}" +
+    "#ds-msgbox .mb-txtbtn:hover,#ds-msgbox .mb-txtbtn[aria-expanded=true]{background:#e6ad3a}" +
+    "#ds-msgbox .mb-txtbtn .mb-ball{width:18px;height:18px}" +
+    "#ds-msgbox .mb-olword{color:#fbe646;-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:1px 1px 0 #000,2px 2px 0 #000;letter-spacing:.03em}" +
     "#ds-msgbox .mb-ball{display:block;width:23px;height:23px;border-radius:50%;box-shadow:inset -2px -3px 5px rgba(0,0,0,.35),0 0 0 1px #6b5310;" +
       "background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.95) 0,rgba(255,255,255,.35) 18%,rgba(255,255,255,0) 40%)," +
       "conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)}" +
@@ -191,7 +217,8 @@
     '<div class="mb-tools" id="mb-tools">' +
     '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
     '<img src="' + EMO_DIR + 'smile.png?v=' + EMO_V + '" width="23" height="23" alt=""></button>' +
-    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color" aria-haspopup="true" aria-expanded="false" title="Text color"><span class="mb-ball"></span></button></div></div>' +
+    '<button type="button" class="mb-txtbtn" id="mb-colbtn" aria-label="Text color" aria-haspopup="true" aria-expanded="false" title="Text color"><span class="mb-ball"></span>color</button>' +
+    '<button type="button" class="mb-txtbtn" id="mb-olbtn" aria-label="Text outline" aria-haspopup="true" aria-expanded="false" title="Text outline"><span class="mb-olword">outline</span></button></div></div>' +
     '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
 
@@ -312,7 +339,7 @@
   });
   showCompose();
   document.getElementById("mb-compose").addEventListener("mousedown", function(ev){
-    if (emoBtn.contains(ev.target) || colBtn.contains(ev.target)) { ev.preventDefault(); return; }   // keep the textarea's cursor; click handler toggles the picker
+    if (emoBtn.contains(ev.target) || document.getElementById("mb-tools").contains(ev.target)) { ev.preventDefault(); return; }   // keep the textarea's cursor; click handler toggles the picker
     if (ev.target === who) { ev.preventDefault(); if (!askingName) askName(); return; }
     if (ev.target === pinIn) return;
     if (ev.target === addrIn) return;
@@ -364,7 +391,7 @@
   }
   function openPick(){
     if (pick) return;
-    if (typeof closeCol === "function") closeCol();
+    if (menus) closeMenus();
     pick = document.createElement("div"); pick.id = "ds-emopick"; pick.setAttribute("role", "menu"); pick.setAttribute("aria-label", "Emoji");
     EMOJI.forEach(function(e){
       var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitem"); b.title = ":" + e[0] + ":"; b.setAttribute("aria-label", e[0]);
@@ -382,59 +409,86 @@
   document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && pick) { closePick(); emoBtn.focus(); } });
   window.addEventListener("resize", placePick);
 
-  // ---- text color ----
-  var colBtn = document.getElementById("mb-colbtn"), cpick = null;
-  function getColor(){ try { var c = localStorage.getItem(CKEY) || ""; return CMAP[c] ? c : ""; } catch(e){ return ""; } }
-  function applyColor(){ var c = getColor(); ta.style.color = c ? CMAP[c] : "#000"; ta.style.textShadow = c ? cShadow(c) : ""; }
+  // ---- text color + outline (two menus built by one factory) ----
+  function getPref(key, map){ try { var c = localStorage.getItem(key) || ""; return map[c] ? c : ""; } catch(e){ return ""; } }
+  function getColor(){ return getPref(CKEY, CMAP); }
+  function getOutline(){ return getPref(OKEY, OMAP); }
+  function applyColor(){
+    var c = getColor(), o = getOutline();
+    ta.style.color = c ? CMAP[c] : "#000"; ta.style.textShadow = c ? cShadow(c) : "";
+    if (o) oStyle(ta, o); else oClear(ta);
+  }
   applyColor();
-  function closeCol(){ if (!cpick) return; cpick.remove(); cpick = null; colBtn.setAttribute("aria-expanded", "false"); }
-  function pickColor(c){
-    var v = ta.value, a = Math.min(selA, v.length), b = Math.min(Math.max(selB, a), v.length);
-    if (c && b > a && !askingName && !pinMode) {   // color just the selected text
-      var piece = "[c=" + c + "]" + v.slice(a, b) + "[/c]";
-      if (v.length - (b - a) + piece.length > 1000) { st.textContent = "Message is too long to color that."; closeCol(); return; }
-      ta.value = v.slice(0, a) + piece + v.slice(b); selA = selB = a + piece.length; grow();
-      st.textContent = "Colored the selected text " + CLABEL[c] + ".";
-    } else {
-      try { if (c) localStorage.setItem(CKEY, c); else localStorage.removeItem(CKEY); } catch(e){}
-      applyColor(); st.textContent = c ? "Your messages will be " + CLABEL[c] + "." : "Color removed.";
+  var menus = [];
+  function closeMenus(){ menus.forEach(function(mn){ mn.close(); }); }
+  function makeMenu(btn, kind){
+    var isCol = kind === "c", key = isCol ? CKEY : OKEY, map = isCol ? CMAP : OMAP, el = null;
+    var noun = isCol ? "color" : "outline", tag = isCol ? "c" : "o";
+    function label(n){ return isCol ? CLABEL[n] : n; }
+    function close(){ if (!el) return; el.remove(); el = null; btn.setAttribute("aria-expanded", "false"); }
+    function choose(n){
+      var v = ta.value, a = Math.min(selA, v.length), b = Math.min(Math.max(selB, a), v.length);
+      if (n && b > a && !askingName && !pinMode) {   // style just the selected text
+        var piece = "[" + tag + "=" + n + "]" + v.slice(a, b) + "[/" + tag + "]";
+        if (v.length - (b - a) + piece.length > 1000) { st.textContent = "Message is too long to " + noun + " that."; close(); return; }
+        ta.value = v.slice(0, a) + piece + v.slice(b); selA = selB = a + piece.length; grow();
+        st.textContent = isCol ? "Colored the selected text " + label(n) + "." : "Outlined the selected text in " + label(n) + ".";
+      } else {
+        try { if (n) localStorage.setItem(key, n); else localStorage.removeItem(key); } catch(e){}
+        applyColor();
+        st.textContent = n ? (isCol ? "Your messages will be " + label(n) + "." : "Your messages will have a " + label(n) + " outline.")
+                           : (isCol ? "Color removed." : "Outline removed.");
+      }
+      close();
+      if (!pinMode && !askingName && !(window.matchMedia && matchMedia("(pointer: coarse)").matches)) { ta.focus(); try { ta.setSelectionRange(selA, selB); } catch(e){} }
     }
-    closeCol();
-    if (!pinMode && !askingName && !(window.matchMedia && matchMedia("(pointer: coarse)").matches)) { ta.focus(); try { ta.setSelectionRange(selA, selB); } catch(e){} }
-  }
-  function openCol(){
-    if (cpick) return;
-    closePick();
-    cpick = document.createElement("div"); cpick.id = "ds-colpick"; cpick.setAttribute("role", "menu"); cpick.setAttribute("aria-label", "Text color");
-    var cur = getColor();
-    function mkBtn(name, label){
-      var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitemradio");
-      b.setAttribute("aria-checked", String(name === cur && !!name)); b.title = label; b.setAttribute("aria-label", label);
-      var sw = document.createElement("span"); sw.className = "sw";
-      sw.style.background = name ? CMAP[name] : "linear-gradient(135deg,#000 45%,#c00000 45%,#c00000 55%,#000 55%)";
-      b.appendChild(sw);
-      b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
-      b.addEventListener("click", function(ev){ ev.preventDefault(); pickColor(name); });
-      return b;
+    function open(){
+      if (el) return;
+      closePick(); closeMenus();
+      el = document.createElement("div"); el.id = "ds-colpick"; el.setAttribute("role", "menu"); el.setAttribute("aria-label", isCol ? "Text color" : "Text outline");
+      var cur = getPref(key, map);
+      function mkBtn(n, lab){
+        var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitemradio");
+        b.setAttribute("aria-checked", String(n === cur && !!n)); b.title = lab; b.setAttribute("aria-label", lab);
+        var sw = document.createElement("span"); sw.className = "sw";
+        sw.style.background = n ? map[n] : "linear-gradient(135deg,#000 45%,#c00000 45%,#c00000 55%,#000 55%)";
+        if (!n && !isCol) sw.style.background = "linear-gradient(135deg,#f3bf56 45%,#c00000 45%,#c00000 55%,#f3bf56 55%)";
+        b.appendChild(sw);
+        b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
+        b.addEventListener("click", function(ev){ ev.preventDefault(); choose(n); });
+        return b;
+      }
+      var rm = mkBtn("", "remove " + noun), lb = document.createElement("span"); lb.textContent = "remove " + noun; rm.appendChild(lb); el.appendChild(rm);
+      if (isCol) {
+        var g = document.createElement("div"); g.className = "cp-grid";
+        ["", "Light", "Medium", "Dark"].forEach(function(t){ var h = document.createElement("span"); h.className = "cp-h"; h.textContent = t; g.appendChild(h); });
+        COLORS.forEach(function(h){
+          var hl = document.createElement("span"); hl.className = "cp-hue"; hl.textContent = h[0]; g.appendChild(hl);
+          h[1].forEach(function(c){ g.appendChild(mkBtn(c[0], CLABEL[c[0]])); });
+        });
+        el.appendChild(g);
+      } else {
+        OUTLINES.forEach(function(o){
+          var b = mkBtn(o[0], o[0] + " outline"), t = document.createElement("span");
+          t.textContent = o[0] + " outline"; t.style.color = "#fbe646"; oStyle(t, o[0]); t.style.webkitTextStroke = "3px " + o[1];
+          t.style.textShadow = "1px 1px 0 " + o[1] + ",2px 2px 0 " + o[1];
+          b.appendChild(t); el.appendChild(b);
+        });
+      }
+      document.body.appendChild(el); btn.setAttribute("aria-expanded", "true");
+      var r = btn.getBoundingClientRect(), pw = el.offsetWidth, ph = el.offsetHeight;
+      var left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - pw - 8));
+      var top = (r.top - ph - 6 >= 8) ? r.top - ph - 6 : r.bottom + 6;
+      el.style.left = (left + window.scrollX) + "px"; el.style.top = (top + window.scrollY) + "px";
     }
-    var rm = mkBtn("", "remove color"), lb = document.createElement("span"); lb.textContent = "remove color"; rm.appendChild(lb); cpick.appendChild(rm);
-    var g = document.createElement("div"); g.className = "cp-grid";
-    ["", "Light", "Medium", "Dark"].forEach(function(t){ var h = document.createElement("span"); h.className = "cp-h"; h.textContent = t; g.appendChild(h); });
-    COLORS.forEach(function(h){
-      var hl = document.createElement("span"); hl.className = "cp-hue"; hl.textContent = h[0]; g.appendChild(hl);
-      h[1].forEach(function(c){ g.appendChild(mkBtn(c[0], CLABEL[c[0]])); });
-    });
-    cpick.appendChild(g);
-    document.body.appendChild(cpick); colBtn.setAttribute("aria-expanded", "true");
-    var r = colBtn.getBoundingClientRect(), pw = cpick.offsetWidth, ph = cpick.offsetHeight;
-    var left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - pw - 8));
-    var top = (r.top - ph - 6 >= 8) ? r.top - ph - 6 : r.bottom + 6;
-    cpick.style.left = (left + window.scrollX) + "px"; cpick.style.top = (top + window.scrollY) + "px";
+    btn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if (el) close(); else { rememberSel(); open(); } });
+    document.addEventListener("mousedown", function(ev){ if (el && !el.contains(ev.target) && !btn.contains(ev.target)) close(); }, true);
+    document.addEventListener("touchstart", function(ev){ if (el && !el.contains(ev.target) && !btn.contains(ev.target)) close(); }, {capture: true, passive: true});
+    document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && el) { close(); btn.focus(); } });
+    var mn = {close: close}; menus.push(mn); return mn;
   }
-  colBtn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if (cpick) closeCol(); else { rememberSel(); openCol(); } });
-  document.addEventListener("mousedown", function(ev){ if (cpick && !cpick.contains(ev.target) && !colBtn.contains(ev.target)) closeCol(); }, true);
-  document.addEventListener("touchstart", function(ev){ if (cpick && !cpick.contains(ev.target) && !colBtn.contains(ev.target)) closeCol(); }, {capture: true, passive: true});
-  document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && cpick) { closeCol(); colBtn.focus(); } });
+  makeMenu(document.getElementById("mb-colbtn"), "c");
+  makeMenu(document.getElementById("mb-olbtn"), "o");
 
   var apiDown = false;
   function refresh(){
@@ -459,8 +513,10 @@
   form.addEventListener("submit", function(ev){
     ev.preventDefault();
     if (sending || askingName || pinMode) return;
-    var name = savedName, msg = ta.value.trim(), col = getColor();
-    if (msg && col && msg.indexOf("[c=") !== 0) msg = "[c=" + col + "]" + msg;
+    var name = savedName, msg = ta.value.trim(), col = getColor(), ol = getOutline(), pre = "";
+    if (msg && col && msg.indexOf("[c=") !== 0) pre += "[c=" + col + "]";
+    if (msg && ol && msg.indexOf("[o=") !== 0) pre += "[o=" + ol + "]";
+    msg = pre + msg;
     msg = msg.slice(0, 1000);
     if (!name) { askName(); return; }
     if (!stripTags(msg).trim()) { st.textContent = "Type a message, then press Enter."; return; }

@@ -49,7 +49,9 @@
   COLORS.forEach(function(h){ h[1].forEach(function(c, i){ CMAP[c[0]] = c[1]; CLABEL[c[0]] = (i === 1 ? "" : SHADE[i] + " ") + h[0]; }); });
   function cShadow(n){ return /white$/.test(n) ? "0 0 2px #000" : (/^light/.test(n) ? "0 0 1px #000" : ""); }
   var CKEY = "ds-mb-color", OKEY = "ds-mb-outline";
-  var OUTLINES = [["black","#000000"],["white","#ffffff"],["gold","#f3bf56"],["red","#c00000"],["blue","#0033cc"],["green","#006400"]];
+  // outline colors: black + gold first, then every color/shade from the color box (same tag names, so older [o=red] etc. still render)
+  var OUTLINES = [["black","#000000"],["gold","#f3bf56"]];
+  COLORS.forEach(function(h){ h[1].forEach(function(c){ OUTLINES.push(c); }); });
   var OMAP = {}; OUTLINES.forEach(function(o){ OMAP[o[0]] = o[1]; });
   function oStyle(el, n){          // thick stroke behind the fill + slight offset shadow (3D)
     var h = OMAP[n];
@@ -58,7 +60,7 @@
     el.style.letterSpacing = "0.03em";
   }
   // outline with no color: light fill so the outline stays readable (white; dark fill kept for the light white/gold outlines)
-  function oFill(n){ return (n === "white" || n === "gold") ? "#000" : "#ffffff"; }
+  function oFill(n){ return (n === "gold" || /white/.test(n) || /^light/.test(n)) ? "#000" : "#ffffff"; }
   function oClear(el){ el.style.webkitTextStroke = ""; el.style.paintOrder = ""; el.style.letterSpacing = ""; }
   function stripTags(t){ return t.replace(/\[(c|o)=[a-z]+\]|\[\/(c|o)\]/g, ""); }
   function fillRich(el, text){   // [c=name]..[/c] color and [o=name]..[/o] outline runs (unclosed run to end), then emoji inside
@@ -298,8 +300,21 @@
     savePin(p); pinMode = ""; firstPin = ""; pinIn.value = ""; addrIn.value = ""; showCompose(); ta.focus();
     if (sendAfterPin && ta.value.trim()) { sendAfterPin = false; form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", {cancelable: true})); }
     sendAfterPin = false;
+    runAfterPin();
   }
-  function cancelPin(){ pinMode = ""; firstPin = ""; sendAfterPin = false; addrIn.value = ""; showCompose(); st.textContent = "You need your PIN to send a message."; }
+  // Emoji / color buttons: require a verified PIN first (same gate as sending); run fn once the PIN is OK.
+  var afterPin = null;
+  function runAfterPin(){ var f = afterPin; afterPin = null; if (f) setTimeout(f, 0); }
+  function gate(fn){
+    if (savedName && !askingName && !pinMode && getPin()) { fn(); return; }
+    afterPin = fn;
+    if (!savedName && !askingName) { askName(); st.textContent = "Type your name, then your PIN, to use emoji and colors."; return; }
+    if (askingName) { ta.focus(); st.textContent = "Type your name first (enter), then your PIN."; return; }
+    if (pinMode) { (pinMode === "email" ? addrIn : pinIn).focus(); st.textContent = "Enter your PIN first."; return; }
+    if (needPin()) st.textContent = "Enter your PIN first.";
+    else runAfterPin();
+  }
+  function cancelPin(){ pinMode = ""; firstPin = ""; sendAfterPin = false; afterPin = null; addrIn.value = ""; showCompose(); st.textContent = "You need your PIN to send a message."; }
   addrIn.addEventListener("keydown", function(ev){
     if (ev.key === "Escape") { cancelPin(); return; }
     if (ev.key !== "Enter" || ev.isComposing) return;
@@ -359,7 +374,7 @@
       if (n !== savedName) savePin("");
       savedName = n; try { localStorage.setItem("ds-mb-name", n); } catch(e){}
       askingName = false; st.textContent = ""; ta.value = ta.dataset.draft || ""; showCompose();
-      if (!needPin()) ta.focus();
+      if (!needPin()) { ta.focus(); runAfterPin(); }
       return;
     }
     form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", {cancelable: true}));
@@ -403,7 +418,7 @@
     document.body.appendChild(pick); emoBtn.setAttribute("aria-expanded", "true"); placePick();
   }
   function closePick(){ if (!pick) return; pick.remove(); pick = null; emoBtn.setAttribute("aria-expanded", "false"); }
-  emoBtn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if (pick) closePick(); else { rememberSel(); openPick(); } });
+  emoBtn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if (pick) closePick(); else gate(function(){ rememberSel(); openPick(); }); });
   document.addEventListener("mousedown", function(ev){ if (pick && !pick.contains(ev.target) && !emoBtn.contains(ev.target)) closePick(); }, true);
   document.addEventListener("touchstart", function(ev){ if (pick && !pick.contains(ev.target) && !emoBtn.contains(ev.target)) closePick(); }, {capture: true, passive: true});
   document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && pick) { closePick(); emoBtn.focus(); } });
@@ -473,7 +488,10 @@
       pc.appendChild(g);
       po.appendChild(textBtn("o", "No Outline"));
       var og = document.createElement("div"); og.className = "cp-grid";
-      OUTLINES.forEach(function(o){ og.appendChild(mkBtn("o", o[0], o[0] + " outline")); });
+      OUTLINES.forEach(function(o, i){
+        og.appendChild(mkBtn("o", o[0], (CLABEL[o[0]] || o[0]) + " outline"));
+        if (i === 1) { var gap = document.createElement("span"); og.appendChild(gap); }   // black, gold, (blank) then the color rows
+      });
       po.appendChild(og);
       document.body.appendChild(el); btn.setAttribute("aria-expanded", "true");
       var r = btn.getBoundingClientRect(), pw = el.offsetWidth, ph = el.offsetHeight;
@@ -481,7 +499,7 @@
       var top = (r.top - ph - 6 >= 8) ? r.top - ph - 6 : r.bottom + 6;
       el.style.left = (left + window.scrollX) + "px"; el.style.top = (top + window.scrollY) + "px";
     }
-    btn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if (el) close(); else { rememberSel(); open(); } });
+    btn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if (el) close(); else gate(function(){ rememberSel(); open(); }); });
     document.addEventListener("mousedown", function(ev){ if (el && !el.contains(ev.target) && !btn.contains(ev.target)) close(); }, true);
     document.addEventListener("touchstart", function(ev){ if (el && !el.contains(ev.target) && !btn.contains(ev.target)) close(); }, {capture: true, passive: true});
     document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && el) { close(); btn.focus(); } });

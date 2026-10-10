@@ -101,7 +101,7 @@
     "@font-face{font-family:'DS Coustard';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/coustard-400-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}" +
     "@font-face{font-family:'DS Coustard';font-style:normal;font-weight:900;font-display:swap;src:url(/fonts/coustard-900-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}" +
     "@font-face{font-family:'DS Coustard';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/coustard-400-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}" +
-    "#ds-msgbox .mb-card{background:#000;border:1px solid #f3bf56;border-radius:10px;padding:14px 16px;box-sizing:border-box;" +
+    "#ds-msgbox .mb-card{background:#000;border:1px solid #f3bf56;border-radius:10px;padding:10px 12px;box-sizing:border-box;" +
       "display:flex;flex-direction:column;height:calc(100vh - 16px);height:calc(100dvh - 16px);min-height:340px}" +   // box = one screen tall; only the list scrolls
     "#ds-msgbox .mb-title{flex:none}" +
     "#ds-msgbox #mb-form{flex:1;min-height:0;display:flex;flex-direction:column}" +
@@ -112,13 +112,14 @@
     "#ds-msgbox .mb-top:hover,#ds-msgbox .mb-top:focus-visible,#ds-msgbox .mb-home:hover,#ds-msgbox .mb-home:focus-visible{text-decoration:underline;outline:0}" +
     "@media (max-width:560px){#ds-msgbox .mb-title,#ds-msgbox .mb-top,#ds-msgbox .mb-home{font-size:14px}#ds-msgbox .mb-title{gap:6px}}" +
     "#ds-msgbox .mb-msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;overflow:auto;overscroll-behavior:contain}" +
+    "#ds-msgbox .mb-wrap .mb-msgs{min-height:max(160px,calc(100vh - 230px));min-height:max(160px,calc(100dvh - 230px))}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}" +
     "#ds-msgbox .mb-line{font-size:20px;color:#000;line-height:1.4;padding:8px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
     "#ds-msgbox .mb-line:last-child{border-bottom:0}" +
     "#ds-msgbox .mb-who{color:#008000;font-weight:400}" +
     "#ds-msgbox .mb-body{white-space:pre-wrap;overflow-wrap:anywhere;color:#000;font-weight:400}" +
     "#ds-msgbox .mb-wrap{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;margin-bottom:6px;overflow:hidden;flex:1;min-height:0;display:flex;flex-direction:column}" +
-    "#ds-msgbox .mb-wrap .mb-msgs{border:0;border-radius:0;margin:0;flex:1;min-height:0}" +
+    "#ds-msgbox .mb-wrap .mb-msgs{border:0;border-radius:0;margin:0;flex:1 1 auto}" +
     "#ds-msgbox .mb-compose,#ds-msgbox .mb-tools,#ds-msgbox .mb-status{flex:none}" +
     "#ds-msgbox .mb-compose{display:flex;flex-wrap:wrap;align-items:flex-start;border-top:2px solid #cb972e;padding:8px 12px;cursor:text;font-size:20px;line-height:1.4;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
     "#ds-msgbox .mb-compose .mb-who{white-space:nowrap;cursor:pointer;padding-top:2px}" +
@@ -137,6 +138,9 @@
     "#ds-msgbox .mb-pinhint.mb-hintrow{order:9;flex-basis:100%;padding:4px 0 0;font-variant-ligatures:none;letter-spacing:.02em}" +
     "#ds-msgbox .mb-compose:focus-within{background:#f7cf78}" +
     "#ds-msgbox .mb-status{color:#f3bf56;font-size:14px;min-height:20px;margin-top:4px}" +
+    "#ds-msgbox .mb-status:empty{min-height:0;margin:0}" +
+    "#ds-msgbox #mb-text{min-height:0 !important;max-height:120px}" +
+    "#ds-msgbox .mb-compose{max-height:240px}" +
     "#ds-msgbox .mb-emo{vertical-align:middle;display:inline-block;margin:0 1px;filter:drop-shadow(0 0 .6px #5a3d00) drop-shadow(0 0 .4px #5a3d00)}" +
     "#ds-msgbox .mb-emobtn img{filter:drop-shadow(0 0 .6px #5a3d00) drop-shadow(0 0 .4px #5a3d00)}" +
     "#ds-msgbox .mb-emobtn{flex:none;background:transparent;border:0;padding:2px;margin:0;cursor:pointer;line-height:0;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px}" +
@@ -272,7 +276,13 @@
   var HINTKEY = "ds-mb-hint-seen", HINT = "type here (enter to send)";
   function hintSeen(){ try { return localStorage.getItem(HINTKEY) === "1"; } catch(e){ return false; } }
   function markHint(){ if (hintSeen()) return; try { localStorage.setItem(HINTKEY, "1"); } catch(e){} if (!askingName && !pinMode) ta.placeholder = ""; }
-  function grow(){ ta.style.height = "28px"; ta.style.height = Math.min(ta.scrollHeight, 200) + "px"; ta.style.overflow = ta.scrollHeight > 200 ? "auto" : "hidden"; if (typeof mirror !== "undefined" && mirror) mirror.scrollTop = ta.scrollTop; }
+  // Compose stays compact: one line when empty (placeholder never makes it tall), up to ~4 lines while typing, then it scrolls.
+  var TA_MAX = 120;
+  function grow(){
+    if (!ta.value || ta.offsetWidth < 60) { ta.style.height = "32px"; ta.style.overflow = "hidden"; }
+    else { ta.style.height = "32px"; var h = ta.scrollHeight; ta.style.height = Math.min(Math.max(h, 32), TA_MAX) + "px"; ta.style.overflow = h > TA_MAX ? "auto" : "hidden"; }
+    if (typeof mirror !== "undefined" && mirror) mirror.scrollTop = ta.scrollTop;
+  }
   // Verified PIN is remembered for the browser session: sessionStorage (this tab, survives reloads) plus a session cookie
   // (no expiry, so it's shared by every tab/new-tab page and cleared when the browser is closed). Sent silently with each post.
   var PINKEY = "ds-mb-pin", PINCOOKIE = "ds_pin_session";
@@ -478,6 +488,8 @@
   document.addEventListener("touchstart", function(ev){ if (pick && !pick.contains(ev.target) && !emoBtn.contains(ev.target)) closePick(); }, {capture: true, passive: true});
   document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && pick) { closePick(); emoBtn.focus(); } });
   window.addEventListener("resize", placePick);
+  window.addEventListener("resize", grow);
+  try { document.fonts && document.fonts.ready.then(grow); } catch(e){}
 
   // ---- text color + outline (two menus built by one factory) ----
   function getPref(key, map){ try { var c = localStorage.getItem(key) || ""; return map[c] ? c : ""; } catch(e){ return ""; } }

@@ -3,7 +3,9 @@
    then also emailed via FormSubmit as a notification. /messages.json is a backup archive, shown only if the API is down.
    Shown oldest first; under the list a compose line reads "username: <type here>" (Enter sends, Shift+Enter newline, click the name to change it). Hint "type here (enter to send)" shows only until first typing/send (localStorage ds-mb-hint-seen).
    PIN: each name has a 3-digit PIN on the server (/api/pin, hashed in D1). First time a name is used the box asks to create
-   one (typed twice) plus an email address (server keeps only a hash); after that the PIN is asked once per browser tab session and sent with every message (server checks it). */
+   one (typed twice) plus an email address (server keeps only a hash); after that the PIN is asked once per browser tab session and sent with every message (server checks it).
+   Emoji: the smiley button left of the compose line opens a 2-column wooden-shelf picker (sprites in /emoji/, cropped from the
+   owner's MyLeague-style sheet, see emoji/SOURCE.txt). Picking one inserts a code like :smile: at the cursor; codes render as images. */
 (function(){
   var ENDPOINT = "https://formsubmit.co/ajax/f865a31f1882069405c71e61dc656f64";
   var API = "/api/messages", PIN_API = "/api/pin";
@@ -13,6 +15,26 @@
   var box = document.getElementById("ds-msgbox");
   if (!box) return;
   var F = "'Comic Sans MS','Comic Sans',cursive";
+  var EMO_V = "1", EMO_DIR = "/emoji/";
+  var EMOJI = [["cool",23,23],["confused",23,23],["dizzy",23,23],["silly",23,23],["angry",23,23],["grin",23,23],["shocked",23,23],["surprised",23,23],
+    ["meh",23,23],["smile",23,23],["sad",23,23],["neutral",23,23],["worried",23,23],["zipped",23,23],["annoyed",23,23],["wink",23,23],
+    ["unsure",23,23],["upset",23,23],["sleepy",23,23],["laugh",23,23],["ninja",23,23],["angel",47,23],["devil",47,23],["afk",23,22],
+    ["brb",22,22],["music",19,22],["duck",39,26],["rainbow",55,31],["stars",55,31],["redstar",20,21],["greenstar",20,19],["bluestar",20,19]];
+  var EMO = {}; EMOJI.forEach(function(e){ EMO[e[0]] = e; });
+  function emoImg(n){
+    var e = EMO[n], im = document.createElement("img");
+    im.src = EMO_DIR + n + ".png?v=" + EMO_V; im.width = e[1]; im.height = e[2]; im.alt = ":" + n + ":"; im.title = ":" + n + ":";
+    im.className = "mb-emo"; im.draggable = false; return im;
+  }
+  function fillBody(el, text){   // text with :code: emoji -> text nodes + <img>
+    var re = /:([a-z]+):/g, last = 0, m;
+    while ((m = re.exec(text))) {
+      if (!EMO[m[1]]) { re.lastIndex = m.index + 1; continue; }
+      if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+      el.appendChild(emoImg(m[1])); last = re.lastIndex;
+    }
+    if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+  }
   box.style.cssText = "max-width:100%;width:100%;margin:24px 0 8px;padding:0 8px;box-sizing:border-box;font-family:" + F + ";";
   var css = document.createElement("style");
   css.textContent =
@@ -35,7 +57,16 @@
     "#ds-msgbox #mb-email{flex:1;min-width:0;background:#fff8e6;color:#000;border:1px solid #cb972e;border-radius:4px;outline:0;padding:1px 6px;margin:0;font:700 15px " + F + "}" +
     "#ds-msgbox .mb-pinhint{color:#6b5310;font-style:italic;padding:2px 0 0 8px;font-size:14px}" +
     "#ds-msgbox .mb-compose:focus-within{background:#f7cf78}" +
-    "#ds-msgbox .mb-status{color:#f3bf56;font-size:14px;min-height:20px;margin-top:4px}";
+    "#ds-msgbox .mb-status{color:#f3bf56;font-size:14px;min-height:20px;margin-top:4px}" +
+    "#ds-msgbox .mb-emo{vertical-align:middle;display:inline-block;margin:0 1px}" +
+    "#ds-msgbox .mb-emobtn{flex:none;background:transparent;border:0;padding:0 6px 0 0;margin:0;cursor:pointer;line-height:0;align-self:flex-start;min-width:30px;min-height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px}" +
+    "#ds-msgbox .mb-emobtn:hover,#ds-msgbox .mb-emobtn[aria-expanded=true]{background:#e6ad3a}" +
+    "#ds-emopick{position:absolute;z-index:9999;width:281px;max-width:calc(100vw - 16px);max-height:min(60vh,434px);overflow-y:auto;overscroll-behavior:contain;" +
+      "display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:62px;background:#5a1c08 url(/emoji/shelf.png?v=1) 0 0/100% 62px repeat-y;background-attachment:local;" +
+      "border:2px solid #f3bf56;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.6);padding:0;box-sizing:border-box}" +
+    "#ds-emopick button{background:transparent;border:0;margin:0;padding:0 0 13px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:6px}" +
+    "#ds-emopick button:hover,#ds-emopick button:focus-visible{background:rgba(243,191,86,.22);outline:0}" +
+    "#ds-emopick img{pointer-events:none}";
   document.head.appendChild(css);
 
   function clean(m){
@@ -92,7 +123,7 @@
       d.className = "mb-msg";
       d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span></div>';
       d.querySelector(".mb-who").textContent = m.name;
-      d.querySelector(".mb-body").textContent = m.message;
+      fillBody(d.querySelector(".mb-body"), m.message);
       el.appendChild(d);
     });
   }
@@ -102,7 +133,8 @@
     '<div class="mb-title">Messages</div>' +
     '<form id="mb-form" autocomplete="off"><div class="mb-wrap">' +
     '<div class="mb-msgs" id="mb-msgs"></div>' +
-    '<div class="mb-compose" id="mb-compose"><span class="mb-who" id="mb-who" title="Click to change your name"></span>' +
+    '<div class="mb-compose" id="mb-compose"><button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
+    '<img src="' + EMO_DIR + 'smile.png?v=' + EMO_V + '" width="23" height="23" alt=""></button><span class="mb-who" id="mb-who" title="Click to change your name"></span>' +
     '<textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message"></textarea>' +
     '<input type="password" id="mb-pin" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="3-digit PIN" style="display:none">' +
     '<input type="email" id="mb-email" maxlength="254" autocomplete="email" aria-label="Your email address" placeholder="you@example.com" style="display:none">' +
@@ -151,7 +183,7 @@
       who.textContent = savedName + ":";
       ta.placeholder = hintSeen() ? "" : HINT; ta.maxLength = 1000;
     } else {
-      who.textContent = ""; colon.textContent = "";
+      who.textContent = ""; if (colon) colon.textContent = "";
       ta.placeholder = hintSeen() ? "" : HINT; ta.maxLength = 1000;
     }
     grow();
@@ -216,6 +248,7 @@
   });
   showCompose();
   document.getElementById("mb-compose").addEventListener("mousedown", function(ev){
+    if (emoBtn.contains(ev.target)) { ev.preventDefault(); return; }   // keep the textarea's cursor; click handler toggles the picker
     if (ev.target === who) { ev.preventDefault(); if (!askingName) askName(); return; }
     if (ev.target === pinIn) return;
     if (ev.target === addrIn) return;
@@ -240,6 +273,48 @@
     }
     form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", {cancelable: true}));
   });
+
+  // ---- emoji picker ----
+  var emoBtn = document.getElementById("mb-emobtn"), pick = null, selA = 0, selB = 0;
+  function rememberSel(){ if (!askingName && !pinMode) { selA = ta.selectionStart; selB = ta.selectionEnd; } }
+  ["keyup", "mouseup", "input", "select", "blur", "touchend"].forEach(function(t){ ta.addEventListener(t, rememberSel); });
+  function placePick(){
+    if (!pick) return;
+    var r = emoBtn.getBoundingClientRect(), pw = pick.offsetWidth, ph = pick.offsetHeight;
+    var left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - pw - 8));
+    var top = (r.top - ph - 6 >= 8) ? r.top - ph - 6 : r.bottom + 6;   // above the button if it fits, else below
+    pick.style.left = (left + window.scrollX) + "px"; pick.style.top = (top + window.scrollY) + "px";
+  }
+  function insertEmo(n){
+    var code = ":" + n + ":";
+    if (askingName) { ta.dataset.draft = (ta.dataset.draft || "") + code; st.textContent = "Emoji added to your message. Finish your name first (Enter)."; return; }
+    var v = ta.value, a = Math.min(selA, v.length), b = Math.min(Math.max(selB, a), v.length);
+    if (v.length - (b - a) + code.length > 1000) { st.textContent = "Message is too long for another emoji."; return; }
+    ta.value = v.slice(0, a) + code + v.slice(b); selA = selB = a + code.length;
+    grow(); markHint();
+    if (!pinMode && ta.style.display !== "none") {
+      if (document.activeElement === ta) { try { ta.setSelectionRange(selA, selB); } catch(e){} }
+      else if (!(window.matchMedia && matchMedia("(pointer: coarse)").matches)) { ta.focus(); try { ta.setSelectionRange(selA, selB); } catch(e){} }
+    }
+  }
+  function openPick(){
+    if (pick) return;
+    pick = document.createElement("div"); pick.id = "ds-emopick"; pick.setAttribute("role", "menu"); pick.setAttribute("aria-label", "Emoji");
+    EMOJI.forEach(function(e){
+      var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitem"); b.title = ":" + e[0] + ":"; b.setAttribute("aria-label", e[0]);
+      var im = emoImg(e[0]); im.className = ""; b.appendChild(im);
+      b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });   // don't steal focus from the textarea
+      b.addEventListener("click", function(ev){ ev.preventDefault(); insertEmo(e[0]); });
+      pick.appendChild(b);
+    });
+    document.body.appendChild(pick); emoBtn.setAttribute("aria-expanded", "true"); placePick();
+  }
+  function closePick(){ if (!pick) return; pick.remove(); pick = null; emoBtn.setAttribute("aria-expanded", "false"); }
+  emoBtn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if (pick) closePick(); else { rememberSel(); openPick(); } });
+  document.addEventListener("mousedown", function(ev){ if (pick && !pick.contains(ev.target) && !emoBtn.contains(ev.target)) closePick(); }, true);
+  document.addEventListener("touchstart", function(ev){ if (pick && !pick.contains(ev.target) && !emoBtn.contains(ev.target)) closePick(); }, {capture: true, passive: true});
+  document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && pick) { closePick(); emoBtn.focus(); } });
+  window.addEventListener("resize", placePick);
 
   var apiDown = false;
   function refresh(){

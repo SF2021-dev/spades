@@ -1,0 +1,5 @@
+Emoji sprites for the message box picker (msgbox.js).
+Source: cropped from a MyLeague-style emoji sheet screenshot supplied by the site owner (Oct 9, 2026).
+Each face was cut from its wooden-shelf cell and the wood background removed; shelf.png is the
+rebuilt empty shelf row used as the picker background. Nothing is hotlinked from MyLeague.
+Original artwork belongs to its creators (MyLeague); used here for this league's own site at the owner's request.

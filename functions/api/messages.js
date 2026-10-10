@@ -1,11 +1,12 @@
 // Shared message box store: GET/POST /api/messages (Cloudflare Pages Function + D1 binding "DB").
 // GET  -> {messages:[{id,name,message,t}]} oldest first (latest SHOW).
-// POST {name,message,pin,id?} -> {ok:true, messages:[...]}. pin must match the name's 3-digit PIN (see /api/pin);
+// POST {name,message,pin,id?} -> {ok:true, messages:[...]}. pin must match the name's 3-digit PIN (see /api/pin),
+//   or, without a pin, the browser's remember-me cookie (ds_pin_token) must be valid for that name;
 //   401 wrong PIN, 428 name has no PIN yet, 429 locked after too many wrong PINs.
 // Writes are atomic inserts (no read-modify-write), so concurrent posts can't overwrite each other.
 // Delete a message: wr d1 execute diamondspaders-auth --remote --command "DELETE FROM messages WHERE id='...'"
 import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
-import { checkPin } from "../_shared/pins.js";
+import { checkPin, pinRow, tokenName } from "../_shared/pins.js";
 
 const SHOW = 200, MAX_NAME = 40, MAX_MSG = 1000;
 
@@ -36,7 +37,14 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   if (b && b.website) throw new HttpError(400, "Rejected");          // honeypot
   const now = Date.now();
   const m = clean(b, now);
-  m.name = await checkPin(env, m.name, b.pin);   // canonical spelling of the name the PIN was created with
+  // PIN sent with the message, or (no PIN) this browser's 30-day remember-me cookie for the same name
+  if (/^\d{3}$/.test(String(b.pin ?? ""))) m.name = await checkPin(env, m.name, b.pin);   // canonical spelling
+  else {
+    const tn = await tokenName(env, request);
+    if (tn && tn.toLowerCase() === m.name.toLowerCase()) m.name = tn;
+    else if (!(await pinRow(env, m.name))) throw new HttpError(428, "Create a 3-digit PIN for this name first.");
+    else throw new HttpError(401, "Please enter your PIN.");    // not counted as a wrong guess
+  }
   // INSERT OR IGNORE: a retried send with the same id is a no-op instead of a duplicate.
   await env.DB.prepare("INSERT OR IGNORE INTO messages (id, name, message, t) VALUES (?, ?, ?, ?)").bind(m.id, m.name, m.message, m.t).run();
   const rows = [m];

@@ -49,3 +49,36 @@ export async function checkPin(env, name, pin) {
     .bind(lock ? 0 : fails, lock ? now + LOCK_MIN * 60000 : 0, row.name).run();
   throw new HttpError(lock ? 429 : 401, lock ? `Too many wrong PINs. Try again in ${LOCK_MIN} minutes.` : "Wrong PIN. Please try again.");
 }
+
+// ---- "remember me": 30-day HttpOnly cookie holding a random token; D1 keeps only its SHA-256 (table msg_pin_tokens) ----
+export const REMEMBER_DAYS = 30, TOKEN_COOKIE = "ds_pin_token";
+const tokenHash = (t) => sha256hex("ds-pin-token:" + t);
+function cookieVal(request, name) {
+  const m = (request.headers.get("Cookie") || "").match(new RegExp("(?:^|;\\s*)" + name + "=([^;]*)"));
+  return m ? decodeURIComponent(m[1]) : "";
+}
+const cookieAttrs = (request) => "; Path=/; HttpOnly; SameSite=Strict" + (new URL(request.url).protocol === "https:" ? "; Secure" : "");
+
+// Issue a token for name; returns {cookie, expires}.
+export async function issueToken(env, request, name) {
+  const token = [...crypto.getRandomValues(new Uint8Array(32))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const now = Date.now(), expires = now + REMEMBER_DAYS * 86400000;
+  await env.DB.prepare("DELETE FROM msg_pin_tokens WHERE expires < ?").bind(now).run();
+  await env.DB.prepare("INSERT INTO msg_pin_tokens (token_hash, name, expires, created_at) VALUES (?, ?, ?, ?)")
+    .bind(await tokenHash(token), name, expires, now).run();
+  return { cookie: `${TOKEN_COOKIE}=${token}; Max-Age=${REMEMBER_DAYS * 86400}` + cookieAttrs(request), expires };
+}
+// Canonical name the request's remember-me cookie is valid for (unexpired, PIN still exists), or "".
+export async function tokenName(env, request) {
+  const t = cookieVal(request, TOKEN_COOKIE);
+  if (!/^[0-9a-f]{64}$/.test(t)) return "";
+  const row = await env.DB.prepare(
+    "SELECT p.name AS name FROM msg_pin_tokens t JOIN msg_pins p ON p.name = t.name COLLATE NOCASE WHERE t.token_hash = ? AND t.expires > ?"
+  ).bind(await tokenHash(t), Date.now()).first();
+  return row ? row.name : "";
+}
+export async function forgetToken(env, request) {
+  const t = cookieVal(request, TOKEN_COOKIE);
+  if (/^[0-9a-f]{64}$/.test(t)) await env.DB.prepare("DELETE FROM msg_pin_tokens WHERE token_hash = ?").bind(await tokenHash(t)).run();
+  return `${TOKEN_COOKIE}=; Max-Age=0` + cookieAttrs(request);
+}

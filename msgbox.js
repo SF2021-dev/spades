@@ -122,6 +122,8 @@
     "#ds-msgbox #mb-text::placeholder{color:#6b5310;font-style:italic;-webkit-text-stroke:0}" +
     "#ds-msgbox #mb-pin{width:5.5em;background:#fff8e6;color:#000;border:1px solid #cb972e;border-radius:4px;outline:0;padding:1px 6px;margin:0;font:700 15px " + F + ";letter-spacing:4px}" +
     "#ds-msgbox #mb-email{flex:1;min-width:0;background:#fff8e6;color:#000;border:1px solid #cb972e;border-radius:4px;outline:0;padding:1px 6px;margin:0;font:700 15px " + F + "}" +
+    "#ds-msgbox .mb-rem{display:flex;align-items:center;gap:4px;white-space:nowrap;color:#000;font:700 14px " + F + ";padding:2px 0 0 10px;cursor:pointer}" +
+    "#ds-msgbox .mb-rem input{width:18px;height:18px;margin:0;accent-color:#008000;cursor:pointer}" +
     "#ds-msgbox .mb-pinhint{color:#6b5310;font-style:italic;padding:2px 0 0 8px;font-size:14px}" +
     "#ds-msgbox .mb-compose:focus-within{background:#f7cf78}" +
     "#ds-msgbox .mb-status{color:#f3bf56;font-size:14px;min-height:20px;margin-top:4px}" +
@@ -227,7 +229,8 @@
     '<span class="mb-tawrap"><div class="mb-mirror" id="mb-mirror" aria-hidden="true"></div><textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message"></textarea></span>' +
     '<input type="password" id="mb-pin" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="3-digit PIN" style="display:none">' +
     '<input type="email" id="mb-email" maxlength="254" autocomplete="email" aria-label="Your email address" placeholder="you@example.com" style="display:none">' +
-    '<span class="mb-pinhint" id="mb-pinhint" style="display:none"></span></div>' +
+    '<span class="mb-pinhint" id="mb-pinhint" style="display:none"></span>' +
+    '<label class="mb-rem" id="mb-rem" style="display:none" title="Stay signed in on this browser for 30 days"><input type="checkbox" id="mb-remcb"> remember me</label></div>' +
     '<div class="mb-tools" id="mb-tools">' +
     '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
     '<img src="' + EMO_DIR + 'smile.png?v=' + EMO_V + '" width="23" height="23" alt=""></button>' +
@@ -237,6 +240,8 @@
 
   var form = document.getElementById("mb-form"), st = document.getElementById("mb-status");
   var ta = document.getElementById("mb-text"), who = document.getElementById("mb-who"), colon = document.getElementById("mb-colon");
+  var remCb = document.getElementById("mb-remcb");
+  remCb.addEventListener("change", function(){ if (pinMode === "email") addrIn.focus(); else if (pinMode && pinMode !== "check") pinIn.focus(); });
   var addrIn = document.getElementById("mb-email"), pinIn = document.getElementById("mb-pin"), pinHint = document.getElementById("mb-pinhint");
   var sending = false, askingName = false;
   var pinMode = "", firstPin = "", sendAfterPin = false;   // pinMode: "" | "check" (looking up) | "new" | "confirm" | "email" | "enter"
@@ -256,7 +261,13 @@
     try { var m = document.cookie.match(/(?:^|;\s*)ds_pin_session=([^;]*)/); if (m) { var c = JSON.parse(decodeURIComponent(m[1])); if (c && c.pin) return c; } } catch(e){}
     return null;
   }
-  function getPin(){ var d = readPin(); if (!d || d.name !== savedName || !/^\d{3}$/.test(d.pin)) return ""; try { sessionStorage.setItem(PINKEY, JSON.stringify(d)); } catch(e){} return d.pin; }
+  // "remember me": the server keeps a 30-day HttpOnly cookie (ds_pin_token, only its hash in D1). This browser just remembers
+  // {name, exp} in localStorage (no PIN, no token) so it knows not to ask; the server stays the judge (401 -> ask again).
+  var REMKEY = "ds-mb-remember";
+  function remembered(){ try { var r = JSON.parse(localStorage.getItem(REMKEY) || "null"); return !!(r && r.name === savedName && r.exp > Date.now()); } catch(e){ return false; } }
+  function setRemember(exp){ try { if (exp) localStorage.setItem(REMKEY, JSON.stringify({name: savedName, exp: exp})); else localStorage.removeItem(REMKEY); } catch(e){} }
+  function getPin(){ if (remembered()) return "*"; return sessionPin(); }
+  function sessionPin(){ var d = readPin(); if (!d || d.name !== savedName || !/^\d{3}$/.test(d.pin)) return ""; try { sessionStorage.setItem(PINKEY, JSON.stringify(d)); } catch(e){} return d.pin; }
   function savePin(p){
     var v = JSON.stringify({name: savedName, pin: p});
     try { if (p) sessionStorage.setItem(PINKEY, v); else sessionStorage.removeItem(PINKEY); } catch(e){}
@@ -264,7 +275,7 @@
   }
   function pinPost(action, pin, email){
     return fetch(PIN_API, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
-      body: JSON.stringify({name: savedName, pin: pin, email: email, action: action})})
+      body: JSON.stringify({name: savedName, pin: pin, email: email, action: action, remember: !!(remCb && remCb.checked)})})
       .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ d.status = r.status; d.ok = r.ok && d.ok; return d; }); });
   }
   function showCompose(){
@@ -274,6 +285,8 @@
     pinIn.style.display = (pinning && pinMode !== "check" && pinMode !== "email") ? "" : "none";
     addrIn.style.display = (pinning && pinMode === "email") ? "" : "none";
     pinHint.style.display = pinning ? "" : "none";
+    var remEl = document.getElementById("mb-rem");
+    if (remEl) remEl.style.display = (pinning && pinMode !== "check") ? "" : "none";
     if (pinning) {
       who.textContent = savedName + ":";
       pinHint.textContent = {check: "checking PIN…", "new": "create a 3-digit PIN (000-999), then press Enter",
@@ -303,13 +316,18 @@
     var forName = savedName;
     fetch(PIN_API + "?name=" + encodeURIComponent(savedName) + "&t=" + Date.now(), {cache: "no-store"})
       .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function(d){ if (forName !== savedName || pinMode !== "check") return; startPin(d.hasPin ? "enter" : "new"); })
+      .then(function(d){
+        if (forName !== savedName || pinMode !== "check") return;
+        if (d.remembered) { pinDone("", {remembered: true}); return; }
+        startPin(d.hasPin ? "enter" : "new");
+      })
       .catch(function(){ if (pinMode === "check") { pinMode = ""; showCompose(); st.textContent = "Couldn't check your PIN (network). Click the message line to try again."; } });
     return true;
   }
   function startPin(mode){ pinMode = mode; pinIn.value = ""; showCompose(); (mode === "email" ? addrIn : pinIn).focus(); }
-  function pinDone(p){
-    savePin(p); pinMode = ""; firstPin = ""; pinIn.value = ""; addrIn.value = ""; showCompose(); ta.focus();
+  function pinDone(p, d){
+    if (d && d.remembered) { savePin(""); setRemember(d.expires || Date.now() + 30 * 86400000); }   // no plaintext PIN kept
+    else savePin(p); pinMode = ""; firstPin = ""; pinIn.value = ""; addrIn.value = ""; showCompose(); ta.focus();
     if (sendAfterPin && ta.value.trim()) { sendAfterPin = false; form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", {cancelable: true})); }
     sendAfterPin = false;
     runAfterPin();
@@ -335,7 +353,7 @@
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(a)) { st.textContent = "Please enter a valid email address (like name@example.com)."; return; }
     st.textContent = "Saving PIN…"; addrIn.readOnly = true;
     pinPost("set", p, a).then(function(d){
-      if (d.ok) { st.textContent = "PIN saved. Remember it: you'll need it to send messages as " + savedName + "."; pinDone(p); return; }
+      if (d.ok) { st.textContent = "PIN saved. Remember it: you'll need it to send messages as " + savedName + "."; pinDone(p, d); return; }
       if (d.status === 409) { firstPin = ""; st.textContent = "That name already has a PIN. Please enter it."; startPin("enter"); return; }
       if (d.status === 400 && /email/i.test(d.error || "")) { st.textContent = d.error; addrIn.focus(); return; }
       st.textContent = d.error || "Couldn't save the PIN. Please try again."; firstPin = ""; startPin("new");
@@ -357,7 +375,7 @@
     if (pinMode === "enter") {
       st.textContent = "Checking PIN…"; pinIn.readOnly = true;
       pinPost("check", p).then(function(d){
-        if (d.ok) { st.textContent = ""; pinDone(p); return; }
+        if (d.ok) { st.textContent = ""; pinDone(p, d); return; }
         if (d.status === 428) { st.textContent = "This name has no PIN yet. Please create one."; startPin("new"); return; }
         st.textContent = d.error || "Wrong PIN. Please try again."; pinIn.value = ""; pinIn.focus();
       }).catch(function(){ st.textContent = "Couldn't check the PIN (network). Please try again."; })
@@ -370,6 +388,7 @@
     if (ev.target === who) { ev.preventDefault(); if (!askingName) askName(); return; }
     if (ev.target === pinIn) return;
     if (ev.target === addrIn) return;
+    if (document.getElementById("mb-rem").contains(ev.target)) return;   // remember-me checkbox
     if (pinMode) { ev.preventDefault(); if (pinMode === "email") addrIn.focus(); else if (pinMode !== "check") pinIn.focus(); return; }
     if (ev.target !== ta) { ev.preventDefault(); ta.focus(); }
   });
@@ -594,7 +613,7 @@
     var pin = getPin();
     if (!pin) { sendAfterPin = true; needPin(); return; }
     sending = true; ta.readOnly = true; st.textContent = "Sending…"; st.dataset.err = "";
-    var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: name, message: msg, pin: pin, t: Date.now()};
+    var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: name, message: msg, pin: pin === "*" ? "" : pin, t: Date.now()};
     postShared(entry).then(function(list){
       ta.value = ""; syncRuns(); markHint(); grow();
       msgs = merge(list);
@@ -607,7 +626,7 @@
                               _template: "table", _captcha: "false", _honey: ""})}).catch(function(){});
     }).catch(function(e){
       if (e && (e.status === 401 || e.status === 428)) {   // PIN changed/reset on the server: ask again, keep the draft
-        savePin(""); sending = false; ta.readOnly = false; sendAfterPin = true;
+        savePin(""); setRemember(0); sending = false; ta.readOnly = false; sendAfterPin = true;
         needPin(); st.textContent = (e.message || "Please enter your PIN.") + " Your message was NOT posted yet.";
         return;
       }

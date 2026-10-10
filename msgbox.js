@@ -105,9 +105,12 @@
       "display:flex;flex-direction:column;height:calc(100vh - 16px);height:calc(100dvh - 16px);min-height:340px}" +   // box = one screen tall; only the list scrolls
     "#ds-msgbox .mb-title{flex:none}" +
     "#ds-msgbox #mb-form{flex:1;min-height:0;display:flex;flex-direction:column}" +
-    "#ds-msgbox .mb-title{color:#f3bf56;font-size:18px;font-weight:700;margin-bottom:8px;display:flex;align-items:baseline;justify-content:space-between;gap:10px}" +
+    "#ds-msgbox .mb-title{color:#f3bf56;font-size:18px;font-weight:700;margin-bottom:8px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:baseline;gap:10px}" +
     "#ds-msgbox .mb-top{color:#f3bf56;font-size:18px;font-weight:700;text-decoration:none;white-space:nowrap;cursor:pointer}" +
-    "#ds-msgbox .mb-top:hover,#ds-msgbox .mb-top:focus-visible{text-decoration:underline;outline:0}" +
+    "#ds-msgbox .mb-top{justify-self:center}" +
+    "#ds-msgbox .mb-home{justify-self:end;text-align:right;color:#f3bf56;font-size:18px;font-weight:700;text-decoration:none;cursor:pointer}" +
+    "#ds-msgbox .mb-top:hover,#ds-msgbox .mb-top:focus-visible,#ds-msgbox .mb-home:hover,#ds-msgbox .mb-home:focus-visible{text-decoration:underline;outline:0}" +
+    "@media (max-width:560px){#ds-msgbox .mb-title,#ds-msgbox .mb-top,#ds-msgbox .mb-home{font-size:14px}#ds-msgbox .mb-title{gap:6px}}" +
     "#ds-msgbox .mb-msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;overflow:auto;overscroll-behavior:contain}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}" +
     "#ds-msgbox .mb-line{font-size:20px;color:#000;line-height:1.4;padding:8px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
@@ -234,7 +237,7 @@
 
   box.innerHTML =
     '<div class="mb-card">' +
-    '<div class="mb-title"><span>Messages</span><a href="#" class="mb-top" id="mb-top">top of page</a></div>' +
+    '<div class="mb-title"><span>Messages</span><a href="#" class="mb-top" id="mb-top">top of page</a><a href="https://www.myleague.com/diamondspaders/" class="mb-home" target="_blank" rel="noopener">Diamond Spaders Home</a></div>' +
     '<form id="mb-form" autocomplete="off"><div class="mb-wrap">' +
     '<div class="mb-msgs" id="mb-msgs"></div>' +
     '<div class="mb-compose" id="mb-compose">' +

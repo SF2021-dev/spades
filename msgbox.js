@@ -78,7 +78,8 @@
     "#ds-msgbox .mb-compose:focus-within{background:#f7cf78}" +
     "#ds-msgbox .mb-status{color:#f3bf56;font-size:14px;min-height:20px;margin-top:4px}" +
     "#ds-msgbox .mb-emo{vertical-align:middle;display:inline-block;margin:0 1px}" +
-    "#ds-msgbox .mb-emobtn{flex:none;background:transparent;border:0;padding:0 6px 0 0;margin:0;cursor:pointer;line-height:0;align-self:flex-start;min-width:30px;min-height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px}" +
+    "#ds-msgbox .mb-emobtn{flex:none;background:transparent;border:0;padding:2px;margin:0;cursor:pointer;line-height:0;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px}" +
+    "#ds-msgbox .mb-tools{display:flex;align-items:center;gap:6px;border-top:1px solid #cb972e;padding:4px 10px}" +
     "#ds-msgbox .mb-emobtn:hover,#ds-msgbox .mb-emobtn[aria-expanded=true]{background:#e6ad3a}" +
     "#ds-emopick{position:absolute;z-index:9999;width:281px;max-width:calc(100vw - 16px);max-height:min(60vh,434px);overflow-y:auto;overscroll-behavior:contain;" +
       "display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:62px;background:#5a1c08 url(/emoji/shelf.png?v=1) 0 0/100% 62px repeat-y;background-attachment:local;" +
@@ -162,14 +163,16 @@
     '<div class="mb-title">Messages</div>' +
     '<form id="mb-form" autocomplete="off"><div class="mb-wrap">' +
     '<div class="mb-msgs" id="mb-msgs"></div>' +
-    '<div class="mb-compose" id="mb-compose"><button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
-    '<img src="' + EMO_DIR + 'smile.png?v=' + EMO_V + '" width="23" height="23" alt=""></button>' +
-    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color" aria-haspopup="true" aria-expanded="false" title="Text color"><span class="mb-ball"></span></button>' +
+    '<div class="mb-compose" id="mb-compose">' +
     '<span class="mb-who" id="mb-who" title="Click to change your name"></span>' +
     '<textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message"></textarea>' +
     '<input type="password" id="mb-pin" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="3-digit PIN" style="display:none">' +
     '<input type="email" id="mb-email" maxlength="254" autocomplete="email" aria-label="Your email address" placeholder="you@example.com" style="display:none">' +
-    '<span class="mb-pinhint" id="mb-pinhint" style="display:none"></span></div></div>' +
+    '<span class="mb-pinhint" id="mb-pinhint" style="display:none"></span></div>' +
+    '<div class="mb-tools" id="mb-tools">' +
+    '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
+    '<img src="' + EMO_DIR + 'smile.png?v=' + EMO_V + '" width="23" height="23" alt=""></button>' +
+    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color" aria-haspopup="true" aria-expanded="false" title="Text color"><span class="mb-ball"></span></button></div></div>' +
     '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
 
@@ -305,6 +308,7 @@
     form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", {cancelable: true}));
   });
 
+  document.getElementById("mb-tools").addEventListener("mousedown", function(ev){ ev.preventDefault(); });
   // ---- emoji picker ----
   var emoBtn = document.getElementById("mb-emobtn"), pick = null, selA = 0, selB = 0;
   function rememberSel(){ if (!askingName && !pinMode) { selA = ta.selectionStart; selB = ta.selectionEnd; } }

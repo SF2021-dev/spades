@@ -127,6 +127,7 @@
     "#ds-emopick button:hover,#ds-emopick button:focus-visible{background:rgba(243,191,86,.22);outline:0}" +
     "#ds-emopick img{pointer-events:none}" +
     "#ds-colpick .cp-panel{flex:1 1 0;min-width:0;width:150px;border:1px solid #6b5310;border-radius:8px;padding:4px}" +
+    "#ds-colpick .cp-next{border:2px solid #f3bf56;box-shadow:0 0 8px rgba(243,191,86,.6)}" +
     "#ds-colpick .cp-head{color:#f3bf56;font:900 16px " + F + ";text-align:center;padding:2px 0 4px;border-bottom:1px solid #6b5310;margin-bottom:4px}" +
     "#ds-colpick .cp-panel > button{gap:6px;padding:4px 4px;font-size:14px}" +
     "#ds-msgbox .mb-ball{display:block;width:23px;height:23px;border-radius:50%;box-shadow:inset -2px -3px 5px rgba(0,0,0,.35),0 0 0 1px #6b5310;" +
@@ -447,18 +448,19 @@
       if (n && b > a && !askingName && !pinMode) {   // style just the selected text
         var piece = "[" + tag + "=" + n + "]" + v.slice(a, b) + "[/" + tag + "]";
         if (v.length - (b - a) + piece.length > 1000) { st.textContent = "Message is too long to " + noun + " that."; close(); return; }
-        ta.value = v.slice(0, a) + piece + v.slice(b); selA = selB = a + piece.length; grow();
-        st.textContent = isCol ? "Colored the selected text " + label + "." : "Outlined the selected text in " + label + ".";
+        ta.value = v.slice(0, a) + piece + v.slice(b); grow();
+        if (isCol) { selA = a; selB = a + piece.length; }   // keep the piece selected so step 2 (outline) wraps it too
+        else selA = selB = a + piece.length;
       } else {
         try { if (n) localStorage.setItem(key, n); else localStorage.removeItem(key); } catch(e){}
         applyColor();
-        st.textContent = n ? (isCol ? "Your messages will be " + label + "." : "Your messages will have a " + label + " outline.")
-                           : (isCol ? "Color removed." : "No outline.");
       }
+      st.textContent = "";
       close();
+      if (isCol) { open(true); return; }   // two-step: after a color pick, stay open for outline / No Outline
       if (!pinMode && !askingName && !(window.matchMedia && matchMedia("(pointer: coarse)").matches)) { ta.focus(); try { ta.setSelectionRange(selA, selB); } catch(e){} }
     }
-    function open(){
+    function open(step2){
       if (el) return;
       closePick();
       el = document.createElement("div"); el.id = "ds-colpick"; el.setAttribute("role", "menu"); el.setAttribute("aria-label", "Text color and outline");
@@ -482,6 +484,7 @@
         el.appendChild(p); return p;
       }
       var pc = panel("color"), po = panel("outline");
+      if (step2) po.className += " cp-next";
       pc.appendChild(textBtn("c", "remove color"));
       var g = document.createElement("div"); g.className = "cp-grid";
       COLORS.forEach(function(h){ h[1].forEach(function(c){ g.appendChild(mkBtn("c", c[0], CLABEL[c[0]])); }); });

@@ -55,10 +55,12 @@
   var OUTLINES = [["black","#000000"],["gold","#f3bf56"]];
   COLORS.forEach(function(h){ h[1].forEach(function(c){ OUTLINES.push(c); }); });
   var OMAP = {}; OUTLINES.forEach(function(o){ OMAP[o[0]] = o[1]; });
-  function oStyle(el, n){          // thick stroke behind the fill + slight offset shadow (3D)
+  function oStyle(el, n, spaced){          // thick stroke behind the fill + slight offset shadow (3D)
     var h = OMAP[n];
     el.style.webkitTextStroke = "2.5px " + h; el.style.paintOrder = "stroke fill";   // tight: ~1px of stroke outside the glyph
     el.style.textShadow = "1px 1px 0 " + h;
+    if (spaced) el.style.letterSpacing = "0.06em";   // posted messages only: a little air so outlined letters don't collide
+                                                    // (not in the compose mirror, which must stay aligned with the textarea caret)
   }
   // outline with no color: light fill so the outline stays readable (white; dark fill kept for the light white/gold outlines)
   function oFill(n){ return (n === "gold" || /white/.test(n) || /^light/.test(n)) ? "#000" : "#ffffff"; }
@@ -71,7 +73,7 @@
       if (!col && !ol) { fillBody(el, t); return; }
       var sp = document.createElement("span");
       if (col) { sp.style.color = CMAP[col]; sp.style.textShadow = cShadow(col); }
-      if (ol) { oStyle(sp, ol); if (!col) sp.style.color = oFill(ol); }
+      if (ol) { oStyle(sp, ol, true); if (!col) sp.style.color = oFill(ol); }
       fillBody(sp, t); el.appendChild(sp);
     }
     while ((m = re.exec(text))) {

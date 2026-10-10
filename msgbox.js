@@ -131,14 +131,14 @@
     "#ds-msgbox .mb-ball{display:block;width:23px;height:23px;border-radius:50%;box-shadow:inset -2px -3px 5px rgba(0,0,0,.35),0 0 0 1px #6b5310;" +
       "background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.95) 0,rgba(255,255,255,.35) 18%,rgba(255,255,255,0) 40%)," +
       "conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)}" +
-    "#ds-colpick{position:absolute;z-index:9999;width:236px;max-width:calc(100vw - 16px);max-height:min(75vh,500px);overflow-y:auto;background:#000;border:2px solid #f3bf56;border-radius:10px;" +
+    "#ds-colpick{position:absolute;z-index:9999;width:200px;max-width:calc(100vw - 16px);max-height:min(75vh,500px);overflow-y:auto;background:#000;border:2px solid #f3bf56;border-radius:10px;" +
       "box-shadow:0 6px 20px rgba(0,0,0,.6);padding:4px;box-sizing:border-box;font-family:" + F + "}" +
     "#ds-colpick button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;background:transparent;border:0;border-radius:6px;padding:4px 8px;margin:0;" +
-      "cursor:pointer;color:#f3bf56;font:700 15px " + F + ";text-align:left}" +
+      "cursor:pointer;color:#f3bf56;font:700 15px " + F + ";text-align:left;white-space:nowrap}" +
     "#ds-colpick button:hover,#ds-colpick button:focus-visible{background:#2a2000;outline:0}" +
     "#ds-colpick button[aria-checked=true]{background:#3a2c00}" +
     "#ds-colpick .sw{flex:none;width:20px;height:20px;border-radius:50%;border:1px solid #f3bf56}" +
-    "#ds-colpick .cp-grid{display:grid;grid-template-columns:62px repeat(3,1fr);gap:2px 4px;align-items:center;margin-top:4px;border-top:1px solid #6b5310;padding-top:4px}" +
+    "#ds-colpick .cp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 4px;align-items:center;margin-top:4px;border-top:1px solid #6b5310;padding-top:4px}" +
     "#ds-colpick .cp-h{color:#c9a227;font:700 12px " + F + ";text-align:center}" +
     "#ds-colpick .cp-hue{color:#f3bf56;font:700 14px " + F + ";padding-left:4px}" +
     "#ds-colpick .cp-grid button{justify-content:center;padding:0;min-height:40px}" +
@@ -463,19 +463,14 @@
       var rm = mkBtn("", "remove " + noun), lb = document.createElement("span"); lb.textContent = "remove " + noun; rm.appendChild(lb); el.appendChild(rm);
       if (isCol) {
         var g = document.createElement("div"); g.className = "cp-grid";
-        ["", "Light", "Medium", "Dark"].forEach(function(t){ var h = document.createElement("span"); h.className = "cp-h"; h.textContent = t; g.appendChild(h); });
         COLORS.forEach(function(h){
-          var hl = document.createElement("span"); hl.className = "cp-hue"; hl.textContent = h[0]; g.appendChild(hl);
           h[1].forEach(function(c){ g.appendChild(mkBtn(c[0], CLABEL[c[0]])); });
         });
         el.appendChild(g);
       } else {
-        OUTLINES.forEach(function(o){
-          var b = mkBtn(o[0], o[0] + " outline"), t = document.createElement("span");
-          t.textContent = o[0] + " outline"; t.style.color = "#fbe646"; oStyle(t, o[0]); t.style.webkitTextStroke = "3px " + o[1];
-          t.style.textShadow = "1px 1px 0 " + o[1] + ",2px 2px 0 " + o[1];
-          b.appendChild(t); el.appendChild(b);
-        });
+        var og = document.createElement("div"); og.className = "cp-grid";
+        OUTLINES.forEach(function(o){ og.appendChild(mkBtn(o[0], o[0] + " outline")); });
+        el.appendChild(og);
       }
       document.body.appendChild(el); btn.setAttribute("aria-expanded", "true");
       var r = btn.getBoundingClientRect(), pw = el.offsetWidth, ph = el.offsetHeight;

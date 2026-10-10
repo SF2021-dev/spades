@@ -122,7 +122,7 @@
     "#ds-msgbox .mb-wrap .mb-msgs{border:0;border-radius:0;margin:0;flex:1 1 auto}" +
     "#ds-msgbox .mb-compose,#ds-msgbox .mb-tools,#ds-msgbox .mb-status{flex:none}" +
     "#ds-msgbox .mb-compose{display:flex;flex-wrap:wrap;align-items:flex-start;border-top:2px solid #cb972e;padding:8px 12px;cursor:text;font-size:20px;line-height:1.4;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
-    "#ds-msgbox .mb-compose .mb-who{white-space:nowrap;cursor:pointer;padding-top:2px}" +
+    "#ds-msgbox .mb-compose .mb-who{white-space:nowrap;cursor:pointer;padding-top:2px;margin-right:.3em}" +
     "#ds-msgbox .mb-compose .mb-colon{padding-top:2px;white-space:pre}" +
     "#ds-msgbox .mb-tawrap{flex:1;min-width:0;position:relative;display:block}" +
     "#ds-msgbox .mb-mirror{position:absolute;inset:0;padding:2px 0;margin:0;font:400 20px " + F + ";-webkit-text-stroke:0.9px currentColor;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;word-wrap:break-word;overflow:hidden;pointer-events:none;color:#000;display:none}" +

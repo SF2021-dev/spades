@@ -114,7 +114,7 @@
     "#ds-msgbox .mb-msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;overflow:auto;overscroll-behavior:contain}" +
     "#ds-msgbox .mb-wrap .mb-msgs{min-height:max(160px,calc(100vh - 230px));min-height:max(160px,calc(100dvh - 230px))}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}" +
-    "#ds-msgbox .mb-line{font-size:20px;color:#000;line-height:1.4;padding:8px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
+    "#ds-msgbox .mb-line{font-size:20px;color:#000;line-height:1.18;padding:3px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
     "#ds-msgbox .mb-line:last-child{border-bottom:0}" +
     "#ds-msgbox .mb-who{color:#008000;font-weight:400}" +
     "#ds-msgbox .mb-body{white-space:pre-wrap;overflow-wrap:anywhere;color:#000;font-weight:400}" +

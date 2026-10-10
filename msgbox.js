@@ -5,7 +5,10 @@
    PIN: each name has a 3-digit PIN on the server (/api/pin, hashed in D1). First time a name is used the box asks to create
    one (typed twice) plus an email address (server keeps only a hash); after that the PIN is asked once per browser tab session and sent with every message (server checks it).
    Emoji: the smiley button left of the compose line opens a 2-column wooden-shelf picker (sprites in /emoji/, cropped from the
-   owner's MyLeague-style sheet, see emoji/SOURCE.txt). Picking one inserts a code like :smile: at the cursor; codes render as images. */
+   owner's MyLeague-style sheet, see emoji/SOURCE.txt). Picking one inserts a code like :smile: at the cursor; codes render as images.
+   Text color: the rainbow ball right of the smiley opens a color menu. The chosen color (localStorage ds-mb-color) is applied to the whole
+   message by prefixing [c=name] when it is sent; with text selected, the pick wraps just that text as [c=name]...[/c]. "remove color"
+   clears it (default black text). Only names in COLORS render; tags are stripped from the email notification. */
 (function(){
   var ENDPOINT = "https://formsubmit.co/ajax/f865a31f1882069405c71e61dc656f64";
   var API = "/api/messages", PIN_API = "/api/pin";
@@ -25,6 +28,22 @@
     var e = EMO[n], im = document.createElement("img");
     im.src = EMO_DIR + n + ".png?v=" + EMO_V; im.width = e[1]; im.height = e[2]; im.alt = ":" + n + ":"; im.title = ":" + n + ":";
     im.className = "mb-emo"; im.draggable = false; return im;
+  }
+  var COLORS = [["red","#c00000"],["blue","#0033cc"],["green","#006400"],["purple","#6a0dad"],["orange","#c45000"],
+    ["pink","#d0006f"],["teal","#007373"],["brown","#5c2e00"],["white","#ffffff"]];
+  var CMAP = {}; COLORS.forEach(function(c){ CMAP[c[0]] = c[1]; });
+  var CKEY = "ds-mb-color";
+  function stripTags(t){ return t.replace(/\[c=[a-z]+\]|\[\/c\]/g, ""); }
+  function fillRich(el, text){   // [c=name]..[/c] color spans (unclosed runs to end), then emoji inside
+    var re = /\[c=([a-z]+)\]|\[\/c\]/g, last = 0, m, cur = el;
+    function put(t){ if (t) fillBody(cur, t); }
+    while ((m = re.exec(text))) {
+      if (m[1] && !CMAP[m[1]]) continue;   // unknown color: leave as text
+      put(text.slice(last, m.index)); last = re.lastIndex;
+      if (m[1]) { var sp = document.createElement("span"); sp.style.color = CMAP[m[1]]; if (m[1] === "white") sp.style.textShadow = "0 0 2px #000"; el.appendChild(sp); cur = sp; }
+      else cur = el;
+    }
+    put(text.slice(last));
   }
   function fillBody(el, text){   // text with :code: emoji -> text nodes + <img>
     var re = /:([a-z]+):/g, last = 0, m;
@@ -66,7 +85,17 @@
       "border:2px solid #f3bf56;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.6);padding:0;box-sizing:border-box}" +
     "#ds-emopick button{background:transparent;border:0;margin:0;padding:0 0 13px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:6px}" +
     "#ds-emopick button:hover,#ds-emopick button:focus-visible{background:rgba(243,191,86,.22);outline:0}" +
-    "#ds-emopick img{pointer-events:none}";
+    "#ds-emopick img{pointer-events:none}" +
+    "#ds-msgbox .mb-ball{display:block;width:23px;height:23px;border-radius:50%;box-shadow:inset -2px -3px 5px rgba(0,0,0,.35),0 0 0 1px #6b5310;" +
+      "background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.95) 0,rgba(255,255,255,.35) 18%,rgba(255,255,255,0) 40%)," +
+      "conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)}" +
+    "#ds-colpick{position:absolute;z-index:9999;width:190px;max-height:min(60vh,420px);overflow-y:auto;background:#000;border:2px solid #f3bf56;border-radius:10px;" +
+      "box-shadow:0 6px 20px rgba(0,0,0,.6);padding:4px;box-sizing:border-box;font-family:" + F + "}" +
+    "#ds-colpick button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;background:transparent;border:0;border-radius:6px;padding:4px 8px;margin:0;" +
+      "cursor:pointer;color:#f3bf56;font:700 15px " + F + ";text-align:left}" +
+    "#ds-colpick button:hover,#ds-colpick button:focus-visible{background:#2a2000;outline:0}" +
+    "#ds-colpick button[aria-checked=true]{background:#3a2c00}" +
+    "#ds-colpick .sw{flex:none;width:20px;height:20px;border-radius:50%;border:1px solid #f3bf56}";
   document.head.appendChild(css);
 
   function clean(m){
@@ -123,7 +152,7 @@
       d.className = "mb-msg";
       d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span></div>';
       d.querySelector(".mb-who").textContent = m.name;
-      fillBody(d.querySelector(".mb-body"), m.message);
+      fillRich(d.querySelector(".mb-body"), m.message);
       el.appendChild(d);
     });
   }
@@ -134,7 +163,9 @@
     '<form id="mb-form" autocomplete="off"><div class="mb-wrap">' +
     '<div class="mb-msgs" id="mb-msgs"></div>' +
     '<div class="mb-compose" id="mb-compose"><button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
-    '<img src="' + EMO_DIR + 'smile.png?v=' + EMO_V + '" width="23" height="23" alt=""></button><span class="mb-who" id="mb-who" title="Click to change your name"></span>' +
+    '<img src="' + EMO_DIR + 'smile.png?v=' + EMO_V + '" width="23" height="23" alt=""></button>' +
+    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color" aria-haspopup="true" aria-expanded="false" title="Text color"><span class="mb-ball"></span></button>' +
+    '<span class="mb-who" id="mb-who" title="Click to change your name"></span>' +
     '<textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message"></textarea>' +
     '<input type="password" id="mb-pin" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="3-digit PIN" style="display:none">' +
     '<input type="email" id="mb-email" maxlength="254" autocomplete="email" aria-label="Your email address" placeholder="you@example.com" style="display:none">' +
@@ -248,7 +279,7 @@
   });
   showCompose();
   document.getElementById("mb-compose").addEventListener("mousedown", function(ev){
-    if (emoBtn.contains(ev.target)) { ev.preventDefault(); return; }   // keep the textarea's cursor; click handler toggles the picker
+    if (emoBtn.contains(ev.target) || colBtn.contains(ev.target)) { ev.preventDefault(); return; }   // keep the textarea's cursor; click handler toggles the picker
     if (ev.target === who) { ev.preventDefault(); if (!askingName) askName(); return; }
     if (ev.target === pinIn) return;
     if (ev.target === addrIn) return;
@@ -299,6 +330,7 @@
   }
   function openPick(){
     if (pick) return;
+    if (typeof closeCol === "function") closeCol();
     pick = document.createElement("div"); pick.id = "ds-emopick"; pick.setAttribute("role", "menu"); pick.setAttribute("aria-label", "Emoji");
     EMOJI.forEach(function(e){
       var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitem"); b.title = ":" + e[0] + ":"; b.setAttribute("aria-label", e[0]);
@@ -315,6 +347,53 @@
   document.addEventListener("touchstart", function(ev){ if (pick && !pick.contains(ev.target) && !emoBtn.contains(ev.target)) closePick(); }, {capture: true, passive: true});
   document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && pick) { closePick(); emoBtn.focus(); } });
   window.addEventListener("resize", placePick);
+
+  // ---- text color ----
+  var colBtn = document.getElementById("mb-colbtn"), cpick = null;
+  function getColor(){ try { var c = localStorage.getItem(CKEY) || ""; return CMAP[c] ? c : ""; } catch(e){ return ""; } }
+  function applyColor(){ var c = getColor(); ta.style.color = c ? CMAP[c] : "#000"; ta.style.textShadow = c === "white" ? "0 0 2px #000" : ""; }
+  applyColor();
+  function closeCol(){ if (!cpick) return; cpick.remove(); cpick = null; colBtn.setAttribute("aria-expanded", "false"); }
+  function pickColor(c){
+    var v = ta.value, a = Math.min(selA, v.length), b = Math.min(Math.max(selB, a), v.length);
+    if (c && b > a && !askingName && !pinMode) {   // color just the selected text
+      var piece = "[c=" + c + "]" + v.slice(a, b) + "[/c]";
+      if (v.length - (b - a) + piece.length > 1000) { st.textContent = "Message is too long to color that."; closeCol(); return; }
+      ta.value = v.slice(0, a) + piece + v.slice(b); selA = selB = a + piece.length; grow();
+      st.textContent = "Colored the selected text " + c + ".";
+    } else {
+      try { if (c) localStorage.setItem(CKEY, c); else localStorage.removeItem(CKEY); } catch(e){}
+      applyColor(); st.textContent = c ? "Your messages will be " + c + "." : "Color removed.";
+    }
+    closeCol();
+    if (!pinMode && !askingName && !(window.matchMedia && matchMedia("(pointer: coarse)").matches)) { ta.focus(); try { ta.setSelectionRange(selA, selB); } catch(e){} }
+  }
+  function openCol(){
+    if (cpick) return;
+    closePick();
+    cpick = document.createElement("div"); cpick.id = "ds-colpick"; cpick.setAttribute("role", "menu"); cpick.setAttribute("aria-label", "Text color");
+    var cur = getColor();
+    [["", "remove color"]].concat(COLORS.map(function(c){ return [c[0], c[0]]; })).forEach(function(it){
+      var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitemradio");
+      b.setAttribute("aria-checked", String(it[0] === cur && !!it[0]));
+      var sw = document.createElement("span"); sw.className = "sw";
+      if (it[0]) sw.style.background = CMAP[it[0]]; else { sw.style.background = "linear-gradient(135deg,#000 45%,#c00000 45%,#c00000 55%,#000 55%)"; }
+      var lb = document.createElement("span"); lb.textContent = it[1];
+      b.appendChild(sw); b.appendChild(lb);
+      b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
+      b.addEventListener("click", function(ev){ ev.preventDefault(); pickColor(it[0]); });
+      cpick.appendChild(b);
+    });
+    document.body.appendChild(cpick); colBtn.setAttribute("aria-expanded", "true");
+    var r = colBtn.getBoundingClientRect(), pw = cpick.offsetWidth, ph = cpick.offsetHeight;
+    var left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - pw - 8));
+    var top = (r.top - ph - 6 >= 8) ? r.top - ph - 6 : r.bottom + 6;
+    cpick.style.left = (left + window.scrollX) + "px"; cpick.style.top = (top + window.scrollY) + "px";
+  }
+  colBtn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if (cpick) closeCol(); else { rememberSel(); openCol(); } });
+  document.addEventListener("mousedown", function(ev){ if (cpick && !cpick.contains(ev.target) && !colBtn.contains(ev.target)) closeCol(); }, true);
+  document.addEventListener("touchstart", function(ev){ if (cpick && !cpick.contains(ev.target) && !colBtn.contains(ev.target)) closeCol(); }, {capture: true, passive: true});
+  document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && cpick) { closeCol(); colBtn.focus(); } });
 
   var apiDown = false;
   function refresh(){
@@ -339,9 +418,11 @@
   form.addEventListener("submit", function(ev){
     ev.preventDefault();
     if (sending || askingName || pinMode) return;
-    var name = savedName, msg = ta.value.trim().slice(0, 1000);
+    var name = savedName, msg = ta.value.trim(), col = getColor();
+    if (msg && col && msg.indexOf("[c=") !== 0) msg = "[c=" + col + "]" + msg;
+    msg = msg.slice(0, 1000);
     if (!name) { askName(); return; }
-    if (!msg) { st.textContent = "Type a message, then press Enter."; return; }
+    if (!stripTags(msg).trim()) { st.textContent = "Type a message, then press Enter."; return; }
     if (document.getElementById("mb-hp").value) return;   // bot filled the honeypot
     var pin = getPin();
     if (!pin) { sendAfterPin = true; needPin(); return; }
@@ -355,7 +436,7 @@
       var el = document.getElementById("mb-msgs"); el.scrollTop = el.scrollHeight;
       // email notification only after the message is saved for everyone; failures here don't matter to the poster
       fetch(ENDPOINT, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
-        body: JSON.stringify({name: name, message: msg, _subject: "Diamond Spaders message from " + name,
+        body: JSON.stringify({name: name, message: stripTags(msg), _subject: "Diamond Spaders message from " + name,
                               _template: "table", _captcha: "false", _honey: ""})}).catch(function(){});
     }).catch(function(e){
       if (e && (e.status === 401 || e.status === 428)) {   // PIN changed/reset on the server: ask again, keep the draft

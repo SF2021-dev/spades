@@ -13,8 +13,8 @@
    clears it (default black text). Only names in COLORS render.
    Color and outline share one pop-up: the rainbow ball opens color swatches, in two steps (square box overlaid on the text input area, no scrolling): first the "color" box (remove color + swatches); picking one replaces it with the "outline" box (No Outline + every color).
    Outline: the outline section (black is the main one; also white/gold/red/blue/green). Saved in localStorage
-   ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a thick stroke (paint-order stroke fill,
-   so the fill color stays fully visible) plus a small offset shadow for a slight 3D look. Color only = no outline.
+   ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a tight stroke hugging the glyphs (paint-order stroke fill,
+   so the fill color stays fully visible, same text size) plus a 1px offset shadow. Color only = no outline.
    All [c=]/[o=] tags are stripped from the email notification. */
 (function(){
   var ENDPOINT = "https://formsubmit.co/ajax/f865a31f1882069405c71e61dc656f64";
@@ -57,8 +57,8 @@
   var OMAP = {}; OUTLINES.forEach(function(o){ OMAP[o[0]] = o[1]; });
   function oStyle(el, n){          // thick stroke behind the fill + slight offset shadow (3D)
     var h = OMAP[n];
-    el.style.webkitTextStroke = "4px " + h; el.style.paintOrder = "stroke fill";
-    el.style.textShadow = "2px 2px 0 " + h + ",3px 3px 0 " + h;
+    el.style.webkitTextStroke = "2.5px " + h; el.style.paintOrder = "stroke fill";   // tight: ~1px of stroke outside the glyph
+    el.style.textShadow = "1px 1px 0 " + h;
   }
   // outline with no color: light fill so the outline stays readable (white; dark fill kept for the light white/gold outlines)
   function oFill(n){ return (n === "gold" || /white/.test(n) || /^light/.test(n)) ? "#000" : "#ffffff"; }

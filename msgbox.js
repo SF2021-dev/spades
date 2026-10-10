@@ -113,7 +113,7 @@
     "#ds-msgbox .mb-body{white-space:pre-wrap;overflow-wrap:anywhere;color:#000;font-weight:400}" +
     "#ds-msgbox .mb-wrap{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;margin-bottom:6px;overflow:hidden}" +
     "#ds-msgbox .mb-wrap .mb-msgs{border:0;border-radius:0;margin:0}" +
-    "#ds-msgbox .mb-compose{display:flex;align-items:flex-start;border-top:2px solid #cb972e;padding:8px 12px;cursor:text;font-size:20px;line-height:1.4;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
+    "#ds-msgbox .mb-compose{display:flex;flex-wrap:wrap;align-items:flex-start;border-top:2px solid #cb972e;padding:8px 12px;cursor:text;font-size:20px;line-height:1.4;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
     "#ds-msgbox .mb-compose .mb-who{white-space:nowrap;cursor:pointer;padding-top:2px}" +
     "#ds-msgbox .mb-compose .mb-colon{padding-top:2px;white-space:pre}" +
     "#ds-msgbox .mb-tawrap{flex:1;min-width:0;position:relative;display:block}" +
@@ -127,6 +127,7 @@
     "#ds-msgbox .mb-rem{display:flex;align-items:center;gap:4px;white-space:nowrap;color:#000;font:700 14px " + F + ";padding:2px 0 0 10px;cursor:pointer}" +
     "#ds-msgbox .mb-rem input{width:18px;height:18px;margin:0;accent-color:#008000;cursor:pointer}" +
     "#ds-msgbox .mb-pinhint{color:#6b5310;font-style:italic;padding:2px 0 0 8px;font-size:14px}" +
+    "#ds-msgbox .mb-pinhint.mb-hintrow{order:9;flex-basis:100%;padding:4px 0 0;font-variant-ligatures:none;letter-spacing:.02em}" +
     "#ds-msgbox .mb-compose:focus-within{background:#f7cf78}" +
     "#ds-msgbox .mb-status{color:#f3bf56;font-size:14px;min-height:20px;margin-top:4px}" +
     "#ds-msgbox .mb-emo{vertical-align:middle;display:inline-block;margin:0 1px;filter:drop-shadow(0 0 .6px #5a3d00) drop-shadow(0 0 .4px #5a3d00)}" +
@@ -290,16 +291,18 @@
   function showCompose(){
     var pinning = !!pinMode && !askingName;
     ta.style.display = pinning ? "none" : "";
+    if (ta.parentNode && ta.parentNode.className === "mb-tawrap") ta.parentNode.style.display = pinning ? "none" : "";
     if (typeof paintMirror === "function" && mirror) paintMirror();
     pinIn.style.display = (pinning && pinMode !== "check" && pinMode !== "email") ? "" : "none";
     addrIn.style.display = (pinning && pinMode === "email") ? "" : "none";
     pinHint.style.display = pinning ? "" : "none";
+    pinHint.classList.toggle("mb-hintrow", pinning && pinMode === "email");   // long email note gets its own line under the box
     var remEl = document.getElementById("mb-rem");
     if (remEl) remEl.style.display = (pinning && pinMode !== "check") ? "" : "none";
     if (pinning) {
       who.textContent = savedName + ":";
       pinHint.textContent = {check: "checking PIN…", "new": "create a 3-digit PIN (000-999), then press Enter",
-        confirm: "type the same PIN again to confirm", email: "Enter to save",
+        confirm: "type the same PIN again to confirm", email: "email needed only for initial login-- to discourage duplicate accounts",
         enter: "enter your 3-digit PIN, then press Enter"}[pinMode];
       return;
     }

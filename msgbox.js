@@ -9,7 +9,7 @@
    Text color: the rainbow ball right of the smiley opens the color/outline pop-up. The chosen color (localStorage ds-mb-color) is applied to the whole
    message by prefixing [c=name] when it is sent; with text selected, the pick wraps just that text as [c=name]...[/c]. "remove color"
    clears it (default black text). Only names in COLORS render.
-   Color and outline share one pop-up: the rainbow ball opens color swatches, side by side: left box "color" (remove color + swatches), right box "outline" (No Outline + swatches).
+   Color and outline share one pop-up: the rainbow ball opens color swatches, in two steps: first the "color" box (remove color + swatches); picking one replaces it with the "outline" box (No Outline + every color).
    Outline: the outline section (black is the main one; also white/gold/red/blue/green). Saved in localStorage
    ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a thick stroke (paint-order stroke fill,
    so the fill color stays fully visible) plus a small offset shadow for a slight 3D look. Color only = no outline.
@@ -126,8 +126,7 @@
     "#ds-emopick button{background:transparent;border:0;margin:0;padding:0 0 13px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:6px}" +
     "#ds-emopick button:hover,#ds-emopick button:focus-visible{background:rgba(243,191,86,.22);outline:0}" +
     "#ds-emopick img{pointer-events:none}" +
-    "#ds-colpick .cp-panel{flex:1 1 0;min-width:0;width:150px;border:1px solid #6b5310;border-radius:8px;padding:4px}" +
-    "#ds-colpick .cp-next{border:2px solid #f3bf56;box-shadow:0 0 8px rgba(243,191,86,.6)}" +
+    "#ds-colpick .cp-panel{flex:1 1 0;min-width:0;width:170px;border:1px solid #6b5310;border-radius:8px;padding:4px}" +
     "#ds-colpick .cp-head{color:#f3bf56;font:900 16px " + F + ";text-align:center;padding:2px 0 4px;border-bottom:1px solid #6b5310;margin-bottom:4px}" +
     "#ds-colpick .cp-panel > button{gap:6px;padding:4px 4px;font-size:14px}" +
     "#ds-msgbox .mb-ball{display:block;width:23px;height:23px;border-radius:50%;box-shadow:inset -2px -3px 5px rgba(0,0,0,.35),0 0 0 1px #6b5310;" +
@@ -483,19 +482,22 @@
         var h = document.createElement("div"); h.className = "cp-head"; h.textContent = head; p.appendChild(h);
         el.appendChild(p); return p;
       }
-      var pc = panel("color"), po = panel("outline");
-      if (step2) po.className += " cp-next";
-      pc.appendChild(textBtn("c", "remove color"));
-      var g = document.createElement("div"); g.className = "cp-grid";
-      COLORS.forEach(function(h){ h[1].forEach(function(c){ g.appendChild(mkBtn("c", c[0], CLABEL[c[0]])); }); });
-      pc.appendChild(g);
-      po.appendChild(textBtn("o", "No Outline"));
-      var og = document.createElement("div"); og.className = "cp-grid";
-      OUTLINES.forEach(function(o, i){
-        og.appendChild(mkBtn("o", o[0], (CLABEL[o[0]] || o[0]) + " outline"));
-        if (i === 1) { var gap = document.createElement("span"); og.appendChild(gap); }   // black, gold, (blank) then the color rows
-      });
-      po.appendChild(og);
+      if (!step2) {                       // step 1: color box only
+        var pc = panel("color");
+        pc.appendChild(textBtn("c", "remove color"));
+        var g = document.createElement("div"); g.className = "cp-grid";
+        COLORS.forEach(function(h){ h[1].forEach(function(c){ g.appendChild(mkBtn("c", c[0], CLABEL[c[0]])); }); });
+        pc.appendChild(g);
+      } else {                            // step 2 (after a color pick): outline box replaces it
+        var po = panel("outline");
+        po.appendChild(textBtn("o", "No Outline"));
+        var og = document.createElement("div"); og.className = "cp-grid";
+        OUTLINES.forEach(function(o, i){
+          og.appendChild(mkBtn("o", o[0], (CLABEL[o[0]] || o[0]) + " outline"));
+          if (i === 1) { var gap = document.createElement("span"); og.appendChild(gap); }   // black, gold, (blank) then the color rows
+        });
+        po.appendChild(og);
+      }
       document.body.appendChild(el); btn.setAttribute("aria-expanded", "true");
       var r = btn.getBoundingClientRect(), pw = el.offsetWidth, ph = el.offsetHeight;
       var left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - pw - 8));

@@ -25,15 +25,15 @@
   var box = document.getElementById("ds-msgbox");
   if (!box) return;
   var F = "'DS Coustard','Clarendon','Century Schoolbook',Georgia,serif";
-  var EMO_V = "1", EMO_DIR = "/emoji/";
-  var EMOJI = [["cool",23,23],["confused",23,23],["dizzy",23,23],["silly",23,23],["angry",23,23],["grin",23,23],["shocked",23,23],["surprised",23,23],
-    ["meh",23,23],["smile",23,23],["sad",23,23],["neutral",23,23],["worried",23,23],["zipped",23,23],["annoyed",23,23],["wink",23,23],
-    ["unsure",23,23],["upset",23,23],["sleepy",23,23],["laugh",23,23],["ninja",23,23],["angel",47,23],["devil",47,23],["afk",23,22],
-    ["brb",22,22],["music",19,22],["duck",39,26],["rainbow",55,31],["stars",55,31],["redstar",20,21],["greenstar",20,19],["bluestar",20,19]];
+  // Emoji: Twemoji SVGs (CC-BY 4.0, https://github.com/jdecked/twemoji), vendored in /emoji/ - see emoji/SOURCE.txt.
+  var EMO_V = "2", EMO_DIR = "/emoji/", EMO_PX = 24;
+  var EMOJI = ["cool","confused","dizzy","silly","angry","grin","shocked","surprised","meh","smile","sad","neutral",
+    "worried","zipped","annoyed","wink","unsure","upset","sleepy","laugh","ninja","angel","devil","afk",
+    "brb","music","duck","rainbow","stars","redstar","greenstar","bluestar"].map(function(n){ return [n, EMO_PX, EMO_PX]; });
   var EMO = {}; EMOJI.forEach(function(e){ EMO[e[0]] = e; });
   function emoImg(n){
     var e = EMO[n], im = document.createElement("img");
-    im.src = EMO_DIR + n + ".png?v=" + EMO_V; im.width = e[1]; im.height = e[2]; im.alt = ":" + n + ":"; im.title = ":" + n + ":";
+    im.src = EMO_DIR + n + ".svg?v=" + EMO_V; im.width = e[1]; im.height = e[2]; im.alt = ":" + n + ":"; im.title = ":" + n + ":";
     im.className = "mb-emo"; im.draggable = false; return im;
   }
   // hue -> [light, medium, dark] as [tag name, hex]. Medium keeps the original tag names so older messages still render.
@@ -129,7 +129,8 @@
     "#ds-msgbox .mb-pinhint{color:#6b5310;font-style:italic;padding:2px 0 0 8px;font-size:14px}" +
     "#ds-msgbox .mb-compose:focus-within{background:#f7cf78}" +
     "#ds-msgbox .mb-status{color:#f3bf56;font-size:14px;min-height:20px;margin-top:4px}" +
-    "#ds-msgbox .mb-emo{vertical-align:middle;display:inline-block;margin:0 1px}" +
+    "#ds-msgbox .mb-emo{vertical-align:middle;display:inline-block;margin:0 1px;filter:drop-shadow(0 0 .6px #5a3d00) drop-shadow(0 0 .4px #5a3d00)}" +
+    "#ds-msgbox .mb-emobtn img{filter:drop-shadow(0 0 .6px #5a3d00) drop-shadow(0 0 .4px #5a3d00)}" +
     "#ds-msgbox .mb-emobtn{flex:none;background:transparent;border:0;padding:2px;margin:0;cursor:pointer;line-height:0;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px}" +
     "#ds-msgbox .mb-tools{display:flex;align-items:center;gap:6px;border-top:1px solid #cb972e;padding:4px 10px}" +
     "#ds-msgbox .mb-emobtn:hover,#ds-msgbox .mb-emobtn[aria-expanded=true]{background:#e6ad3a}" +
@@ -139,6 +140,8 @@
     "#ds-emopick button{background:transparent;border:0;margin:0;padding:0 0 13px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:6px}" +
     "#ds-emopick button:hover,#ds-emopick button:focus-visible{background:rgba(243,191,86,.22);outline:0}" +
     "#ds-emopick img{pointer-events:none}" +
+    "#ds-emopick .ep-credit{grid-column:1/-1;align-self:center;text-align:center;color:#f3bf56;font:11px Arial,sans-serif;text-decoration:none;opacity:.85}" +
+    "#ds-emopick .ep-credit:hover{text-decoration:underline;opacity:1}" +
     "#ds-colpick .cp-panel{width:min(264px,calc(100vw - 32px));aspect-ratio:1/1;box-sizing:border-box;display:flex;flex-direction:column;padding:6px}" +
     "#ds-colpick .cp-top{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;align-items:center}" +
     "#ds-colpick .cp-head{color:#f3bf56;font:900 16px " + F + ";text-align:center;padding:2px 0 4px;border-bottom:1px solid #6b5310;margin-bottom:4px}" +
@@ -235,7 +238,7 @@
     '<label class="mb-rem" id="mb-rem" style="display:none" title="Stay signed in on this browser for 30 days"><input type="checkbox" id="mb-remcb"> remember me</label></div>' +
     '<div class="mb-tools" id="mb-tools">' +
     '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
-    '<img src="' + EMO_DIR + 'smile.png?v=' + EMO_V + '" width="23" height="23" alt=""></button>' +
+    '<img src="' + EMO_DIR + 'smile.svg?v=' + EMO_V + '" width="24" height="24" alt=""></button>' +
     '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button></div></div>' +
     '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
@@ -447,11 +450,13 @@
     pick = document.createElement("div"); pick.id = "ds-emopick"; pick.setAttribute("role", "menu"); pick.setAttribute("aria-label", "Emoji");
     EMOJI.forEach(function(e){
       var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitem"); b.title = ":" + e[0] + ":"; b.setAttribute("aria-label", e[0]);
-      var im = emoImg(e[0]); im.className = ""; b.appendChild(im);
+      var im = emoImg(e[0]); im.className = ""; im.width = im.height = 32; b.appendChild(im);
       b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });   // don't steal focus from the textarea
       b.addEventListener("click", function(ev){ ev.preventDefault(); insertEmo(e[0]); });
       pick.appendChild(b);
     });
+    var cr = document.createElement("a"); cr.className = "ep-credit"; cr.href = "https://github.com/jdecked/twemoji"; cr.target = "_blank"; cr.rel = "noopener";
+    cr.textContent = "Emoji: Twemoji (CC-BY 4.0)"; cr.addEventListener("mousedown", function(ev){ ev.preventDefault(); }); pick.appendChild(cr);
     document.body.appendChild(pick); emoBtn.setAttribute("aria-expanded", "true"); placePick();
   }
   function closePick(){ if (!pick) return; pick.remove(); pick = null; emoBtn.setAttribute("aria-expanded", "false"); }

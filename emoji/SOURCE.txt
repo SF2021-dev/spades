@@ -1,5 +1,25 @@
-Emoji sprites for the message box picker (msgbox.js).
-Source: cropped from a MyLeague-style emoji sheet screenshot supplied by the site owner (Oct 9, 2026).
-Each face was cut from its wooden-shelf cell and the wood background removed; shelf.png is the
-rebuilt empty shelf row used as the picker background. Nothing is hotlinked from MyLeague.
-Original artwork belongs to its creators (MyLeague); used here for this league's own site at the owner's request.
+Emoji for the message box picker (msgbox.js) - updated Oct 9, 2026.
+
+Twemoji graphics, v15.1.0, from the maintained jdecked/twemoji fork:
+  https://github.com/jdecked/twemoji
+  files: https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/<codepoint>.svg
+  Copyright 2020 Twitter, Inc and other contributors. Graphics licensed under CC-BY 4.0:
+  https://creativecommons.org/licenses/by/4.0/
+  (Attribution also shown at the bottom of the emoji picker.)
+
+Code -> Twemoji codepoint (unmodified SVGs, renamed to keep the existing :code: names):
+  cool 1f60e, confused 1f615, dizzy 1f635, silly 1f61c, angry 1f620, grin 1f601, shocked 1f631,
+  surprised 1f62e, meh 1f611, smile 1f642, sad 1f61e, neutral 1f610, worried 1f61f, zipped 1f910,
+  annoyed 1f612, wink 1f609, unsure 1f928, upset 1f623, sleepy 1f634, laugh 1f602, ninja 1f977,
+  angel 1f607, devil 1f608, music 1f3b5, rainbow 1f308
+
+Modified from Twemoji (CC-BY 4.0; changes: recolored / combined):
+  redstar, greenstar, bluestar - the Twemoji star (2b50) path, recolored red / green / blue
+  stars                        - three Twemoji star shapes in red, white and blue
+
+Made for this site (no matching Twemoji):
+  afk, brb - hanging-sign badges drawn as SVG
+  duck     - rubber duck drawn as SVG in Twemoji's palette
+
+shelf.png is the picker's wood-shelf background (unchanged).
+The older blurry PNG crops were removed.

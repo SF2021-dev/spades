@@ -7,7 +7,9 @@
    Emoji: the smiley button left of the compose line opens a 2-column wooden-shelf picker (sprites in /emoji/, cropped from the
    owner's MyLeague-style sheet, see emoji/SOURCE.txt). Picking one inserts a code like :smile: at the cursor; codes render as images.
    Text color: the rainbow ball right of the smiley opens the color/outline pop-up. The chosen color (localStorage ds-mb-color) is applied to the whole
-   message by prefixing [c=name] when it is sent; with text selected, the pick wraps just that text as [c=name]...[/c]. "remove color"
+   message by prefixing [c=name] when it is sent; it is the "pen" for text typed after the pick; text already typed keeps its style
+   (per-character runs shown in a mirror under the transparent textarea, serialized to [c=]/[o=] tags on send); with text selected,
+   the pick restyles just that text. "remove color"
    clears it (default black text). Only names in COLORS render.
    Color and outline share one pop-up: the rainbow ball opens color swatches, in two steps (square box overlaid on the text input area, no scrolling): first the "color" box (remove color + swatches); picking one replaces it with the "outline" box (No Outline + every color).
    Outline: the outline section (black is the main one; also white/gold/red/blue/green). Saved in localStorage
@@ -57,11 +59,10 @@
     var h = OMAP[n];
     el.style.webkitTextStroke = "4px " + h; el.style.paintOrder = "stroke fill";
     el.style.textShadow = "2px 2px 0 " + h + ",3px 3px 0 " + h;
-    el.style.letterSpacing = "0.03em";
   }
   // outline with no color: light fill so the outline stays readable (white; dark fill kept for the light white/gold outlines)
   function oFill(n){ return (n === "gold" || /white/.test(n) || /^light/.test(n)) ? "#000" : "#ffffff"; }
-  function oClear(el){ el.style.webkitTextStroke = ""; el.style.paintOrder = ""; el.style.letterSpacing = ""; }
+  function oClear(el){ el.style.webkitTextStroke = ""; el.style.paintOrder = ""; }
   function stripTags(t){ return t.replace(/\[(c|o)=[a-z]+\]|\[\/(c|o)\]/g, ""); }
   function fillRich(el, text){   // [c=name]..[/c] color and [o=name]..[/o] outline runs (unclosed run to end), then emoji inside
     var re = /\[(c|o)=([a-z]+)\]|\[\/(c|o)\]/g, last = 0, m, col = "", ol = "";
@@ -109,7 +110,11 @@
     "#ds-msgbox .mb-compose{display:flex;align-items:flex-start;border-top:2px solid #cb972e;padding:8px 12px;cursor:text;font-size:20px;line-height:1.4;font-weight:900}" +
     "#ds-msgbox .mb-compose .mb-who{white-space:nowrap;cursor:pointer;padding-top:2px}" +
     "#ds-msgbox .mb-compose .mb-colon{padding-top:2px;white-space:pre}" +
-    "#ds-msgbox #mb-text{flex:1;min-width:0;background:transparent;color:#000;border:0;outline:0;resize:none;padding:2px 0;margin:0;font:900 20px " + F + ";line-height:1.4;height:28px;overflow:hidden}" +
+    "#ds-msgbox .mb-tawrap{flex:1;min-width:0;position:relative;display:block}" +
+    "#ds-msgbox .mb-mirror{position:absolute;inset:0;padding:2px 0;margin:0;font:900 20px " + F + ";line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;word-wrap:break-word;overflow:hidden;pointer-events:none;color:#000;display:none}" +
+    "#ds-msgbox .mb-rich .mb-mirror{display:block}" +
+    "#ds-msgbox .mb-rich #mb-text{color:transparent !important;-webkit-text-stroke:0 !important;text-shadow:none !important;caret-color:#000;position:relative}" +
+    "#ds-msgbox #mb-text{width:100%;box-sizing:border-box;display:block;white-space:pre-wrap;overflow-wrap:anywhere;word-wrap:break-word;flex:1;min-width:0;background:transparent;color:#000;border:0;outline:0;resize:none;padding:2px 0;margin:0;font:900 20px " + F + ";line-height:1.4;height:28px;overflow:hidden}" +
     "#ds-msgbox #mb-text::placeholder{color:#6b5310;font-style:italic}" +
     "#ds-msgbox #mb-pin{width:5.5em;background:#fff8e6;color:#000;border:1px solid #cb972e;border-radius:4px;outline:0;padding:1px 6px;margin:0;font:700 15px " + F + ";letter-spacing:4px}" +
     "#ds-msgbox #mb-email{flex:1;min-width:0;background:#fff8e6;color:#000;border:1px solid #cb972e;border-radius:4px;outline:0;padding:1px 6px;margin:0;font:700 15px " + F + "}" +
@@ -215,7 +220,7 @@
     '<div class="mb-msgs" id="mb-msgs"></div>' +
     '<div class="mb-compose" id="mb-compose">' +
     '<span class="mb-who" id="mb-who" title="Click to change your name"></span>' +
-    '<textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message"></textarea>' +
+    '<span class="mb-tawrap"><div class="mb-mirror" id="mb-mirror" aria-hidden="true"></div><textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message"></textarea></span>' +
     '<input type="password" id="mb-pin" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="3-digit PIN" style="display:none">' +
     '<input type="email" id="mb-email" maxlength="254" autocomplete="email" aria-label="Your email address" placeholder="you@example.com" style="display:none">' +
     '<span class="mb-pinhint" id="mb-pinhint" style="display:none"></span></div>' +
@@ -238,7 +243,7 @@
   var HINTKEY = "ds-mb-hint-seen", HINT = "type here (enter to send)";
   function hintSeen(){ try { return localStorage.getItem(HINTKEY) === "1"; } catch(e){ return false; } }
   function markHint(){ if (hintSeen()) return; try { localStorage.setItem(HINTKEY, "1"); } catch(e){} if (!askingName && !pinMode) ta.placeholder = ""; }
-  function grow(){ ta.style.height = "28px"; ta.style.height = Math.min(ta.scrollHeight, 200) + "px"; ta.style.overflow = ta.scrollHeight > 200 ? "auto" : "hidden"; }
+  function grow(){ ta.style.height = "28px"; ta.style.height = Math.min(ta.scrollHeight, 200) + "px"; ta.style.overflow = ta.scrollHeight > 200 ? "auto" : "hidden"; if (typeof mirror !== "undefined" && mirror) mirror.scrollTop = ta.scrollTop; }
   // Verified PIN is remembered for the browser session: sessionStorage (this tab, survives reloads) plus a session cookie
   // (no expiry, so it's shared by every tab/new-tab page and cleared when the browser is closed). Sent silently with each post.
   var PINKEY = "ds-mb-pin", PINCOOKIE = "ds_pin_session";
@@ -261,6 +266,7 @@
   function showCompose(){
     var pinning = !!pinMode && !askingName;
     ta.style.display = pinning ? "none" : "";
+    if (typeof paintMirror === "function" && mirror) paintMirror();
     pinIn.style.display = (pinning && pinMode !== "check" && pinMode !== "email") ? "" : "none";
     addrIn.style.display = (pinning && pinMode === "email") ? "" : "none";
     pinHint.style.display = pinning ? "" : "none";
@@ -365,7 +371,7 @@
   });
   ta.addEventListener("focus", function(){ if (!askingName && !pinMode) { try { localStorage.setItem(HINTKEY, "1"); } catch(e){} }   // seen once: keep it this visit, gone next time
     if (!savedName && !askingName) askName(); else needPin(); });
-  ta.addEventListener("input", function(){ grow(); if (!askingName && !pinMode && ta.value) markHint(); });
+  ta.addEventListener("input", function(){ syncRuns(); grow(); if (!askingName && !pinMode && ta.value) markHint(); });
   ta.addEventListener("keydown", function(ev){
     if (ev.key === "Escape" && askingName && savedName) { askingName = false; ta.value = ta.dataset.draft || ""; showCompose(); return; }
     if (ev.key !== "Enter" || ev.shiftKey || ev.isComposing) return;
@@ -399,7 +405,7 @@
     if (askingName) { ta.dataset.draft = (ta.dataset.draft || "") + code; st.textContent = "Emoji added to your message. Finish your name first (Enter)."; return; }
     var v = ta.value, a = Math.min(selA, v.length), b = Math.min(Math.max(selB, a), v.length);
     if (v.length - (b - a) + code.length > 1000) { st.textContent = "Message is too long for another emoji."; return; }
-    ta.value = v.slice(0, a) + code + v.slice(b); selA = selB = a + code.length;
+    ta.value = v.slice(0, a) + code + v.slice(b); selA = selB = a + code.length; syncRuns();
     grow(); markHint();
     if (!pinMode && ta.style.display !== "none") {
       if (document.activeElement === ta) { try { ta.setSelectionRange(selA, selB); } catch(e){} }
@@ -430,12 +436,54 @@
   function getPref(key, map){ try { var c = localStorage.getItem(key) || ""; return map[c] ? c : ""; } catch(e){ return ""; } }
   function getColor(){ return getPref(CKEY, CMAP); }
   function getOutline(){ return getPref(OKEY, OMAP); }
-  function applyColor(){
-    var c = getColor(), o = getOutline();
-    ta.style.color = c ? CMAP[c] : (o ? oFill(o) : "#000"); ta.style.textShadow = c ? cShadow(c) : "";
-    if (o) oStyle(ta, o); else oClear(ta);
+  // Compose styling: the color/outline picked is the "pen" for text typed from now on; text already typed keeps its own style.
+  // runs[i] = {c, o} for each character of the draft; a styled mirror div sits under the (transparent-text) textarea.
+  var runs = [], prevVal = "", mirror = document.getElementById("mb-mirror"), taWrap = ta.parentNode;
+  function pen(){ return {c: getColor(), o: getOutline()}; }
+  function syncRuns(){                     // diff old vs new draft: inserted chars take the pen, the rest keep their style
+    if (askingName || pinMode) return;
+    var v = ta.value, pl = prevVal.length, nl = v.length, a = 0;
+    while (a < pl && a < nl && prevVal[a] === v[a]) a++;
+    var e = 0;
+    while (e < pl - a && e < nl - a && prevVal[pl - 1 - e] === v[nl - 1 - e]) e++;
+    var p = pen(), ins = [];
+    for (var i = 0; i < nl - a - e; i++) ins.push({c: p.c, o: p.o});
+    runs = runs.slice(0, a).concat(ins, runs.slice(pl - e));
+    prevVal = v; paintMirror();
   }
-  applyColor();
+  function styleSpan(st0){
+    var sp = document.createElement("span");
+    if (st0.c) { sp.style.color = CMAP[st0.c]; sp.style.textShadow = cShadow(st0.c); }
+    if (st0.o) { oStyle(sp, st0.o); if (!st0.c) sp.style.color = oFill(st0.o); }
+    return sp;
+  }
+  function paintMirror(){
+    var rich = !askingName && !pinMode;
+    taWrap.classList.toggle("mb-rich", rich);
+    if (!rich) return;
+    mirror.textContent = "";
+    var v = ta.value, i = 0;
+    while (i < v.length) {
+      var r = runs[i] || {c: "", o: ""}, j = i + 1;
+      while (j < v.length && runs[j] && runs[j].c === r.c && runs[j].o === r.o) j++;
+      var sp = styleSpan(r); sp.textContent = v.slice(i, j); mirror.appendChild(sp); i = j;
+    }
+    mirror.appendChild(document.createTextNode("\u200b"));
+    mirror.scrollTop = ta.scrollTop;
+  }
+  function serialize(a, b){                 // draft[a:b] -> text with [c=]/[o=] tags where the style changes
+    var out = "", c = "", o = "";
+    for (var i = a; i < b; i++) {
+      var r = runs[i] || {c: "", o: ""};
+      if (r.c !== c) { out += r.c ? "[c=" + r.c + "]" : "[/c]"; c = r.c; }
+      if (r.o !== o) { out += r.o ? "[o=" + r.o + "]" : "[/o]"; o = r.o; }
+      out += ta.value[i];
+    }
+    return out;
+  }
+  ta.addEventListener("scroll", function(){ mirror.scrollTop = ta.scrollTop; });
+  function applyColor(){ paintMirror(); }
+  syncRuns();
   var menus = [];
   function closeMenus(){ menus.forEach(function(mn){ mn.close(); }); }
   // one pop-up (rainbow ball): color swatches + outline swatches together
@@ -446,15 +494,12 @@
       var isCol = kind === "c", key = isCol ? CKEY : OKEY, tag = kind, noun = isCol ? "color" : "outline";
       var label = isCol ? (n ? CLABEL[n] : "") : n;
       var v = ta.value, a = Math.min(selA, v.length), b = Math.min(Math.max(selB, a), v.length);
-      if (n && b > a && !askingName && !pinMode) {   // style just the selected text
-        var piece = "[" + tag + "=" + n + "]" + v.slice(a, b) + "[/" + tag + "]";
-        if (v.length - (b - a) + piece.length > 1000) { st.textContent = "Message is too long to " + noun + " that."; close(); return; }
-        ta.value = v.slice(0, a) + piece + v.slice(b); grow();
-        if (isCol) { selA = a; selB = a + piece.length; }   // keep the piece selected so step 2 (outline) wraps it too
-        else selA = selB = a + piece.length;
-      } else {
+      if (b > a && !askingName && !pinMode) {   // text selected: restyle just that text (selection kept for step 2)
+        syncRuns();
+        for (var i = a; i < b; i++) { runs[i] = runs[i] || {c: "", o: ""}; runs[i][kind] = n; }
+        paintMirror();
+      } else {                                  // nothing selected: only text typed from now on uses this
         try { if (n) localStorage.setItem(key, n); else localStorage.removeItem(key); } catch(e){}
-        applyColor();
       }
       st.textContent = "";
       close();
@@ -535,11 +580,10 @@
   form.addEventListener("submit", function(ev){
     ev.preventDefault();
     if (sending || askingName || pinMode) return;
-    var name = savedName, msg = ta.value.trim(), col = getColor(), ol = getOutline(), pre = "";
-    if (msg && col && msg.indexOf("[c=") !== 0) pre += "[c=" + col + "]";
-    if (msg && ol && msg.indexOf("[o=") !== 0) pre += "[o=" + ol + "]";
-    msg = pre + msg;
-    msg = msg.slice(0, 1000);
+    syncRuns();
+    var name = savedName, raw = ta.value, s0 = raw.length - raw.replace(/^\s+/, "").length, e0 = raw.replace(/\s+$/, "").length;
+    var msg = e0 > s0 ? serialize(s0, e0) : "";
+    if (msg.length > 1000) { st.textContent = "Message is too long with all those colors. Please shorten it."; return; }
     if (!name) { askName(); return; }
     if (!stripTags(msg).trim()) { st.textContent = "Type a message, then press Enter."; return; }
     if (document.getElementById("mb-hp").value) return;   // bot filled the honeypot
@@ -548,7 +592,7 @@
     sending = true; ta.readOnly = true; st.textContent = "Sending…"; st.dataset.err = "";
     var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: name, message: msg, pin: pin, t: Date.now()};
     postShared(entry).then(function(list){
-      ta.value = ""; markHint(); grow();
+      ta.value = ""; syncRuns(); markHint(); grow();
       msgs = merge(list);
       saveLocal(msgs); render(msgs);
       st.textContent = "";

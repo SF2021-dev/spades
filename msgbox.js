@@ -3,7 +3,7 @@
    then also emailed via FormSubmit as a notification. /messages.json is a backup archive, shown only if the API is down.
    Shown oldest first; under the list a compose line reads "username: <type here>" (Enter sends, Shift+Enter newline, click the name to change it). Hint "type here (enter to send)" shows only until first typing/send (localStorage ds-mb-hint-seen).
    PIN: each name has a 3-digit PIN on the server (/api/pin, hashed in D1). First time a name is used the box asks to create
-   one (typed twice) plus an email address (server keeps only a hash); after that the PIN is asked once per browser tab session and sent with every message (server checks it).
+   one (typed twice) plus an email address (server keeps only a hash); after that the PIN is asked once per browser session (sessionStorage + session cookie ds_pin_session) and sent with every message (server checks it).
    Emoji: the smiley button left of the compose line opens a 2-column wooden-shelf picker (sprites in /emoji/, cropped from the
    owner's MyLeague-style sheet, see emoji/SOURCE.txt). Picking one inserts a code like :smile: at the cursor; codes render as images.
    Text color: the rainbow ball right of the smiley opens a color menu. The chosen color (localStorage ds-mb-color) is applied to the whole
@@ -206,9 +206,20 @@
   function hintSeen(){ try { return localStorage.getItem(HINTKEY) === "1"; } catch(e){ return false; } }
   function markHint(){ if (hintSeen()) return; try { localStorage.setItem(HINTKEY, "1"); } catch(e){} if (!askingName && !pinMode) ta.placeholder = ""; }
   function grow(){ ta.style.height = "22px"; ta.style.height = Math.min(ta.scrollHeight, 200) + "px"; ta.style.overflow = ta.scrollHeight > 200 ? "auto" : "hidden"; }
-  var PINKEY = "ds-mb-pin";   // sessionStorage: {name, pin} once verified for this tab
-  function getPin(){ try { var d = JSON.parse(sessionStorage.getItem(PINKEY) || "null"); return d && d.name === savedName ? d.pin : ""; } catch(e){ return ""; } }
-  function savePin(p){ try { if (p) sessionStorage.setItem(PINKEY, JSON.stringify({name: savedName, pin: p})); else sessionStorage.removeItem(PINKEY); } catch(e){} }
+  // Verified PIN is remembered for the browser session: sessionStorage (this tab, survives reloads) plus a session cookie
+  // (no expiry, so it's shared by every tab/new-tab page and cleared when the browser is closed). Sent silently with each post.
+  var PINKEY = "ds-mb-pin", PINCOOKIE = "ds_pin_session";
+  function readPin(){
+    try { var d = JSON.parse(sessionStorage.getItem(PINKEY) || "null"); if (d && d.pin) return d; } catch(e){}
+    try { var m = document.cookie.match(/(?:^|;\s*)ds_pin_session=([^;]*)/); if (m) { var c = JSON.parse(decodeURIComponent(m[1])); if (c && c.pin) return c; } } catch(e){}
+    return null;
+  }
+  function getPin(){ var d = readPin(); if (!d || d.name !== savedName || !/^\d{3}$/.test(d.pin)) return ""; try { sessionStorage.setItem(PINKEY, JSON.stringify(d)); } catch(e){} return d.pin; }
+  function savePin(p){
+    var v = JSON.stringify({name: savedName, pin: p});
+    try { if (p) sessionStorage.setItem(PINKEY, v); else sessionStorage.removeItem(PINKEY); } catch(e){}
+    try { document.cookie = PINCOOKIE + "=" + (p ? encodeURIComponent(v) : "") + "; path=/; SameSite=Strict" + (location.protocol === "https:" ? "; Secure" : "") + (p ? "" : "; Max-Age=0"); } catch(e){}
+  }
   function pinPost(action, pin, email){
     return fetch(PIN_API, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
       body: JSON.stringify({name: savedName, pin: pin, email: email, action: action})})

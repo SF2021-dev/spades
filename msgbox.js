@@ -6,10 +6,11 @@
    one (typed twice) plus an email address (server keeps only a hash); after that the PIN is asked once per browser session (sessionStorage + session cookie ds_pin_session) and sent with every message (server checks it).
    Emoji: the smiley button left of the compose line opens a 2-column wooden-shelf picker (sprites in /emoji/, cropped from the
    owner's MyLeague-style sheet, see emoji/SOURCE.txt). Picking one inserts a code like :smile: at the cursor; codes render as images.
-   Text color: the "color" box right of the smiley opens a color menu. The chosen color (localStorage ds-mb-color) is applied to the whole
+   Text color: the rainbow ball right of the smiley opens the color/outline pop-up. The chosen color (localStorage ds-mb-color) is applied to the whole
    message by prefixing [c=name] when it is sent; with text selected, the pick wraps just that text as [c=name]...[/c]. "remove color"
    clears it (default black text). Only names in COLORS render.
-   Outline: the "outline" box opens an outline menu (black is the main one; also white/gold/red/blue/green). Saved in localStorage
+   Color and outline share one pop-up: the rainbow ball opens color swatches, then (below a divider) "No Outline" + outline swatches.
+   Outline: the outline section (black is the main one; also white/gold/red/blue/green). Saved in localStorage
    ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a thick stroke (paint-order stroke fill,
    so the fill color stays fully visible) plus a small offset shadow for a slight 3D look. Color only = no outline.
    All [c=]/[o=] tags are stripped from the email notification. */
@@ -123,15 +124,11 @@
     "#ds-emopick button{background:transparent;border:0;margin:0;padding:0 0 13px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:6px}" +
     "#ds-emopick button:hover,#ds-emopick button:focus-visible{background:rgba(243,191,86,.22);outline:0}" +
     "#ds-emopick img{pointer-events:none}" +
-    "#ds-msgbox .mb-txtbtn{flex:none;display:flex;align-items:center;gap:6px;background:#fff3d0;border:2px solid #6b5310;border-radius:6px;padding:2px 10px;margin:0;" +
-      "cursor:pointer;min-height:32px;font:900 15px " + F + ";color:#000}" +
-    "#ds-msgbox .mb-txtbtn:hover,#ds-msgbox .mb-txtbtn[aria-expanded=true]{background:#e6ad3a}" +
-    "#ds-msgbox .mb-txtbtn .mb-ball{width:18px;height:18px}" +
-    "#ds-msgbox .mb-olword{color:#fbe646;-webkit-text-stroke:3px #000;paint-order:stroke fill;text-shadow:1px 1px 0 #000,2px 2px 0 #000;letter-spacing:.03em}" +
+    "#ds-colpick .cp-sep{border-top:1px solid #6b5310;margin:6px 0 2px}" +
     "#ds-msgbox .mb-ball{display:block;width:23px;height:23px;border-radius:50%;box-shadow:inset -2px -3px 5px rgba(0,0,0,.35),0 0 0 1px #6b5310;" +
       "background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.95) 0,rgba(255,255,255,.35) 18%,rgba(255,255,255,0) 40%)," +
       "conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)}" +
-    "#ds-colpick{position:absolute;z-index:9999;width:200px;max-width:calc(100vw - 16px);max-height:min(75vh,500px);overflow-y:auto;background:#000;border:2px solid #f3bf56;border-radius:10px;" +
+    "#ds-colpick{position:absolute;z-index:9999;width:200px;max-width:calc(100vw - 16px);max-height:min(85vh,620px);overflow-y:auto;background:#000;border:2px solid #f3bf56;border-radius:10px;" +
       "box-shadow:0 6px 20px rgba(0,0,0,.6);padding:4px;box-sizing:border-box;font-family:" + F + "}" +
     "#ds-colpick button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;background:transparent;border:0;border-radius:6px;padding:4px 8px;margin:0;" +
       "cursor:pointer;color:#f3bf56;font:700 15px " + F + ";text-align:left;white-space:nowrap}" +
@@ -141,8 +138,8 @@
     "#ds-colpick .cp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 4px;align-items:center;margin-top:4px;border-top:1px solid #6b5310;padding-top:4px}" +
     "#ds-colpick .cp-h{color:#c9a227;font:700 12px " + F + ";text-align:center}" +
     "#ds-colpick .cp-hue{color:#f3bf56;font:700 14px " + F + ";padding-left:4px}" +
-    "#ds-colpick .cp-grid button{justify-content:center;padding:0;min-height:40px}" +
-    "#ds-colpick .cp-grid .sw{width:26px;height:26px}" +
+    "#ds-colpick .cp-grid button{justify-content:center;padding:0;min-height:32px}" +
+    "#ds-colpick .cp-grid .sw{width:24px;height:24px}" +
     "#ds-colpick button[aria-checked=true] .sw{box-shadow:0 0 0 2px #000,0 0 0 4px #f3bf56}";
   document.head.appendChild(css);
 
@@ -219,8 +216,7 @@
     '<div class="mb-tools" id="mb-tools">' +
     '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
     '<img src="' + EMO_DIR + 'smile.png?v=' + EMO_V + '" width="23" height="23" alt=""></button>' +
-    '<button type="button" class="mb-txtbtn" id="mb-colbtn" aria-label="Text color" aria-haspopup="true" aria-expanded="false" title="Text color"><span class="mb-ball"></span>color</button>' +
-    '<button type="button" class="mb-txtbtn" id="mb-olbtn" aria-label="Text outline" aria-haspopup="true" aria-expanded="false" title="Text outline"><span class="mb-olword">outline</span></button></div></div>' +
+    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button></div></div>' +
     '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
 
@@ -423,55 +419,55 @@
   applyColor();
   var menus = [];
   function closeMenus(){ menus.forEach(function(mn){ mn.close(); }); }
-  function makeMenu(btn, kind){
-    var isCol = kind === "c", key = isCol ? CKEY : OKEY, map = isCol ? CMAP : OMAP, el = null;
-    var noun = isCol ? "color" : "outline", tag = isCol ? "c" : "o";
-    function label(n){ return isCol ? CLABEL[n] : n; }
+  // one pop-up (rainbow ball): color swatches + outline swatches together
+  function makeMenu(btn){
+    var el = null;
     function close(){ if (!el) return; el.remove(); el = null; btn.setAttribute("aria-expanded", "false"); }
-    function choose(n){
+    function choose(kind, n){
+      var isCol = kind === "c", key = isCol ? CKEY : OKEY, tag = kind, noun = isCol ? "color" : "outline";
+      var label = isCol ? (n ? CLABEL[n] : "") : n;
       var v = ta.value, a = Math.min(selA, v.length), b = Math.min(Math.max(selB, a), v.length);
       if (n && b > a && !askingName && !pinMode) {   // style just the selected text
         var piece = "[" + tag + "=" + n + "]" + v.slice(a, b) + "[/" + tag + "]";
         if (v.length - (b - a) + piece.length > 1000) { st.textContent = "Message is too long to " + noun + " that."; close(); return; }
         ta.value = v.slice(0, a) + piece + v.slice(b); selA = selB = a + piece.length; grow();
-        st.textContent = isCol ? "Colored the selected text " + label(n) + "." : "Outlined the selected text in " + label(n) + ".";
+        st.textContent = isCol ? "Colored the selected text " + label + "." : "Outlined the selected text in " + label + ".";
       } else {
         try { if (n) localStorage.setItem(key, n); else localStorage.removeItem(key); } catch(e){}
         applyColor();
-        st.textContent = n ? (isCol ? "Your messages will be " + label(n) + "." : "Your messages will have a " + label(n) + " outline.")
-                           : (isCol ? "Color removed." : "Outline removed.");
+        st.textContent = n ? (isCol ? "Your messages will be " + label + "." : "Your messages will have a " + label + " outline.")
+                           : (isCol ? "Color removed." : "No outline.");
       }
       close();
       if (!pinMode && !askingName && !(window.matchMedia && matchMedia("(pointer: coarse)").matches)) { ta.focus(); try { ta.setSelectionRange(selA, selB); } catch(e){} }
     }
     function open(){
       if (el) return;
-      closePick(); closeMenus();
-      el = document.createElement("div"); el.id = "ds-colpick"; el.setAttribute("role", "menu"); el.setAttribute("aria-label", isCol ? "Text color" : "Text outline");
-      var cur = getPref(key, map);
-      function mkBtn(n, lab){
+      closePick();
+      el = document.createElement("div"); el.id = "ds-colpick"; el.setAttribute("role", "menu"); el.setAttribute("aria-label", "Text color and outline");
+      var curC = getColor(), curO = getOutline();
+      function mkBtn(kind, n, lab){
+        var map = kind === "c" ? CMAP : OMAP, cur = kind === "c" ? curC : curO;
         var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitemradio");
-        b.setAttribute("aria-checked", String(n === cur && !!n)); b.title = lab; b.setAttribute("aria-label", lab);
+        b.setAttribute("aria-checked", String(n ? n === cur : !cur)); b.title = lab; b.setAttribute("aria-label", lab);
         var sw = document.createElement("span"); sw.className = "sw";
-        sw.style.background = n ? map[n] : "linear-gradient(135deg,#000 45%,#c00000 45%,#c00000 55%,#000 55%)";
-        if (!n && !isCol) sw.style.background = "linear-gradient(135deg,#f3bf56 45%,#c00000 45%,#c00000 55%,#f3bf56 55%)";
+        sw.style.background = n ? map[n] : (kind === "c" ? "linear-gradient(135deg,#000 45%,#c00000 45%,#c00000 55%,#000 55%)"
+                                                         : "linear-gradient(135deg,#f3bf56 45%,#c00000 45%,#c00000 55%,#f3bf56 55%)");
         b.appendChild(sw);
         b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
-        b.addEventListener("click", function(ev){ ev.preventDefault(); choose(n); });
+        b.addEventListener("click", function(ev){ ev.preventDefault(); choose(kind, n); });
         return b;
       }
-      var rm = mkBtn("", "remove " + noun), lb = document.createElement("span"); lb.textContent = "remove " + noun; rm.appendChild(lb); el.appendChild(rm);
-      if (isCol) {
-        var g = document.createElement("div"); g.className = "cp-grid";
-        COLORS.forEach(function(h){
-          h[1].forEach(function(c){ g.appendChild(mkBtn(c[0], CLABEL[c[0]])); });
-        });
-        el.appendChild(g);
-      } else {
-        var og = document.createElement("div"); og.className = "cp-grid";
-        OUTLINES.forEach(function(o){ og.appendChild(mkBtn(o[0], o[0] + " outline")); });
-        el.appendChild(og);
-      }
+      function textBtn(kind, lab){ var b = mkBtn(kind, "", lab), t = document.createElement("span"); t.textContent = lab; b.appendChild(t); return b; }
+      el.appendChild(textBtn("c", "remove color"));
+      var g = document.createElement("div"); g.className = "cp-grid";
+      COLORS.forEach(function(h){ h[1].forEach(function(c){ g.appendChild(mkBtn("c", c[0], CLABEL[c[0]])); }); });
+      el.appendChild(g);
+      var sep = document.createElement("div"); sep.className = "cp-sep"; el.appendChild(sep);
+      el.appendChild(textBtn("o", "No Outline"));
+      var og = document.createElement("div"); og.className = "cp-grid";
+      OUTLINES.forEach(function(o){ og.appendChild(mkBtn("o", o[0], o[0] + " outline")); });
+      el.appendChild(og);
       document.body.appendChild(el); btn.setAttribute("aria-expanded", "true");
       var r = btn.getBoundingClientRect(), pw = el.offsetWidth, ph = el.offsetHeight;
       var left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - pw - 8));
@@ -484,8 +480,7 @@
     document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && el) { close(); btn.focus(); } });
     var mn = {close: close}; menus.push(mn); return mn;
   }
-  makeMenu(document.getElementById("mb-colbtn"), "c");
-  makeMenu(document.getElementById("mb-olbtn"), "o");
+  makeMenu(document.getElementById("mb-colbtn"));
 
   var apiDown = false;
   function refresh(){

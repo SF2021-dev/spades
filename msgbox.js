@@ -9,7 +9,7 @@
    Text color: the rainbow ball right of the smiley opens the color/outline pop-up. The chosen color (localStorage ds-mb-color) is applied to the whole
    message by prefixing [c=name] when it is sent; with text selected, the pick wraps just that text as [c=name]...[/c]. "remove color"
    clears it (default black text). Only names in COLORS render.
-   Color and outline share one pop-up: the rainbow ball opens color swatches, in two steps: first the "color" box (remove color + swatches); picking one replaces it with the "outline" box (No Outline + every color).
+   Color and outline share one pop-up: the rainbow ball opens color swatches, in two steps (square box overlaid on the text input area, no scrolling): first the "color" box (remove color + swatches); picking one replaces it with the "outline" box (No Outline + every color).
    Outline: the outline section (black is the main one; also white/gold/red/blue/green). Saved in localStorage
    ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a thick stroke (paint-order stroke fill,
    so the fill color stays fully visible) plus a small offset shadow for a slight 3D look. Color only = no outline.
@@ -126,23 +126,25 @@
     "#ds-emopick button{background:transparent;border:0;margin:0;padding:0 0 13px;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:6px}" +
     "#ds-emopick button:hover,#ds-emopick button:focus-visible{background:rgba(243,191,86,.22);outline:0}" +
     "#ds-emopick img{pointer-events:none}" +
-    "#ds-colpick .cp-panel{flex:1 1 0;min-width:0;width:170px;border:1px solid #6b5310;border-radius:8px;padding:4px}" +
+    "#ds-colpick .cp-panel{width:min(264px,calc(100vw - 32px));aspect-ratio:1/1;box-sizing:border-box;display:flex;flex-direction:column;padding:6px}" +
+    "#ds-colpick .cp-top{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;align-items:center}" +
     "#ds-colpick .cp-head{color:#f3bf56;font:900 16px " + F + ";text-align:center;padding:2px 0 4px;border-bottom:1px solid #6b5310;margin-bottom:4px}" +
-    "#ds-colpick .cp-panel > button{gap:6px;padding:4px 4px;font-size:14px}" +
+    "#ds-colpick .cp-top > button{min-height:34px;padding:0;justify-content:center}" +
+    "#ds-colpick .cp-top > button:first-child{justify-content:flex-start;gap:6px;padding:0 4px;font-size:14px}" +
     "#ds-msgbox .mb-ball{display:block;width:23px;height:23px;border-radius:50%;box-shadow:inset -2px -3px 5px rgba(0,0,0,.35),0 0 0 1px #6b5310;" +
       "background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.95) 0,rgba(255,255,255,.35) 18%,rgba(255,255,255,0) 40%)," +
       "conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)}" +
-    "#ds-colpick{position:absolute;z-index:9999;display:flex;align-items:flex-start;gap:6px;width:max-content;max-width:calc(100vw - 16px);max-height:min(85vh,620px);overflow-y:auto;background:#000;border:2px solid #f3bf56;border-radius:10px;" +
+    "#ds-colpick{position:absolute;z-index:9999;display:flex;align-items:flex-start;gap:6px;width:max-content;max-width:calc(100vw - 16px);background:#000;border:2px solid #f3bf56;border-radius:10px;" +
       "box-shadow:0 6px 20px rgba(0,0,0,.6);padding:4px;box-sizing:border-box;font-family:" + F + "}" +
     "#ds-colpick button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;background:transparent;border:0;border-radius:6px;padding:4px 8px;margin:0;" +
       "cursor:pointer;color:#f3bf56;font:700 15px " + F + ";text-align:left;white-space:nowrap}" +
     "#ds-colpick button:hover,#ds-colpick button:focus-visible{background:#2a2000;outline:0}" +
     "#ds-colpick button[aria-checked=true]{background:#3a2c00}" +
     "#ds-colpick .sw{flex:none;width:20px;height:20px;border-radius:50%;border:1px solid #f3bf56}" +
-    "#ds-colpick .cp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 4px;align-items:center;margin-top:4px;border-top:1px solid #6b5310;padding-top:4px}" +
+    "#ds-colpick .cp-grid{flex:1;display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:1fr;gap:2px;align-items:center;margin-top:4px;border-top:1px solid #6b5310;padding-top:4px}" +
     "#ds-colpick .cp-h{color:#c9a227;font:700 12px " + F + ";text-align:center}" +
     "#ds-colpick .cp-hue{color:#f3bf56;font:700 14px " + F + ";padding-left:4px}" +
-    "#ds-colpick .cp-grid button{justify-content:center;padding:0;min-height:32px}" +
+    "#ds-colpick .cp-grid button{justify-content:center;padding:0;min-height:0;height:100%}" +
     "#ds-colpick .cp-grid .sw{width:24px;height:24px}" +
     "#ds-colpick button[aria-checked=true] .sw{box-shadow:0 0 0 2px #000,0 0 0 4px #f3bf56}";
   document.head.appendChild(css);
@@ -482,27 +484,25 @@
         var h = document.createElement("div"); h.className = "cp-head"; h.textContent = head; p.appendChild(h);
         el.appendChild(p); return p;
       }
+      // square box: heading, a top row (remove/No Outline [+ black, gold]), then 6 columns = two hues (light/medium/dark) per row
+      var box = panel(step2 ? "outline" : "color"), top = document.createElement("div"); top.className = "cp-top";
+      var g = document.createElement("div"); g.className = "cp-grid";
       if (!step2) {                       // step 1: color box only
-        var pc = panel("color");
-        pc.appendChild(textBtn("c", "remove color"));
-        var g = document.createElement("div"); g.className = "cp-grid";
+        var rc = textBtn("c", "remove color"); rc.style.gridColumn = "1 / -1"; top.appendChild(rc);
         COLORS.forEach(function(h){ h[1].forEach(function(c){ g.appendChild(mkBtn("c", c[0], CLABEL[c[0]])); }); });
-        pc.appendChild(g);
       } else {                            // step 2 (after a color pick): outline box replaces it
-        var po = panel("outline");
-        po.appendChild(textBtn("o", "No Outline"));
-        var og = document.createElement("div"); og.className = "cp-grid";
-        OUTLINES.forEach(function(o, i){
-          og.appendChild(mkBtn("o", o[0], (CLABEL[o[0]] || o[0]) + " outline"));
-          if (i === 1) { var gap = document.createElement("span"); og.appendChild(gap); }   // black, gold, (blank) then the color rows
-        });
-        po.appendChild(og);
+        var no = textBtn("o", "No Outline"); no.style.gridColumn = "span 4"; top.appendChild(no);
+        top.appendChild(mkBtn("o", "black", "black outline")); top.appendChild(mkBtn("o", "gold", "gold outline"));
+        COLORS.forEach(function(h){ h[1].forEach(function(c){ g.appendChild(mkBtn("o", c[0], CLABEL[c[0]] + " outline")); }); });
       }
+      box.appendChild(top); box.appendChild(g);
       document.body.appendChild(el); btn.setAttribute("aria-expanded", "true");
-      var r = btn.getBoundingClientRect(), pw = el.offsetWidth, ph = el.offsetHeight;
-      var left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - pw - 8));
-      var top = (r.top - ph - 6 >= 8) ? r.top - ph - 6 : r.bottom + 6;
-      el.style.left = (left + window.scrollX) + "px"; el.style.top = (top + window.scrollY) + "px";
+      // overlay the text input area: bottom edge on the compose line, kept fully inside the window (no scrolling needed)
+      var r = document.getElementById("mb-compose").getBoundingClientRect(), pw = el.offsetWidth, ph = el.offsetHeight;
+      var vw = document.documentElement.clientWidth, vh = window.innerHeight;
+      var left = Math.max(8, Math.min(r.left + 8, vw - pw - 8));
+      var topY = Math.max(8, Math.min(r.bottom - ph, vh - ph - 8));
+      el.style.left = (left + window.scrollX) + "px"; el.style.top = (topY + window.scrollY) + "px";
     }
     btn.addEventListener("click", function(ev){ ev.preventDefault(); ev.stopPropagation(); if (el) close(); else gate(function(){ rememberSel(); open(); }); });
     document.addEventListener("mousedown", function(ev){ if (el && !el.contains(ev.target) && !btn.contains(ev.target)) close(); }, true);

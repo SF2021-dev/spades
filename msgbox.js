@@ -102,7 +102,9 @@
     "@font-face{font-family:'DS Coustard';font-style:normal;font-weight:900;font-display:swap;src:url(/fonts/coustard-900-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}" +
     "@font-face{font-family:'DS Coustard';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/coustard-400-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}" +
     "#ds-msgbox .mb-card{background:#000;border:1px solid #f3bf56;border-radius:10px;padding:14px 16px}" +
-    "#ds-msgbox .mb-title{color:#f3bf56;font-size:18px;font-weight:700;margin-bottom:8px}" +
+    "#ds-msgbox .mb-title{color:#f3bf56;font-size:18px;font-weight:700;margin-bottom:8px;display:flex;align-items:baseline;justify-content:space-between;gap:10px}" +
+    "#ds-msgbox .mb-top{color:#f3bf56;font-size:18px;font-weight:700;text-decoration:none;white-space:nowrap;cursor:pointer}" +
+    "#ds-msgbox .mb-top:hover,#ds-msgbox .mb-top:focus-visible{text-decoration:underline;outline:0}" +
     "#ds-msgbox .mb-msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;max-height:min(50vh,480px);overflow:auto}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}" +
     "#ds-msgbox .mb-line{font-size:20px;color:#000;line-height:1.4;padding:8px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
@@ -221,7 +223,7 @@
 
   box.innerHTML =
     '<div class="mb-card">' +
-    '<div class="mb-title">Messages</div>' +
+    '<div class="mb-title"><span>Messages</span><a href="#" class="mb-top" id="mb-top">top of page</a></div>' +
     '<form id="mb-form" autocomplete="off"><div class="mb-wrap">' +
     '<div class="mb-msgs" id="mb-msgs"></div>' +
     '<div class="mb-compose" id="mb-compose">' +
@@ -240,6 +242,10 @@
 
   var form = document.getElementById("mb-form"), st = document.getElementById("mb-status");
   var ta = document.getElementById("mb-text"), who = document.getElementById("mb-who"), colon = document.getElementById("mb-colon");
+  document.getElementById("mb-top").addEventListener("click", function(ev){
+    ev.preventDefault();
+    try { window.scrollTo({top: 0, behavior: "smooth"}); } catch(e){ window.scrollTo(0, 0); }
+  });
   var remCb = document.getElementById("mb-remcb");
   remCb.addEventListener("change", function(){ if (pinMode === "email") addrIn.focus(); else if (pinMode && pinMode !== "check") pinIn.focus(); });
   var addrIn = document.getElementById("mb-email"), pinIn = document.getElementById("mb-pin"), pinHint = document.getElementById("mb-pinhint");

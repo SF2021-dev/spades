@@ -179,7 +179,6 @@
 
   box.innerHTML =
     '<div class="mb-card">' +
-    '<div class="mb-title">Messages</div>' +
     '<form id="mb-form" autocomplete="off"><div class="mb-wrap">' +
     '<div class="mb-msgs" id="mb-msgs"></div>' +
     '<div class="mb-compose" id="mb-compose">' +

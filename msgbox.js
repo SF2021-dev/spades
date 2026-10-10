@@ -29,9 +29,20 @@
     im.src = EMO_DIR + n + ".png?v=" + EMO_V; im.width = e[1]; im.height = e[2]; im.alt = ":" + n + ":"; im.title = ":" + n + ":";
     im.className = "mb-emo"; im.draggable = false; return im;
   }
-  var COLORS = [["red","#c00000"],["blue","#0033cc"],["green","#006400"],["purple","#6a0dad"],["orange","#c45000"],
-    ["pink","#d0006f"],["teal","#007373"],["brown","#5c2e00"],["white","#ffffff"]];
-  var CMAP = {}; COLORS.forEach(function(c){ CMAP[c[0]] = c[1]; });
+  // hue -> [light, medium, dark] as [tag name, hex]. Medium keeps the original tag names so older messages still render.
+  var COLORS = [
+    ["red",    [["lightred","#ff5c5c"],["red","#c00000"],["darkred","#700000"]]],
+    ["blue",   [["lightblue","#5b9bff"],["blue","#0033cc"],["darkblue","#001a66"]]],
+    ["green",  [["lightgreen","#3cc43c"],["green","#006400"],["darkgreen","#003300"]]],
+    ["purple", [["lightpurple","#b26bff"],["purple","#6a0dad"],["darkpurple","#3a0063"]]],
+    ["orange", [["lightorange","#ffa040"],["orange","#c45000"],["darkorange","#7a3000"]]],
+    ["pink",   [["lightpink","#ff7ac0"],["pink","#d0006f"],["darkpink","#80003f"]]],
+    ["teal",   [["lightteal","#3fd6d6"],["teal","#007373"],["darkteal","#003b3b"]]],
+    ["brown",  [["lightbrown","#b5774a"],["brown","#5c2e00"],["darkbrown","#2e1600"]]],
+    ["white",  [["lightwhite","#ffffff"],["white","#e8e8e8"],["darkwhite","#b8b8b8"]]]];
+  var CMAP = {}, CLABEL = {}, SHADE = ["light", "medium", "dark"];
+  COLORS.forEach(function(h){ h[1].forEach(function(c, i){ CMAP[c[0]] = c[1]; CLABEL[c[0]] = (i === 1 ? "" : SHADE[i] + " ") + h[0]; }); });
+  function cShadow(n){ return /white$/.test(n) ? "0 0 2px #000" : (/^light/.test(n) ? "0 0 1px #000" : ""); }
   var CKEY = "ds-mb-color";
   function stripTags(t){ return t.replace(/\[c=[a-z]+\]|\[\/c\]/g, ""); }
   function fillRich(el, text){   // [c=name]..[/c] color spans (unclosed runs to end), then emoji inside
@@ -40,7 +51,7 @@
     while ((m = re.exec(text))) {
       if (m[1] && !CMAP[m[1]]) continue;   // unknown color: leave as text
       put(text.slice(last, m.index)); last = re.lastIndex;
-      if (m[1]) { var sp = document.createElement("span"); sp.style.color = CMAP[m[1]]; if (m[1] === "white") sp.style.textShadow = "0 0 2px #000"; el.appendChild(sp); cur = sp; }
+      if (m[1]) { var sp = document.createElement("span"); sp.style.color = CMAP[m[1]]; sp.style.textShadow = cShadow(m[1]); el.appendChild(sp); cur = sp; }
       else cur = el;
     }
     put(text.slice(last));
@@ -90,13 +101,19 @@
     "#ds-msgbox .mb-ball{display:block;width:23px;height:23px;border-radius:50%;box-shadow:inset -2px -3px 5px rgba(0,0,0,.35),0 0 0 1px #6b5310;" +
       "background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.95) 0,rgba(255,255,255,.35) 18%,rgba(255,255,255,0) 40%)," +
       "conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)}" +
-    "#ds-colpick{position:absolute;z-index:9999;width:190px;max-height:min(60vh,420px);overflow-y:auto;background:#000;border:2px solid #f3bf56;border-radius:10px;" +
+    "#ds-colpick{position:absolute;z-index:9999;width:236px;max-width:calc(100vw - 16px);max-height:min(75vh,500px);overflow-y:auto;background:#000;border:2px solid #f3bf56;border-radius:10px;" +
       "box-shadow:0 6px 20px rgba(0,0,0,.6);padding:4px;box-sizing:border-box;font-family:" + F + "}" +
     "#ds-colpick button{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;background:transparent;border:0;border-radius:6px;padding:4px 8px;margin:0;" +
       "cursor:pointer;color:#f3bf56;font:700 15px " + F + ";text-align:left}" +
     "#ds-colpick button:hover,#ds-colpick button:focus-visible{background:#2a2000;outline:0}" +
     "#ds-colpick button[aria-checked=true]{background:#3a2c00}" +
-    "#ds-colpick .sw{flex:none;width:20px;height:20px;border-radius:50%;border:1px solid #f3bf56}";
+    "#ds-colpick .sw{flex:none;width:20px;height:20px;border-radius:50%;border:1px solid #f3bf56}" +
+    "#ds-colpick .cp-grid{display:grid;grid-template-columns:62px repeat(3,1fr);gap:2px 4px;align-items:center;margin-top:4px;border-top:1px solid #6b5310;padding-top:4px}" +
+    "#ds-colpick .cp-h{color:#c9a227;font:700 12px " + F + ";text-align:center}" +
+    "#ds-colpick .cp-hue{color:#f3bf56;font:700 14px " + F + ";padding-left:4px}" +
+    "#ds-colpick .cp-grid button{justify-content:center;padding:0;min-height:40px}" +
+    "#ds-colpick .cp-grid .sw{width:26px;height:26px}" +
+    "#ds-colpick button[aria-checked=true] .sw{box-shadow:0 0 0 2px #000,0 0 0 4px #f3bf56}";
   document.head.appendChild(css);
 
   function clean(m){
@@ -355,7 +372,7 @@
   // ---- text color ----
   var colBtn = document.getElementById("mb-colbtn"), cpick = null;
   function getColor(){ try { var c = localStorage.getItem(CKEY) || ""; return CMAP[c] ? c : ""; } catch(e){ return ""; } }
-  function applyColor(){ var c = getColor(); ta.style.color = c ? CMAP[c] : "#000"; ta.style.textShadow = c === "white" ? "0 0 2px #000" : ""; }
+  function applyColor(){ var c = getColor(); ta.style.color = c ? CMAP[c] : "#000"; ta.style.textShadow = c ? cShadow(c) : ""; }
   applyColor();
   function closeCol(){ if (!cpick) return; cpick.remove(); cpick = null; colBtn.setAttribute("aria-expanded", "false"); }
   function pickColor(c){
@@ -364,10 +381,10 @@
       var piece = "[c=" + c + "]" + v.slice(a, b) + "[/c]";
       if (v.length - (b - a) + piece.length > 1000) { st.textContent = "Message is too long to color that."; closeCol(); return; }
       ta.value = v.slice(0, a) + piece + v.slice(b); selA = selB = a + piece.length; grow();
-      st.textContent = "Colored the selected text " + c + ".";
+      st.textContent = "Colored the selected text " + CLABEL[c] + ".";
     } else {
       try { if (c) localStorage.setItem(CKEY, c); else localStorage.removeItem(CKEY); } catch(e){}
-      applyColor(); st.textContent = c ? "Your messages will be " + c + "." : "Color removed.";
+      applyColor(); st.textContent = c ? "Your messages will be " + CLABEL[c] + "." : "Color removed.";
     }
     closeCol();
     if (!pinMode && !askingName && !(window.matchMedia && matchMedia("(pointer: coarse)").matches)) { ta.focus(); try { ta.setSelectionRange(selA, selB); } catch(e){} }
@@ -377,17 +394,24 @@
     closePick();
     cpick = document.createElement("div"); cpick.id = "ds-colpick"; cpick.setAttribute("role", "menu"); cpick.setAttribute("aria-label", "Text color");
     var cur = getColor();
-    [["", "remove color"]].concat(COLORS.map(function(c){ return [c[0], c[0]]; })).forEach(function(it){
+    function mkBtn(name, label){
       var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitemradio");
-      b.setAttribute("aria-checked", String(it[0] === cur && !!it[0]));
+      b.setAttribute("aria-checked", String(name === cur && !!name)); b.title = label; b.setAttribute("aria-label", label);
       var sw = document.createElement("span"); sw.className = "sw";
-      if (it[0]) sw.style.background = CMAP[it[0]]; else { sw.style.background = "linear-gradient(135deg,#000 45%,#c00000 45%,#c00000 55%,#000 55%)"; }
-      var lb = document.createElement("span"); lb.textContent = it[1];
-      b.appendChild(sw); b.appendChild(lb);
+      sw.style.background = name ? CMAP[name] : "linear-gradient(135deg,#000 45%,#c00000 45%,#c00000 55%,#000 55%)";
+      b.appendChild(sw);
       b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });
-      b.addEventListener("click", function(ev){ ev.preventDefault(); pickColor(it[0]); });
-      cpick.appendChild(b);
+      b.addEventListener("click", function(ev){ ev.preventDefault(); pickColor(name); });
+      return b;
+    }
+    var rm = mkBtn("", "remove color"), lb = document.createElement("span"); lb.textContent = "remove color"; rm.appendChild(lb); cpick.appendChild(rm);
+    var g = document.createElement("div"); g.className = "cp-grid";
+    ["", "Light", "Medium", "Dark"].forEach(function(t){ var h = document.createElement("span"); h.className = "cp-h"; h.textContent = t; g.appendChild(h); });
+    COLORS.forEach(function(h){
+      var hl = document.createElement("span"); hl.className = "cp-hue"; hl.textContent = h[0]; g.appendChild(hl);
+      h[1].forEach(function(c){ g.appendChild(mkBtn(c[0], CLABEL[c[0]])); });
     });
+    cpick.appendChild(g);
     document.body.appendChild(cpick); colBtn.setAttribute("aria-expanded", "true");
     var r = colBtn.getBoundingClientRect(), pw = cpick.offsetWidth, ph = cpick.offsetHeight;
     var left = Math.max(8, Math.min(r.left, document.documentElement.clientWidth - pw - 8));

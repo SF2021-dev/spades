@@ -101,18 +101,22 @@
     "@font-face{font-family:'DS Coustard';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/coustard-400-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}" +
     "@font-face{font-family:'DS Coustard';font-style:normal;font-weight:900;font-display:swap;src:url(/fonts/coustard-900-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}" +
     "@font-face{font-family:'DS Coustard';font-style:normal;font-weight:400;font-display:swap;src:url(/fonts/coustard-400-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}" +
-    "#ds-msgbox .mb-card{background:#000;border:1px solid #f3bf56;border-radius:10px;padding:14px 16px}" +
+    "#ds-msgbox .mb-card{background:#000;border:1px solid #f3bf56;border-radius:10px;padding:14px 16px;box-sizing:border-box;" +
+      "display:flex;flex-direction:column;height:calc(100vh - 16px);height:calc(100dvh - 16px);min-height:340px}" +   // box = one screen tall; only the list scrolls
+    "#ds-msgbox .mb-title{flex:none}" +
+    "#ds-msgbox #mb-form{flex:1;min-height:0;display:flex;flex-direction:column}" +
     "#ds-msgbox .mb-title{color:#f3bf56;font-size:18px;font-weight:700;margin-bottom:8px;display:flex;align-items:baseline;justify-content:space-between;gap:10px}" +
     "#ds-msgbox .mb-top{color:#f3bf56;font-size:18px;font-weight:700;text-decoration:none;white-space:nowrap;cursor:pointer}" +
     "#ds-msgbox .mb-top:hover,#ds-msgbox .mb-top:focus-visible{text-decoration:underline;outline:0}" +
-    "#ds-msgbox .mb-msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;max-height:min(50vh,480px);overflow:auto}" +
+    "#ds-msgbox .mb-msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;margin-bottom:12px;min-height:120px;overflow:auto;overscroll-behavior:contain}" +
     "#ds-msgbox .mb-msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}" +
     "#ds-msgbox .mb-line{font-size:20px;color:#000;line-height:1.4;padding:8px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
     "#ds-msgbox .mb-line:last-child{border-bottom:0}" +
     "#ds-msgbox .mb-who{color:#008000;font-weight:400}" +
     "#ds-msgbox .mb-body{white-space:pre-wrap;overflow-wrap:anywhere;color:#000;font-weight:400}" +
-    "#ds-msgbox .mb-wrap{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;margin-bottom:6px;overflow:hidden}" +
-    "#ds-msgbox .mb-wrap .mb-msgs{border:0;border-radius:0;margin:0}" +
+    "#ds-msgbox .mb-wrap{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;margin-bottom:6px;overflow:hidden;flex:1;min-height:0;display:flex;flex-direction:column}" +
+    "#ds-msgbox .mb-wrap .mb-msgs{border:0;border-radius:0;margin:0;flex:1;min-height:0}" +
+    "#ds-msgbox .mb-compose,#ds-msgbox .mb-tools,#ds-msgbox .mb-status{flex:none}" +
     "#ds-msgbox .mb-compose{display:flex;flex-wrap:wrap;align-items:flex-start;border-top:2px solid #cb972e;padding:8px 12px;cursor:text;font-size:20px;line-height:1.4;font-weight:400;-webkit-text-stroke:0.9px currentColor;}" +
     "#ds-msgbox .mb-compose .mb-who{white-space:nowrap;cursor:pointer;padding-top:2px}" +
     "#ds-msgbox .mb-compose .mb-colon{padding-top:2px;white-space:pre}" +
@@ -214,6 +218,7 @@
   function saveLocal(list){ try { localStorage.setItem(LOCAL, JSON.stringify(list.slice(-SHOW))); } catch(e){} }
   function render(list){
     var el = document.getElementById("mb-msgs");
+    var atEnd = !el.childNodes.length || el.scrollHeight - el.scrollTop - el.clientHeight < 40, keep = el.scrollTop;
     el.innerHTML = "";
     list.slice().sort(function(a, b){ return (a.t||0) - (b.t||0); }).slice(-SHOW).forEach(function(m){
       var d = document.createElement("div");
@@ -223,6 +228,8 @@
       fillRich(d.querySelector(".mb-body"), m.message);
       el.appendChild(d);
     });
+    el.scrollTop = atEnd ? el.scrollHeight : keep;   // newest at the bottom; scroll up for earlier ones
+    if (atEnd) Array.prototype.forEach.call(el.querySelectorAll("img"), function(im){ if (!im.complete) im.addEventListener("load", function(){ el.scrollTop = el.scrollHeight; }, {once: true}); });
   }
 
   box.innerHTML =

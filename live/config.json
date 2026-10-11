@@ -467,7 +467,11 @@
 "11953459": "CUT"
 },
 "league": "diamondspaders",
-"manual_overrides": {},
+"manual_overrides": {
+"11953396": [
+"Ochwiay"
+]
+},
 "manual_teams": {
 "11935383": "Gryzzlybear & booradly",
 "11950314": "Our Turn To Win",
@@ -564,6 +568,9 @@
 "11953321": [
 "K3ssy",
 "slovell_too"
+],
+"11953396": [
+"Ochwiay"
 ]
 },
 "tour_url": "https://www.myleague.com/diamondspaders/tournament/%s/"

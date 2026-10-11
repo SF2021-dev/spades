@@ -18,9 +18,11 @@
     .ds-tour-text { font-family:Arial,Helvetica,sans-serif; font-weight:800; font-size:22px; color:#111; line-height:1.2; white-space:nowrap; }
     .ds-tour-text a { color:#111; text-decoration:none; }
     .ds-td { width:28px; height:28px; object-fit:cover; border-radius:6px; border:1px solid #120c08; flex:0 0 auto; }
-    .ds-champ { font-family:'Cinzel Decorative',Georgia,serif; font-weight:900; font-size:13px; letter-spacing:0.03em; line-height:1.15; color:#ffd84a; text-shadow:0 0 6px rgba(251,230,70,.55),0 1px 0 #7a5a00; margin:3px 0 4px; }
-    .ds-tour-item.champ { flex-wrap:wrap; row-gap:2px; }
-    .ds-tour-item .ds-champ { flex-basis:100%; order:9; font-size:19px; color:#120c08; text-shadow:0 1px 0 rgba(255,255,255,.55); margin:0; white-space:normal; }
+    .ds-champ { font-family:'Cinzel Decorative',Georgia,serif; font-weight:900; letter-spacing:0.03em; white-space:nowrap; color:#ffd84a; -webkit-text-stroke:0.4px currentColor; text-shadow:0 0 6px rgba(251,230,70,.55),0 1px 0 #7a5a00; }
+    .ds-tour-item .ds-champ { order:9; font-size:20px; color:#120c08; text-shadow:0 1px 0 rgba(255,255,255,.55); }
+    .ds-tour-item .ds-champ .ca, .ds-tour-item.short .ds-champ .cf { display:none; }
+    .ds-tour-item.short .ds-champ .ca { display:inline; }
+    .ds-tour-item.short2 .ds-champ { font-size:15px; }
     .rk { position:relative; width:22px; height:22px; flex:0 0 auto; }
     .rk b { position:absolute; top:-7px; left:-8px; font-size:10px; font-weight:800; color:#fbe646; }
     .rk img, .rk svg { width:22px; height:22px; display:block; border-radius:4px; }

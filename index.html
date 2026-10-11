@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Diamond Spaders — Oct 11</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
   <style>
     html, body { margin: 0; padding: 0; background: #0a0a0a; overflow: auto; }
     .ds-link { display:flex; flex-direction:column; align-items:center; gap:6px; text-decoration:none; color:#fbe646; padding:10px 6px; border:1px solid #444; border-radius:10px; background:#161616; font-size:11px; font-weight:800; letter-spacing:0.04em; text-align:center; line-height:1.2; }
@@ -16,6 +18,9 @@
     .ds-tour-text { font-family:Arial,Helvetica,sans-serif; font-weight:800; font-size:22px; color:#111; line-height:1.2; white-space:nowrap; }
     .ds-tour-text a { color:#111; text-decoration:none; }
     .ds-td { width:28px; height:28px; object-fit:cover; border-radius:6px; border:1px solid #120c08; flex:0 0 auto; }
+    .ds-champ { font-family:'Cinzel Decorative',Georgia,serif; font-weight:900; font-size:13px; letter-spacing:0.03em; line-height:1.15; color:#ffd84a; text-shadow:0 0 6px rgba(251,230,70,.55),0 1px 0 #7a5a00; margin:3px 0 4px; }
+    .ds-tour-item.champ { flex-wrap:wrap; row-gap:2px; }
+    .ds-tour-item .ds-champ { flex-basis:100%; order:9; font-size:19px; color:#120c08; text-shadow:0 1px 0 rgba(255,255,255,.55); margin:0; white-space:normal; }
     .rk { position:relative; width:22px; height:22px; flex:0 0 auto; }
     .rk b { position:absolute; top:-7px; left:-8px; font-size:10px; font-weight:800; color:#fbe646; }
     .rk img, .rk svg { width:22px; height:22px; display:block; border-radius:4px; }
@@ -146,7 +151,7 @@
   }
   document.getElementById("ds-rank").innerHTML = rh;
   var TOURS = [
-    { dt: "2026-10-11", h: 16, m: 15, game: "SUI PASS 2", td: "AceInBlack", url: "https://www.myleague.com/diamondspaders/tournament/11953446/", ava: "https://diamondspaders.online/aceinblack-ava.png" },
+    { dt: "2026-10-11", h: 16, m: 15, game: "SUI PASS 2", td: "AceInBlack", url: "https://www.myleague.com/diamondspaders/tournament/11953446/", ava: "https://diamondspaders.online/aceinblack-ava.png", sub: "TOURNAMENT OF CHAMPIONS" },
     { dt: "2026-10-11", h: 17, m: 15, game: "REG PARTNERS", td: "AceInBlack", url: "https://www.myleague.com/diamondspaders/tournament/11953244/", ava: "https://diamondspaders.online/aceinblack-ava.png" },
     { dt: "2026-10-11", h: 18, m: 15, game: "CUT", td: "AceInBlack", url: "https://www.myleague.com/diamondspaders/tournament/11952998/", ava: "https://diamondspaders.online/aceinblack-ava.png" },
     { dt: "2026-10-11", h: 19, m: 15, game: "SUI PASS 2", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournament/11953457/", ava: "https://diamondspaders.online/REALLY_WHY-ava.png" },
@@ -181,11 +186,12 @@
       if (!later && now.getTime() >= start.getTime() + 50 * 60 * 1000) continue;
       var gone = !later && now.getTime() >= start.getTime() + 15 * 60 * 1000;
       var dayTag = later ? ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(t.dt + "T12:00:00").getDay()] + " " : "";
-      html += '<div class="ds-tour-item">';
+      html += '<div class="ds-tour-item' + (t.sub ? ' champ' : '') + '">';
       html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
       html += '<div class="ds-tour-text">' + dayTag + amp(t.h, t.m) + '</div>';
       html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + t.game + " w/ " + t.td + "</a></div>";
       html += '<span style="margin-left:-6px;display:flex;">' + (t.ava ? '<img class="ds-td" src="' + t.ava + '" alt="">' : SPADE_TD) + '</span>';
+      if (t.sub) html += '<div class="ds-champ">' + String(t.sub).replace(/&/g, "&amp;").replace(/</g, "&lt;") + '</div>';
       html += "</div>";
     }
     if (box.getAttribute('data-h') !== html) { box.setAttribute('data-h', html); box.innerHTML = html; }

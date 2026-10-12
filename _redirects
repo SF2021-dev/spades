@@ -1,3 +1,6 @@
 /playerx /snoop 301
 /playerx/ /snoop/ 301
 /playerx/* /snoop/:splat 301
+/howtomake /how-to-create-a-myleague-tournament/ 301
+/howtomake/ /how-to-create-a-myleague-tournament/ 301
+/howtomake/* /how-to-create-a-myleague-tournament/:splat 301

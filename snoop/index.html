@@ -10,8 +10,15 @@
   .banner { width:100%; height:auto; max-height:140px; object-fit:contain; display:block; }
   h1 { font-size:22px; letter-spacing:.08em; margin:14px 16px 4px; }
   .sub { color:#c9a227; font-size:13px; margin:0 16px 14px; }
-  form { display:flex; gap:8px; margin:0 16px 14px; }
-  input { flex:1; min-width:0; font-size:18px; padding:10px 12px; border-radius:8px; border:1px solid #fbe646; background:#161616; color:#fff; }
+  form { margin:0 16px 14px; }
+  .row { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:10px; align-items:start; }
+  .als { display:flex; flex-direction:column; gap:6px; }
+  .lbl { font-size:12px; font-weight:800; letter-spacing:.12em; color:#c9a227; margin-bottom:4px; }
+  .als input { font-size:15px; padding:7px 10px; }
+  form button { display:block; margin-top:10px; width:100%; }
+  @media (max-width:560px) { .row { grid-template-columns:1fr; } }
+  .who { color:#c9a227; font-size:12px; }
+  input { width:100%; box-sizing:border-box; min-width:0; font-size:18px; padding:10px 12px; border-radius:8px; border:1px solid #fbe646; background:#161616; color:#fff; }
   button { font-size:18px; font-weight:800; padding:10px 18px; border-radius:8px; border:0; background:#fbe646; color:#120c08; cursor:pointer; }
   #out { margin:0 16px; }
   .total { font-size:20px; font-weight:800; color:#fff; margin:6px 0 12px; }
@@ -32,9 +39,18 @@
 <h1>PLAYER TOURS — LAST 30 DAYS</h1>
 <div class="sub" id="range">Loading…</div>
 <form id="f" autocomplete="off">
-  <input id="q" list="names" placeholder="Player name" aria-label="Player name" autofocus>
+  <div class="row">
+    <div><div class="lbl">PLAYER</div><input id="q" list="names" placeholder="Player name" aria-label="Player name" autofocus></div>
+    <div class="als"><div class="lbl">ALIASES</div>
+      <input class="al" list="names" placeholder="Alias 1" aria-label="Alias 1">
+      <input class="al" list="names" placeholder="Alias 2" aria-label="Alias 2">
+      <input class="al" list="names" placeholder="Alias 3" aria-label="Alias 3">
+      <input class="al" list="names" placeholder="Alias 4" aria-label="Alias 4">
+      <input class="al" list="names" placeholder="Alias 5" aria-label="Alias 5">
+    </div>
+  </div>
   <datalist id="names"></datalist>
-  <button>Search</button>
+  <button>search</button>
 </form>
 <div id="out"></div>
 <a class="home" href="https://diamondspaders.online/">&larr; Diamond Spaders home</a>
@@ -46,41 +62,69 @@
   var MON = ["Jan","Feb","Mar","Apr","May","June","July","Aug","Sept","Oct","Nov","Dec"];
   function fdate(iso) { var p = iso.split("-"); return MON[+p[1] - 1] + " " + (+p[2]); }
   function ftime(hm) { var p = hm.split(":"), h = +p[0]; return (h % 12 || 12) + ":" + p[1] + " " + (h >= 12 ? "PM" : "AM"); }
-  function show(name) {
-    var key = name.trim().toLowerCase();
-    if (!key) { out.innerHTML = ""; return; }
-    history.replaceState(null, "", "?p=" + encodeURIComponent(name.trim()));
-    var e = D.players[key];
-    if (!e) {
-      var near = Object.keys(D.players).filter(function (k) { return k.indexOf(key) >= 0; }).slice(0, 12);
-      out.innerHTML = '<div class="total">No tours found for “' + esc(name.trim()) + '” in the last 30 days.</div>'
-        + (near.length ? '<div class="sugg muted">Did you mean: ' + near.map(function (k) { return '<a data-n="' + esc(D.players[k].n) + '">' + esc(D.players[k].n) + "</a>"; }).join("") + "</div>" : "");
-      return;
+  var als = Array.prototype.slice.call(document.querySelectorAll(".al"));
+  function names() {
+    var seen = {}, list = [];
+    [q].concat(als).forEach(function (el) { var v = el.value.trim(); if (v && !seen[v.toLowerCase()]) { seen[v.toLowerCase()] = 1; list.push(v); } });
+    return list;
+  }
+  function show() {
+    var list = names();
+    if (!list.length) { out.innerHTML = ""; return; }
+    var qs = "?p=" + encodeURIComponent(list[0]) + list.slice(1).map(function (n) { return "&a=" + encodeURIComponent(n); }).join("");
+    history.replaceState(null, "", qs);
+    var found = [], missing = [], tourWho = {};
+    list.forEach(function (n) {
+      var e = D.players[n.toLowerCase()];
+      if (!e) { missing.push(n); return; }
+      found.push(e.n);
+      e.t.forEach(function (i) { (tourWho[i] = tourWho[i] || []).push(e.n); });
+    });
+    var h = "";
+    if (missing.length) {
+      h += '<div class="muted" style="margin-bottom:8px;">No tours in the last 30 days for: ' + missing.map(esc).join(", ") + "</div>";
+      missing.forEach(function (n) {
+        var key = n.toLowerCase();
+        var near = Object.keys(D.players).filter(function (k) { return k.indexOf(key) >= 0; }).slice(0, 10);
+        if (near.length) h += '<div class="sugg muted" style="margin-bottom:8px;">“' + esc(n) + '” — did you mean: ' + near.map(function (k) { return '<a data-n="' + esc(D.players[k].n) + '" data-for="' + esc(n) + '">' + esc(D.players[k].n) + "</a>"; }).join("") + "</div>";
+      });
     }
+    var idx = Object.keys(tourWho);
+    if (!found.length) { out.innerHTML = '<div class="total">No tours found.</div>' + h; return; }
     var by = {};
-    e.t.forEach(function (i) { var t = D.tours[i]; (by[t[0]] = by[t[0]] || []).push(t); });
+    idx.forEach(function (i) { var t = D.tours[i]; (by[t[0]] = by[t[0]] || []).push([t, tourWho[i]]); });
     var leagues = Object.keys(by).sort(function (a, b) { return by[b].length - by[a].length; });
-    var h = '<div class="total">' + esc(e.n) + ": " + e.t.length + " tour" + (e.t.length === 1 ? "" : "s") + " in " + leagues.length + " league" + (leagues.length === 1 ? "" : "s") + "</div>";
+    var head = '<div class="total">' + found.map(esc).join(" + ") + ": " + idx.length + " tour" + (idx.length === 1 ? "" : "s") + " in " + leagues.length + " league" + (leagues.length === 1 ? "" : "s") + "</div>";
+    var multi = found.length > 1;
     leagues.forEach(function (L) {
-      var list = by[L].slice().sort(function (a, b) { return (b[2] + b[3]).localeCompare(a[2] + a[3]); });
-      h += '<details class="lg"><summary><span>' + esc(D.leagues[L] || L) + "</span><b>" + list.length + "</b></summary><table>";
-      list.forEach(function (t) {
-        h += "<tr><td>" + fdate(t[2]) + "</td><td>" + ftime(t[3]) + ' ET</td><td><a href="https://www.myleague.com/' + esc(t[0]) + "/tournament/" + esc(t[1]) + '/" target="_blank">' + esc(t[4] || "tour " + t[1]) + "</a></td></tr>";
+      var rows = by[L].slice().sort(function (a, b) { return (b[0][2] + b[0][3]).localeCompare(a[0][2] + a[0][3]); });
+      h += '<details class="lg"><summary><span>' + esc(D.leagues[L] || L) + "</span><b>" + rows.length + "</b></summary><table>";
+      rows.forEach(function (r) {
+        var t = r[0];
+        h += "<tr><td>" + fdate(t[2]) + "</td><td>" + ftime(t[3]) + ' ET</td><td><a href="https://www.myleague.com/' + esc(t[0]) + "/tournament/" + esc(t[1]) + '/" target="_blank">' + esc(t[4] || "tour " + t[1]) + "</a>"
+          + (multi ? ' <span class="who">(' + r[1].map(esc).join(", ") + ")</span>" : "") + "</td></tr>";
       });
       h += "</table></details>";
     });
-    out.innerHTML = h;
+    out.innerHTML = head + h;
   }
-  out.addEventListener("click", function (ev) { var n = ev.target.getAttribute && ev.target.getAttribute("data-n"); if (n) { q.value = n; show(n); } });
-  document.getElementById("f").addEventListener("submit", function (ev) { ev.preventDefault(); if (D) show(q.value); });
+  out.addEventListener("click", function (ev) {
+    var n = ev.target.getAttribute && ev.target.getAttribute("data-n"), f = ev.target.getAttribute && ev.target.getAttribute("data-for");
+    if (!n) return;
+    [q].concat(als).forEach(function (el) { if (el.value.trim().toLowerCase() === (f || "").toLowerCase()) el.value = n; });
+    show();
+  });
+  document.getElementById("f").addEventListener("submit", function (ev) { ev.preventDefault(); if (D) show(); });
   fetch("/snoop/data.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
     D = d;
     document.getElementById("range").textContent = fdate(d.from) + " – " + fdate(d.to) + " (ET) · " + Object.keys(d.leagues).length
       + " leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · counts checked-in tours · updated " + d.updated;
     var dl = document.getElementById("names");
     dl.innerHTML = Object.keys(d.players).map(function (k) { return '<option value="' + esc(d.players[k].n) + '">'; }).join("");
-    var p = new URLSearchParams(location.search).get("p");
-    if (p) { q.value = p; show(p); }
+    var sp = new URLSearchParams(location.search), p = sp.get("p");
+    sp.getAll("a").slice(0, 5).forEach(function (a, i) { als[i].value = a; });
+    if (p) q.value = p;
+    if (p || sp.getAll("a").length) show();
   }).catch(function () { document.getElementById("range").textContent = "Could not load player data."; });
 })();
 </script>

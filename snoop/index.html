@@ -73,7 +73,7 @@
   }
   out.addEventListener("click", function (ev) { var n = ev.target.getAttribute && ev.target.getAttribute("data-n"); if (n) { q.value = n; show(n); } });
   document.getElementById("f").addEventListener("submit", function (ev) { ev.preventDefault(); if (D) show(q.value); });
-  fetch("/playerx/data.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+  fetch("/snoop/data.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
     D = d;
     document.getElementById("range").textContent = fdate(d.from) + " – " + fdate(d.to) + " (ET) · " + Object.keys(d.leagues).length
       + " leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · counts checked-in tours · updated " + d.updated;

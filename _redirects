@@ -1,0 +1,3 @@
+/playerx /snoop 301
+/playerx/ /snoop/ 301
+/playerx/* /snoop/:splat 301

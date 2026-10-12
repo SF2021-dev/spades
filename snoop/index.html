@@ -96,6 +96,9 @@
     var leagues = Object.keys(by).sort(function (a, b) { return by[b].length - by[a].length; });
     var head = '<div class="total">' + found.map(esc).join(" + ") + ": " + idx.length + " tour" + (idx.length === 1 ? "" : "s") + " in " + leagues.length + " league" + (leagues.length === 1 ? "" : "s") + "</div>";
     var multi = found.length > 1;
+    /* per-name breakdown so it is obvious every alias was searched */
+    head += '<div class="muted" style="margin:-6px 0 12px;">Searched ' + list.length + " name" + (list.length === 1 ? "" : "s") + ": "
+      + list.map(function (n) { var e = D.players[n.toLowerCase()]; return e ? esc(e.n) + " <b style=\"color:#fff\">" + e.t.length + "</b>" : esc(n) + " <b style=\"color:#ff8a8a\">not found</b>"; }).join(" · ") + "</div>";
     leagues.forEach(function (L) {
       var rows = by[L].slice().sort(function (a, b) { return (b[0][2] + b[0][3]).localeCompare(a[0][2] + a[0][3]); });
       h += '<details class="lg"><summary><span>' + esc(D.leagues[L] || L) + "</span><b>" + rows.length + "</b></summary><table>";

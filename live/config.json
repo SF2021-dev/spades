@@ -208,6 +208,7 @@
 "11953267": "CUT",
 "11953279": "SUI PASS 2",
 "11953321": "REG PARTNERS",
+"11953634": "SUI PASS 2 PAB",
 "_11923667": "2026-10-10: feed text just '500/50 pass 2' (2 per team); was shown as SUI PASS 2 in TOURS, keep it so in winners",
 "_11953266": "User 2026-10-10: Sat Oct 10 10:15 PM ET (feed 'LW SINGLES') is Loser Wins",
 "_11953267": "User 2026-10-10: Sat Oct 10 11:15 PM ET (BluAngel1950) -> CUT",
@@ -264,12 +265,12 @@
 },
 {
 "label": "REG SPADES PAB",
-"match": "PARD ?A ?BOT|\\bPAB\\b",
+"match": "PARD ?A ?BOT|PARTNER ?A ?BOT|\\bPAB\\b",
 "not": "SUI"
 },
 {
 "label": "SUI PASS 2 PAB",
-"match": "PARD ?A ?BOT|\\bPAB\\b",
+"match": "PARD ?A ?BOT|PARTNER ?A ?BOT|\\bPAB\\b",
 "match2": "SUI"
 },
 {

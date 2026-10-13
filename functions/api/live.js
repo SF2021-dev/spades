@@ -70,7 +70,25 @@ function parseCalendar(xml) {
 }
 
 // ---------------------------------------------------------------- port of update_winners.py rendering
-function makeRenderer(cfg) {
+// partner tours whose feed text says nothing ("2 VS 2"): the TD's tour name from the tour page ("SUICIDE PARDS", ...)
+const ambiguous = t => String(t.perteam) === "2"
+  && /^(\d ?VS\.? ?\d|SPADES)?$/.test(t.game.toUpperCase().replace(/\d+\s*\/\s*\d+/g, " ").replace(/\s+/g, " ").trim());
+async function tourName(tid, league) {
+  const ck = new Request(`https://diamondspaders.online/__tourname/${league}/${tid}`);
+  try {
+    const hit = await caches.default.match(ck);
+    if (hit) return await hit.text();
+    const r = await fetch(`https://cgi6.igl.net/tourney/${league}/${tid}/`, { headers: { "User-Agent": UA } });
+    if (!r.ok) return null;
+    const page = await r.text();
+    const m = page.match(/<h2>([\s\S]*?)<\/h2>/) || page.match(/<title>[^<]*?'s ([\s\S]*?) Tournament\s*<\/title>/);
+    const name = m ? unxml(m[1].replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim() : "";
+    await caches.default.put(ck, new Response(name, { headers: { "cache-control": "public, max-age=21600" } }));
+    return name;
+  } catch (e) { return null; }
+}
+
+function makeRenderer(cfg, names = {}) {
   const aliases = cfg.aliases || {};
   const shown = n => aliases[n] ?? n;
   const key = n => shown(n).toLowerCase();
@@ -101,7 +119,16 @@ function makeRenderer(cfg) {
     return null;
   }
   // known tours: exactly the label the updater chose; new tours: the same rules, else the raw-text fallback
-  const label = t => (cfg.labels_by_id || {})[t.id] ?? mapped(t) ?? gameLabel(t.game);
+  function mapped2(t) {
+    if (byId[t.id] != null) return byId[t.id];
+    if (ambiguous(t) && names[t.id]) {
+      const saved = t.game; t.game = names[t.id];
+      const lab = mapped({ ...t, id: "" }); t.game = saved;     // the name through the same rules (pins already checked)
+      if (lab) return lab;
+    }
+    return mapped(t);
+  }
+  const label = t => (cfg.labels_by_id || {})[t.id] ?? mapped2(t) ?? gameLabel(t.game);
   const clock12 = (h, m) => `${h % 12 || 12}:${pad(m)} ${h >= 12 ? "PM" : "AM"}`;
   const nameSize = n => n.length <= 9 ? 22 : n.length <= 12 ? 20 : n.length <= 15 ? 18 : 16;
   function avatar(name) {
@@ -165,7 +192,10 @@ async function build(env, origin) {
     if (!t.winners.length && mw[t.id]?.length) t.winners = [...mw[t.id]];     // manual winner only where the feed has none
     if (mo[t.id]?.length) t.winners = [...mo[t.id]];
   }
-  const R = makeRenderer(cfg), hidden = new Set((cfg.hidden || []).map(String));
+  const names = {};
+  await Promise.all(tours.filter(t => t.date >= today && ambiguous(t) && (cfg.labels_by_id || {})[t.id] == null)
+    .map(async t => { const n = await tourName(t.id, cfg.league || "diamondspaders"); if (n) names[t.id] = n; }));
+  const R = makeRenderer(cfg, names), hidden = new Set((cfg.hidden || []).map(String));
   const days = {};
   for (const d of [today, addDays(today, -1), addDays(today, -2)]) days[d] = R.day(tours, d, today);
   const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && !t.winners.length && t.status !== "2"

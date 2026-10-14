@@ -16,7 +16,7 @@
    ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a tight stroke hugging the glyphs (paint-order stroke fill,
    so the fill color stays fully visible, same text size) plus a 1px offset shadow. Color only = no outline.
    All [c=]/[o=] tags are stripped from the email notification.
-   Pictures: no button - paste an image into the compose line (Ctrl/Cmd+V, or long-press Paste on phones); PIN-gated like sending. The image is resized in the browser (longest side <= 1000px, WebP/JPEG, aimed < 300 KB) and
+   Pictures: picture button (file picker) or paste an image into the compose line (Ctrl/Cmd+V, or long-press Paste on phones); PIN-gated like sending. The image is resized in the browser (longest side <= 1000px, WebP/JPEG, aimed < 300 KB) and
    posted as its own message; the server stores it in D1 (msg_images) and the message reads "[img:<id>]", shown as "Name: <picture>"
    (thumbnail fits the message area; tap for full-screen view, tap again to close). */
 (function(){
@@ -284,7 +284,7 @@
     '<div class="mb-tools" id="mb-tools">' +
     '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
     '<img src="' + EMO_DIR + 'smile.svg?v=' + EMO_V + '" width="24" height="24" alt=""></button>' +
-    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button></div></div>' +
+    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button><button type="button" class="mb-emobtn" id="mb-imgbtn" aria-label="Upload a picture" title="Upload a picture"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="#fff8e6" stroke="#5a3d00" stroke-width="1.6"/><circle cx="8" cy="9.5" r="2" fill="#f3bf56" stroke="#5a3d00" stroke-width="1"/><path d="M4 18l5.5-6 4 4 2.5-2.5L20 18z" fill="#2e8b57" stroke="#5a3d00" stroke-width="1"/></svg></button><input type="file" id="mb-imgfile" accept="image/*" style="display:none"></div></div>' +
     '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
 
@@ -763,4 +763,13 @@
       postImage(f); return;
     }
   });
+  var imgBtn = document.getElementById("mb-imgbtn"), imgFile = document.getElementById("mb-imgfile");
+  if (imgBtn && imgFile) {
+    imgBtn.addEventListener("click", function(){ gate(function(){ imgFile.value = ""; imgFile.click(); }); });
+    imgFile.addEventListener("change", function(){
+      var f = imgFile.files && imgFile.files[0]; imgFile.value = ""; if (!f) return;
+      if (askingName || pinMode || !getPin()) { gate(function(){}); return; }
+      postImage(f);
+    });
+  }
 })();

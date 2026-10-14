@@ -22,7 +22,8 @@ function decodeImage(v) {
   if (m[2].length > Math.ceil(MAX_IMG * 4 / 3) + 8) throw new HttpError(413, "That image is too big.");
   let bin; try { bin = atob(m[2]); } catch { throw new HttpError(400, "Bad image data."); }
   const b = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
-  if (b.length < 32 || b.length > MAX_IMG) throw new HttpError(413, "That image is too big.");
+  if (b.length > MAX_IMG) throw new HttpError(413, "That image is too big.");
+  if (b.length < 32) throw new HttpError(415, "That file isn't a supported image.");
   const jpeg = b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
   const png = b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
   const webp = String.fromCharCode(...b.slice(0, 4)) === "RIFF" && String.fromCharCode(...b.slice(8, 12)) === "WEBP";

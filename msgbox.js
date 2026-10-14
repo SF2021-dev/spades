@@ -88,14 +88,24 @@
     }
     put(text.slice(last));
   }
+  function addText(el, t){       // plain text; http(s) URLs become links (new tab, noopener nofollow), built with DOM APIs (no innerHTML)
+    var re = /\bhttps?:\/\/[^\s<>"]+/gi, last = 0, m;
+    while ((m = re.exec(t))) {
+      var u = m[0].replace(/[.,;:!?)\]}'"]+$/, "");
+      if (m.index > last) el.appendChild(document.createTextNode(t.slice(last, m.index)));
+      var a = document.createElement("a"); a.className = "mb-link"; a.href = u; a.target = "_blank"; a.rel = "noopener nofollow noreferrer"; a.textContent = u;
+      el.appendChild(a); last = m.index + u.length; re.lastIndex = last;
+    }
+    if (last < t.length) el.appendChild(document.createTextNode(t.slice(last)));
+  }
   function fillBody(el, text){   // text with :code: emoji -> text nodes + <img>
     var re = /:([a-z]+):/g, last = 0, m;
     while ((m = re.exec(text))) {
       if (!EMO[m[1]]) { re.lastIndex = m.index + 1; continue; }
-      if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+      if (m.index > last) addText(el, text.slice(last, m.index));
       el.appendChild(emoImg(m[1])); last = re.lastIndex;
     }
-    if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+    if (last < text.length) addText(el, text.slice(last));
   }
   box.style.cssText = "max-width:100%;width:100%;margin:24px 0 8px;padding:0 8px;box-sizing:border-box;font-family:" + F + ";";
   var css = document.createElement("style");
@@ -179,6 +189,7 @@
     "#ds-colpick .cp-grid .sw{width:24px;height:24px}" +
     "#ds-colpick button[aria-checked=true] .sw{box-shadow:0 0 0 2px #000,0 0 0 4px #f3bf56}" +
     "#ds-msgbox .mb-pic{display:inline-block;vertical-align:top;max-width:100%;max-height:min(260px,40vh);width:auto;height:auto;border-radius:6px;border:1px solid #cb972e;cursor:zoom-in;background:#e6ad3a}" +
+    "#ds-msgbox .mb-link{color:inherit;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}" +
     "#ds-imgview{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;cursor:zoom-out}" +
     "#ds-imgview img{max-width:100vw;max-height:100vh;max-height:100dvh;object-fit:contain}";
   document.head.appendChild(css);

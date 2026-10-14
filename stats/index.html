@@ -107,7 +107,7 @@ function buildControls(){
 
 function svg0(){return document.getElementById("chart")}
 function drawChart(){
-  var svg=document.getElementById("chart"),W=Math.max(320,svg0().parentNode.clientWidth-24),H=W<600?300:380,P={l:44,r:14,t:16,b:34};
+  var svg=document.getElementById("chart"),W=Math.max(320,svg0().parentNode.clientWidth-24),H=W<600?300:380,P={l:14,r:14,t:16,b:34};
   svg.setAttribute("viewBox","0 0 "+W+" "+H);svg.setAttribute("preserveAspectRatio","xMidYMid meet");
   svg.innerHTML="";
   var ds=visibleDays(),ls=D.leagues.filter(function(L){return !S.off[L.id]});
@@ -118,7 +118,7 @@ function drawChart(){
   function X(i){return P.l+(ds.length<2?0:i*(W-P.l-P.r)/(ds.length-1))}
   function Y(v){return H-P.b-(v/top)*(H-P.t-P.b)}
   var g="";
-  for(var k=0;k<=5;k++){var v=top*k/5,y=Y(v);g+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'" stroke="#2e2410"/><text x="'+(P.l-8)+'" y="'+(y+4)+'" fill="#c9a227" font-size="12" text-anchor="end">'+(S.metric==="ppt"?v.toFixed(1):Math.round(v))+'</text>'}
+  for(var k=0;k<=5;k++){var v=top*k/5,y=Y(v);g+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'" stroke="#2e2410"/>'}
   var every=Math.ceil(ds.length/9);
   ds.forEach(function(d,i){if(i%every===0||i===ds.length-1)g+='<text x="'+X(i)+'" y="'+(H-10)+'" fill="#c9a227" font-size="12" text-anchor="middle">'+nice(d)+'</text>'});
   ls.forEach(function(L){

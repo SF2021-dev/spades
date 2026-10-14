@@ -16,6 +16,27 @@ const SHOW = 200, MAX_NAME = 40, MAX_MSG = 1000;
 const MAX_IMG = 400 * 1024, IMG_PER_HOUR = 10, IMG_PER_DAY = 300;
 const IMG_TAG = /\[img:/i;
 
+const MIN_IMG_CLIENT = 55;   // msgbox.js version that sends GIFs unflattened; older (cached) pages are told to reload
+// Pasted web GIF: fetch the original by URL (https only, public hosts, <= 400 KB, must really be a GIF).
+async function fetchGif(u) {
+  let url; try { url = new URL(String(u || "")); } catch { throw new HttpError(400, "Bad picture link."); }
+  const h = url.hostname.toLowerCase();
+  if (url.protocol !== "https:" || url.port || url.username || /^(localhost|.*\.local|.*\.internal)$/.test(h) || /^[\d.]+$/.test(h) || h.includes(":"))
+    throw new HttpError(400, "That picture link can't be used. Save the GIF and upload it with the picture button instead.");
+  let r; try { r = await fetch(url.href, { redirect: "follow", signal: AbortSignal.timeout(8000), headers: { "Accept": "image/gif,image/*" } }); }
+  catch { throw new HttpError(502, "Couldn't download that GIF. Save it and upload it with the picture button instead."); }
+  if (!r.ok || !r.body) throw new HttpError(502, "Couldn't download that GIF. Save it and upload it with the picture button instead.");
+  const len = Number(r.headers.get("content-length") || 0);
+  if (len > MAX_IMG) throw new HttpError(413, "GIFs must be under 400 KB.");
+  const reader = r.body.getReader(), parts = []; let n = 0;
+  for (;;) { const { done, value } = await reader.read(); if (done) break; n += value.length;
+    if (n > MAX_IMG) { try { reader.cancel(); } catch {} throw new HttpError(413, "GIFs must be under 400 KB."); } parts.push(value); }
+  const b = new Uint8Array(n); let o = 0; for (const p of parts) { b.set(p, o); o += p.length; }
+  const sig = String.fromCharCode(...b.slice(0, 6));
+  if (sig !== "GIF87a" && sig !== "GIF89a") throw new HttpError(415, "NOTGIF");
+  return { mime: "image/gif", data: b };
+}
+
 function decodeImage(v) {
   const m = /^data:(image\/(?:jpeg|webp|png|gif));base64,([A-Za-z0-9+/=]+)$/.exec(String(v || ""));
   if (!m) throw new HttpError(415, "Only JPEG, WebP, PNG or GIF images can be posted.");
@@ -43,8 +64,8 @@ async function list(env) {
 function clean(m, now) {
   if (!m || typeof m !== "object") throw new HttpError(400, "Bad message");
   const name = String(m.name ?? "").replace(/\s+/g, " ").trim();
-  const message = m.image ? "[img]" : String(m.message ?? "").replace(/\r\n?/g, "\n").trim();
-  if (!m.image && IMG_TAG.test(message)) throw new HttpError(400, "Message can't contain [img: tags.");
+  const message = (m.image || m.imageUrl) ? "[img]" : String(m.message ?? "").replace(/\r\n?/g, "\n").trim();
+  if (!m.image && !m.imageUrl && IMG_TAG.test(message)) throw new HttpError(400, "Message can't contain [img: tags.");
   if (!name) throw new HttpError(400, "Name is required.");
   if (!message) throw new HttpError(400, "Message is required.");
   if (name.length > MAX_NAME) throw new HttpError(400, `Name must be ${MAX_NAME} characters or less.`);
@@ -69,8 +90,9 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     else if (!(await pinRow(env, m.name))) throw new HttpError(428, "Create a 3-digit PIN for this name first.");
     else throw new HttpError(401, "Please enter your PIN.");    // not counted as a wrong guess
   }
-  if (b.image) {
-    const img = decodeImage(b.image);
+  if (b.image || b.imageUrl) {
+    if (!(Number(b.cv) >= MIN_IMG_CLIENT)) throw new HttpError(426, "The message board was updated. Please reload the page (pull down or press F5), then post your picture again.");
+    const img = b.imageUrl ? await fetchGif(b.imageUrl) : decodeImage(b.image);
     const hour = await env.DB.prepare("SELECT COUNT(*) AS n FROM msg_images WHERE name = ? COLLATE NOCASE AND t > ?").bind(m.name, now - 3600e3).first();
     if (hour && hour.n >= IMG_PER_HOUR) throw new HttpError(429, `You can post ${IMG_PER_HOUR} pictures an hour. Please try again later.`);
     const day = await env.DB.prepare("SELECT COUNT(*) AS n FROM msg_images WHERE t > ?").bind(now - 86400e3).first();

@@ -16,7 +16,7 @@
    ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a tight stroke hugging the glyphs (paint-order stroke fill,
    so the fill color stays fully visible, same text size) plus a 1px offset shadow. Color only = no outline.
    All [c=]/[o=] tags are stripped from the email notification.
-   Pictures: picture button (file picker) or paste an image into the compose line (Ctrl/Cmd+V, or long-press Paste on phones); PIN-gated like sending. The image is resized in the browser (longest side <= 1000px, WebP/JPEG, aimed < 300 KB; GIFs are sent as-is, must be < 400 KB, to stay animated) and
+   Pictures: picture button (file picker) or paste an image into the compose line (Ctrl/Cmd+V, or long-press Paste on phones); PIN-gated like sending. The image is resized in the browser (longest side <= 1000px, WebP/JPEG, aimed < 300 KB; GIFs are sent as-is, must be < 400 KB, to stay animated; a GIF copied from a web page is fetched by the server from its <img src>) and
    posted as its own message; the server stores it in D1 (msg_images) and the message reads "[img:<id>]", shown as "Name: <picture>"
    (thumbnail fits the message area; tap for full-screen view, tap again to close). */
 (function(){
@@ -226,7 +226,7 @@
   }
   function postShared(entry){
     return fetch(API, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
-      body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message, pin: entry.pin, image: entry.image || undefined})})
+      body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message, pin: entry.pin, image: entry.image || undefined, imageUrl: entry.imageUrl || undefined, cv: 55})})
       .then(function(r){
         return r.json().catch(function(){ return {}; }).then(function(d){
           if (!r.ok || !d.ok) { var e = new Error(d.error || ("HTTP " + r.status)); e.status = r.status; throw e; }
@@ -743,8 +743,23 @@
       r.readAsDataURL(file);
     });
   }
-  function postImage(file){
+  function postImage(file, gifUrl, fallback){
     if (imgBusy || sending) return;
+    if (gifUrl) {        // pasted GIF from a web page: server fetches the original (animated) by URL
+      var pin0 = getPin();
+      if (!savedName || !pin0) { gate(function(){}); return; }
+      imgBusy = true; st.dataset.err = ""; st.textContent = "Posting GIF…";
+      var e0 = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: savedName, message: "", imageUrl: gifUrl, pin: pin0 === "*" ? "" : pin0};
+      postShared(e0).then(function(list){
+        msgs = merge(list); saveLocal(msgs); render(msgs); st.textContent = "";
+        var el = document.getElementById("mb-msgs"); el.scrollTop = el.scrollHeight;
+      }).catch(function(e){
+        if (e && e.message === "NOTGIF" && fallback) { imgBusy = false; postImage(fallback); return; }
+        if (e && (e.status === 401 || e.status === 428)) { savePin(""); setRemember(0); needPin(); st.textContent = (e.message || "Please enter your PIN.") + " Your picture was NOT posted."; return; }
+        st.textContent = "Sorry, your picture was NOT posted (" + (e && e.message === "NOTGIF" ? "that link isn't a GIF" : (e && e.message || "network error")) + ")."; st.dataset.err = "send";
+      }).finally(function(){ imgBusy = false; });
+      return;
+    }
     if (!file || !/^image\//.test(file.type || "")) { st.textContent = "Please choose a picture (JPEG, PNG, WebP…)."; return; }
     if (file.size > 25 * 1024 * 1024) { st.textContent = "That picture is too big (25 MB max)."; return; }
     var pin = getPin();
@@ -766,12 +781,25 @@
       st.textContent = "Sorry, your picture was NOT posted (" + (e && e.message || "network error") + ")."; st.dataset.err = "send";
     }).finally(function(){ imgBusy = false; });
   }
+  // A GIF copied from a web page arrives as a still PNG plus HTML; take the <img src> so the original animated GIF is posted.
+  function gifFromHtml(html){
+    if (!html) return "";
+    try {
+      var d = new DOMParser().parseFromString(html, "text/html"), im = d.querySelector("img[src]");
+      var u = im && im.getAttribute("src") || "";
+      if (!/^https:\/\//i.test(u)) return "";
+      if (/\.gif(\?|#|$)/i.test(u) || /giphy\.com|tenor\.com|senorgif|gifer\.com|imgur\.com\/.*\.gif/i.test(u)) return u;
+    } catch (e) {}
+    return "";
+  }
   ta.addEventListener("paste", function(ev){
     var items = ev.clipboardData && ev.clipboardData.items; if (!items) return;
     for (var i = 0; i < items.length; i++) if (items[i].kind === "file" && /^image\//.test(items[i].type)) {
       var f = items[i].getAsFile(); if (!f) continue;
       ev.preventDefault();
       if (askingName || pinMode || !getPin()) { gate(function(){}); return; }
+      var gu = /^image\/gif$/i.test(f.type) ? "" : gifFromHtml(ev.clipboardData.getData("text/html"));
+      if (gu) { postImage(null, gu, f); return; }
       postImage(f); return;
     }
   });

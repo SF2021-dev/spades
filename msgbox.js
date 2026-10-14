@@ -16,7 +16,7 @@
    ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a tight stroke hugging the glyphs (paint-order stroke fill,
    so the fill color stays fully visible, same text size) plus a 1px offset shadow. Color only = no outline.
    All [c=]/[o=] tags are stripped from the email notification.
-   Pictures: picture button (file picker) or paste an image into the compose line (Ctrl/Cmd+V, or long-press Paste on phones); PIN-gated like sending. The image is resized in the browser (longest side <= 1000px, WebP/JPEG, aimed < 300 KB) and
+   Pictures: picture button (file picker) or paste an image into the compose line (Ctrl/Cmd+V, or long-press Paste on phones); PIN-gated like sending. The image is resized in the browser (longest side <= 1000px, WebP/JPEG, aimed < 300 KB; GIFs are sent as-is, must be < 400 KB, to stay animated) and
    posted as its own message; the server stores it in D1 (msg_images) and the message reads "[img:<id>]", shown as "Name: <picture>"
    (thumbnail fits the message area; tap for full-screen view, tap again to close). */
 (function(){
@@ -733,14 +733,26 @@
       throw new Error("That picture is too big, even after shrinking.");
     });
   }
+  // GIFs skip the canvas (which would flatten animation): original bytes are sent as data:image/gif (<= 400 KB).
+  function gifData(file){
+    return new Promise(function(res, rej){
+      var r = new FileReader();
+      r.onload = function(){ var u = String(r.result || "");
+        res(u.replace(/^data:[^;,]*;base64,/, "data:image/gif;base64,")); };
+      r.onerror = function(){ rej(new Error("That GIF couldn't be read.")); };
+      r.readAsDataURL(file);
+    });
+  }
   function postImage(file){
     if (imgBusy || sending) return;
     if (!file || !/^image\//.test(file.type || "")) { st.textContent = "Please choose a picture (JPEG, PNG, WebP…)."; return; }
     if (file.size > 25 * 1024 * 1024) { st.textContent = "That picture is too big (25 MB max)."; return; }
     var pin = getPin();
     if (!savedName || !pin) { gate(function(){}); return; }
+    var isGif = /^image\/gif$/i.test(file.type || "") || /\.gif$/i.test(file.name || "");
+    if (isGif && file.size > 400 * 1024) { st.textContent = "GIFs must be under 400 KB (this one is " + Math.round(file.size / 1024) + " KB). Your picture was NOT posted."; st.dataset.err = "send"; return; }
     imgBusy = true; st.dataset.err = "";
-    shrink(file).then(function(data){
+    (isGif ? gifData(file) : shrink(file)).then(function(data){
       var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: savedName, message: "", image: data, pin: pin === "*" ? "" : pin};
       return postShared(entry).then(function(list){
         msgs = merge(list); saveLocal(msgs); render(msgs); st.textContent = "";

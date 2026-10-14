@@ -4,7 +4,7 @@
 //   or, without a pin, the browser's remember-me cookie (ds_pin_token) must be valid for that name;
 //   401 wrong PIN, 428 name has no PIN yet, 429 locked after too many wrong PINs.
 // Writes are atomic inserts (no read-modify-write), so concurrent posts can't overwrite each other.
-// Images: POST may carry image:"data:image/(jpeg|webp|png);base64,..." (<= 400 KB decoded, checked by magic bytes). It is stored
+// Images: POST may carry image:"data:image/(jpeg|webp|png|gif);base64,..." (<= 400 KB decoded, checked by magic bytes). It is stored
 //   in D1 msg_images and the message text becomes "[img:<id>]" (rendered by msgbox.js, served by /api/img/<id>).
 //   PIN-gated like text; rate limits: IMG_PER_HOUR per name, IMG_PER_DAY site-wide.
 // Delete an image: also DELETE FROM msg_images WHERE id='...'
@@ -17,17 +17,18 @@ const MAX_IMG = 400 * 1024, IMG_PER_HOUR = 10, IMG_PER_DAY = 300;
 const IMG_TAG = /\[img:/i;
 
 function decodeImage(v) {
-  const m = /^data:(image\/(?:jpeg|webp|png));base64,([A-Za-z0-9+/=]+)$/.exec(String(v || ""));
-  if (!m) throw new HttpError(415, "Only JPEG, WebP or PNG images can be posted.");
-  if (m[2].length > Math.ceil(MAX_IMG * 4 / 3) + 8) throw new HttpError(413, "That image is too big.");
+  const m = /^data:(image\/(?:jpeg|webp|png|gif));base64,([A-Za-z0-9+/=]+)$/.exec(String(v || ""));
+  if (!m) throw new HttpError(415, "Only JPEG, WebP, PNG or GIF images can be posted.");
+  if (m[2].length > Math.ceil(MAX_IMG * 4 / 3) + 8) throw new HttpError(413, m[1] === "image/gif" ? "GIFs must be under 400 KB." : "That image is too big.");
   let bin; try { bin = atob(m[2]); } catch { throw new HttpError(400, "Bad image data."); }
   const b = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
-  if (b.length > MAX_IMG) throw new HttpError(413, "That image is too big.");
+  if (b.length > MAX_IMG) throw new HttpError(413, m[1] === "image/gif" ? "GIFs must be under 400 KB." : "That image is too big.");
   if (b.length < 32) throw new HttpError(415, "That file isn't a supported image.");
   const jpeg = b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
   const png = b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
   const webp = String.fromCharCode(...b.slice(0, 4)) === "RIFF" && String.fromCharCode(...b.slice(8, 12)) === "WEBP";
-  const mime = jpeg ? "image/jpeg" : png ? "image/png" : webp ? "image/webp" : "";
+  const gif = String.fromCharCode(...b.slice(0, 6)) === "GIF87a" || String.fromCharCode(...b.slice(0, 6)) === "GIF89a";
+  const mime = jpeg ? "image/jpeg" : png ? "image/png" : webp ? "image/webp" : gif ? "image/gif" : "";
   if (!mime) throw new HttpError(415, "That file isn't a supported image.");
   return { mime, data: b };
 }

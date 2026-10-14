@@ -1,5 +1,5 @@
 // GET /api/img/:id -> the stored message-box image (D1 table msg_images). Immutable: ids are never reused.
-const TYPES = { "image/jpeg": 1, "image/webp": 1, "image/png": 1 };
+const TYPES = { "image/jpeg": 1, "image/webp": 1, "image/png": 1, "image/gif": 1 };
 export async function onRequestGet({ params, env }) {
   const id = String(params.id || "");
   if (!/^[A-Za-z0-9_-]{6,40}$/.test(id)) return new Response("Not found", { status: 404 });

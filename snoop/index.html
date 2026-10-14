@@ -102,7 +102,7 @@
     var multi = found.length > 1;
     var W = 0, Lo = 0;
     idx.forEach(function (i) { if (tourRec[i]) { W += tourRec[i][0]; Lo += tourRec[i][1]; } });
-    head += '<div class="total" style="margin-top:-6px;">Total: ' + (W + Lo) + " game" + (W + Lo === 1 ? "" : "s") + " &middot; " + W + "&ndash;" + Lo + "</div>";
+    head += '<div class="total" style="margin-top:-6px;">Total: ' + (W + Lo) + " game" + (W + Lo === 1 ? "" : "s") + "</div>";
     /* per-name breakdown so it is obvious every alias was searched */
     head += '<div class="muted" style="margin:-6px 0 12px;">Searched ' + list.length + " name" + (list.length === 1 ? "" : "s") + ": "
       + list.map(function (n) { var e = D.players[n.toLowerCase()]; return e ? esc(e.n) + " <b style=\"color:#fff\">" + e.t.length + "</b>" : esc(n) + " <b style=\"color:#ff8a8a\">not found</b>"; }).join(" · ") + "</div>";
@@ -128,7 +128,7 @@
   fetch("/snoop/data.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
     D = d;
     document.getElementById("range").textContent = fdate(d.from) + " – " + fdate(d.to) + " (ET) · " + Object.keys(d.leagues).length
-      + " leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · counts checked-in tours; games = matches played, W–L from MyLeague tour records · updated " + d.updated;
+      + " leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · counts checked-in tours; games = matches played · updated " + d.updated;
     var dl = document.getElementById("names");
     dl.innerHTML = Object.keys(d.players).map(function (k) { return '<option value="' + esc(d.players[k].n) + '">'; }).join("");
     var sp = new URLSearchParams(location.search), p = sp.get("p");

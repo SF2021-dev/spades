@@ -15,7 +15,11 @@
    Outline: the outline section (black is the main one; also white/gold/red/blue/green). Saved in localStorage
    ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a tight stroke hugging the glyphs (paint-order stroke fill,
    so the fill color stays fully visible, same text size) plus a 1px offset shadow. Color only = no outline.
-   All [c=]/[o=] tags are stripped from the email notification. */
+   All [c=]/[o=] tags are stripped from the email notification.
+   Pictures: the picture button right of the rainbow ball (PIN-gated like emoji/color) opens the phone/desktop file picker; pasting an
+   image into the compose line works too. The image is resized in the browser (longest side <= 1000px, WebP/JPEG, aimed < 300 KB) and
+   posted as its own message; the server stores it in D1 (msg_images) and the message reads "[img:<id>]", shown as "Name: <picture>"
+   (thumbnail fits the message area; tap for full-screen view, tap again to close). */
 (function(){
   var ENDPOINT = "https://formsubmit.co/ajax/f865a31f1882069405c71e61dc656f64";
   var API = "/api/messages", PIN_API = "/api/pin";
@@ -174,7 +178,12 @@
     "#ds-colpick .cp-hue{color:#f3bf56;font:700 14px " + F + ";padding-left:4px}" +
     "#ds-colpick .cp-grid button{justify-content:center;padding:0;min-height:0;height:100%}" +
     "#ds-colpick .cp-grid .sw{width:24px;height:24px}" +
-    "#ds-colpick button[aria-checked=true] .sw{box-shadow:0 0 0 2px #000,0 0 0 4px #f3bf56}";
+    "#ds-colpick button[aria-checked=true] .sw{box-shadow:0 0 0 2px #000,0 0 0 4px #f3bf56}" +
+    "#ds-msgbox .mb-pic{display:inline-block;vertical-align:top;max-width:100%;max-height:min(260px,40vh);width:auto;height:auto;border-radius:6px;border:1px solid #cb972e;cursor:zoom-in;background:#e6ad3a}" +
+    "#ds-msgbox .mb-imgbtn svg{display:block}" +
+    "#ds-msgbox .mb-imgbtn.mb-busy{opacity:.45;pointer-events:none}" +
+    "#ds-imgview{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;cursor:zoom-out}" +
+    "#ds-imgview img{max-width:100vw;max-height:100vh;max-height:100dvh;object-fit:contain}";
   document.head.appendChild(css);
 
   function clean(m){
@@ -209,7 +218,7 @@
   }
   function postShared(entry){
     return fetch(API, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
-      body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message, pin: entry.pin})})
+      body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message, pin: entry.pin, image: entry.image || undefined})})
       .then(function(r){
         return r.json().catch(function(){ return {}; }).then(function(d){
           if (!r.ok || !d.ok) { var e = new Error(d.error || ("HTTP " + r.status)); e.status = r.status; throw e; }
@@ -223,6 +232,14 @@
   }
   function localList(){ try { return parseList(localStorage.getItem(LOCAL) || "[]"); } catch(e){ return []; } }
   function saveLocal(list){ try { localStorage.setItem(LOCAL, JSON.stringify(list.slice(-SHOW))); } catch(e){} }
+  function viewImg(src){
+    var v = document.createElement("div"); v.id = "ds-imgview"; v.setAttribute("role", "dialog"); v.setAttribute("aria-label", "Picture");
+    var im = document.createElement("img"); im.src = src; im.alt = ""; v.appendChild(im);
+    function close(){ v.remove(); document.removeEventListener("keydown", esc); }
+    function esc(ev){ if (ev.key === "Escape") close(); }
+    v.addEventListener("click", close); document.addEventListener("keydown", esc);
+    document.body.appendChild(v);
+  }
   function render(list){
     var el = document.getElementById("mb-msgs");
     var atEnd = !el.childNodes.length || el.scrollHeight - el.scrollTop - el.clientHeight < 40, keep = el.scrollTop;
@@ -232,7 +249,12 @@
       d.className = "mb-msg";
       d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span></div>';
       d.querySelector(".mb-who").textContent = m.name;
-      fillRich(d.querySelector(".mb-body"), m.message);
+      var pm = /^\[img:([A-Za-z0-9_-]{6,40})\]$/.exec(m.message);
+      if (pm) {
+        var im = document.createElement("img"); im.className = "mb-pic"; im.alt = "picture from " + m.name; im.loading = "lazy";
+        im.src = "/api/img/" + pm[1]; im.addEventListener("click", function(){ viewImg(im.src); });
+        d.querySelector(".mb-body").appendChild(im);
+      } else fillRich(d.querySelector(".mb-body"), m.message);
       el.appendChild(d);
     });
     el.scrollTop = atEnd ? el.scrollHeight : keep;   // newest at the bottom; scroll up for earlier ones
@@ -254,7 +276,11 @@
     '<div class="mb-tools" id="mb-tools">' +
     '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
     '<img src="' + EMO_DIR + 'smile.svg?v=' + EMO_V + '" width="24" height="24" alt=""></button>' +
-    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button></div></div>' +
+    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button>' +
+    '<button type="button" class="mb-emobtn mb-imgbtn" id="mb-imgbtn" aria-label="Post a picture" title="Post a picture">' +
+    '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2.5" fill="#fff8e6" stroke="#6b5310" stroke-width="1.6"/>' +
+    '<circle cx="8" cy="9.5" r="2" fill="#f3a712" stroke="#6b5310" stroke-width=".8"/><path d="M3.5 18.5l5.5-6 3.5 3.5 3-3 5 5.5z" fill="#2e8b3a" stroke="#1d5c26" stroke-width=".8" stroke-linejoin="round"/></svg></button>' +
+    '<input type="file" id="mb-file" accept="image/*" style="display:none"></div></div>' +
     '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
 
@@ -669,5 +695,75 @@
       st.textContent = "Sorry, your message was NOT posted (" + (e && e.message || "network error") + "). Please try again.";
       st.dataset.err = "send";
     }).finally(function(){ sending = false; ta.readOnly = false; });
+  });
+
+  // ---- pictures: file picker / paste -> resize + compress in the browser -> POST as its own message ----
+  var imgBtn = document.getElementById("mb-imgbtn"), fileIn = document.getElementById("mb-file"), imgBusy = false;
+  var MAX_SIDE = 1000, TARGET = 300 * 1024, HARD = 390 * 1024;
+  function loadImage(file){
+    return new Promise(function(res, rej){
+      var url = URL.createObjectURL(file), im = new Image();
+      im.onload = function(){ res(im); setTimeout(function(){ URL.revokeObjectURL(url); }, 1000); };
+      im.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("That picture couldn't be opened. Try a JPEG or PNG.")); };
+      im.src = url;
+    });
+  }
+  function shrink(file){
+    return loadImage(file).then(function(im){
+      var w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
+      if (!w || !h) throw new Error("That picture couldn't be opened.");
+      var side = MAX_SIDE, out = "";
+      for (var pass = 0; pass < 4; pass++) {
+        var k = Math.min(1, side / Math.max(w, h)), cw = Math.max(1, Math.round(w * k)), ch = Math.max(1, Math.round(h * k));
+        var c = document.createElement("canvas"); c.width = cw; c.height = ch;
+        var g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, cw, ch); g.drawImage(im, 0, 0, cw, ch);
+        var webpOk = c.toDataURL("image/webp", .5).indexOf("data:image/webp") === 0;
+        var type = webpOk ? "image/webp" : "image/jpeg";
+        for (var q = .82; q >= .4; q -= .12) {
+          out = c.toDataURL(type, q);
+          if (out.length * 3 / 4 <= TARGET) return out;
+        }
+        if (out.length * 3 / 4 <= HARD) return out;
+        side = Math.round(side * .75);
+      }
+      throw new Error("That picture is too big, even after shrinking.");
+    });
+  }
+  function postImage(file){
+    if (imgBusy || sending) return;
+    if (!file || !/^image\//.test(file.type || "")) { st.textContent = "Please choose a picture (JPEG, PNG, WebP…)."; return; }
+    if (file.size > 25 * 1024 * 1024) { st.textContent = "That picture is too big (25 MB max)."; return; }
+    var pin = getPin();
+    if (!savedName || !pin) { gate(function(){}); return; }
+    imgBusy = true; imgBtn.classList.add("mb-busy"); st.dataset.err = "";
+    shrink(file).then(function(data){
+      var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: savedName, message: "", image: data, pin: pin === "*" ? "" : pin};
+      return postShared(entry).then(function(list){
+        msgs = merge(list); saveLocal(msgs); render(msgs); st.textContent = "";
+        var el = document.getElementById("mb-msgs"); el.scrollTop = el.scrollHeight;
+        fetch(ENDPOINT, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
+          body: JSON.stringify({name: savedName, message: "(posted a picture)", _subject: "Diamond Spaders picture from " + savedName,
+                                _template: "table", _captcha: "false", _honey: ""})}).catch(function(){});
+      });
+    }).catch(function(e){
+      if (e && (e.status === 401 || e.status === 428)) { savePin(""); setRemember(0); needPin(); st.textContent = (e.message || "Please enter your PIN.") + " Your picture was NOT posted."; return; }
+      st.textContent = "Sorry, your picture was NOT posted (" + (e && e.message || "network error") + ")."; st.dataset.err = "send";
+    }).finally(function(){ imgBusy = false; imgBtn.classList.remove("mb-busy"); fileIn.value = ""; });
+  }
+  imgBtn.addEventListener("click", function(ev){
+    ev.preventDefault(); ev.stopPropagation(); closePick(); closeMenus();
+    var now = true;
+    gate(function(){ if (now) fileIn.click(); else st.textContent = "PIN OK. Tap the picture button again to choose a picture."; });
+    now = false;
+  });
+  fileIn.addEventListener("change", function(){ if (fileIn.files && fileIn.files[0]) postImage(fileIn.files[0]); });
+  ta.addEventListener("paste", function(ev){
+    var items = ev.clipboardData && ev.clipboardData.items; if (!items) return;
+    for (var i = 0; i < items.length; i++) if (items[i].kind === "file" && /^image\//.test(items[i].type)) {
+      var f = items[i].getAsFile(); if (!f) continue;
+      ev.preventDefault();
+      if (askingName || pinMode || !getPin()) { gate(function(){}); return; }
+      postImage(f); return;
+    }
   });
 })();

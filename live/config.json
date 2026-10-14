@@ -360,7 +360,6 @@
 "11950908": "CUT",
 "11950909": "SUI PASS 2 PAB",
 "11950910": "CUT",
-"11950911": "LOSER WINS",
 "11950928": "CUT",
 "11951050": "SINGLES",
 "11951059": "CUT",
@@ -541,7 +540,8 @@
 "11953849": "CUT",
 "11953851": "CUT",
 "11953949": "REG PARTNERS",
-"11953950": "SINGLES"
+"11953950": "SINGLES",
+"11954054": "SUI PASS 2 PAB"
 },
 "league": "diamondspaders",
 "manual_overrides": {

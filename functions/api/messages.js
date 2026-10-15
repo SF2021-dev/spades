@@ -4,7 +4,7 @@
 //   or, without a pin, the browser's remember-me cookie (ds_pin_token) must be valid for that name;
 //   401 wrong PIN, 428 name has no PIN yet, 429 locked after too many wrong PINs.
 // Writes are atomic inserts (no read-modify-write), so concurrent posts can't overwrite each other.
-// Images: POST may carry image:"data:image/(jpeg|webp|png|gif);base64,..." (<= 400 KB decoded, checked by magic bytes). It is stored
+// Images: POST may carry image:"data:image/(jpeg|webp|png|gif);base64,..." (<= 400 KB decoded; GIFs <= 1.5 MB; checked by magic bytes; stored as a BLOB). It is stored
 //   in D1 msg_images and the message text becomes "[img:<id>]" (rendered by msgbox.js, served by /api/img/<id>).
 //   PIN-gated like text; rate limits: IMG_PER_HOUR per name, IMG_PER_DAY site-wide.
 // Delete an image: also DELETE FROM msg_images WHERE id='...'
@@ -13,11 +13,11 @@ import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
 import { checkPin, pinRow, tokenName } from "../_shared/pins.js";
 
 const SHOW = 200, MAX_NAME = 40, MAX_MSG = 1000;
-const MAX_IMG = 400 * 1024, IMG_PER_HOUR = 10, IMG_PER_DAY = 300;
+const MAX_IMG = 400 * 1024, MAX_GIF = 1536 * 1024, GIF_MSG = "GIFs must be under 1.5 MB.", IMG_PER_HOUR = 10, IMG_PER_DAY = 300;
 const IMG_TAG = /\[img:/i;
 
 const MIN_IMG_CLIENT = 55;   // msgbox.js version that sends GIFs unflattened; older (cached) pages are told to reload
-// Pasted web GIF: fetch the original by URL (https only, public hosts, <= 400 KB, must really be a GIF).
+// Pasted web GIF: fetch the original by URL (https only, public hosts, <= 1.5 MB, must really be a GIF).
 async function fetchGif(u) {
   let url; try { url = new URL(String(u || "")); } catch { throw new HttpError(400, "Bad picture link."); }
   const h = url.hostname.toLowerCase();
@@ -27,10 +27,10 @@ async function fetchGif(u) {
   catch { throw new HttpError(502, "Couldn't download that GIF. Save it and upload it with the picture button instead."); }
   if (!r.ok || !r.body) throw new HttpError(502, "Couldn't download that GIF. Save it and upload it with the picture button instead.");
   const len = Number(r.headers.get("content-length") || 0);
-  if (len > MAX_IMG) throw new HttpError(413, "GIFs must be under 400 KB.");
+  if (len > MAX_GIF) throw new HttpError(413, GIF_MSG);
   const reader = r.body.getReader(), parts = []; let n = 0;
   for (;;) { const { done, value } = await reader.read(); if (done) break; n += value.length;
-    if (n > MAX_IMG) { try { reader.cancel(); } catch {} throw new HttpError(413, "GIFs must be under 400 KB."); } parts.push(value); }
+    if (n > MAX_GIF) { try { reader.cancel(); } catch {} throw new HttpError(413, GIF_MSG); } parts.push(value); }
   const b = new Uint8Array(n); let o = 0; for (const p of parts) { b.set(p, o); o += p.length; }
   const sig = String.fromCharCode(...b.slice(0, 6));
   if (sig !== "GIF87a" && sig !== "GIF89a") throw new HttpError(415, "NOTGIF");
@@ -40,10 +40,11 @@ async function fetchGif(u) {
 function decodeImage(v) {
   const m = /^data:(image\/(?:jpeg|webp|png|gif));base64,([A-Za-z0-9+/=]+)$/.exec(String(v || ""));
   if (!m) throw new HttpError(415, "Only JPEG, WebP, PNG or GIF images can be posted.");
-  if (m[2].length > Math.ceil(MAX_IMG * 4 / 3) + 8) throw new HttpError(413, m[1] === "image/gif" ? "GIFs must be under 400 KB." : "That image is too big.");
+  const isGif = m[1] === "image/gif", lim = isGif ? MAX_GIF : MAX_IMG;
+  if (m[2].length > Math.ceil(lim * 4 / 3) + 8) throw new HttpError(413, isGif ? GIF_MSG : "That image is too big.");
   let bin; try { bin = atob(m[2]); } catch { throw new HttpError(400, "Bad image data."); }
   const b = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
-  if (b.length > MAX_IMG) throw new HttpError(413, m[1] === "image/gif" ? "GIFs must be under 400 KB." : "That image is too big.");
+  if (b.length > lim) throw new HttpError(413, isGif ? GIF_MSG : "That image is too big.");
   if (b.length < 32) throw new HttpError(415, "That file isn't a supported image.");
   const jpeg = b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
   const png = b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
@@ -51,6 +52,7 @@ function decodeImage(v) {
   const gif = String.fromCharCode(...b.slice(0, 6)) === "GIF87a" || String.fromCharCode(...b.slice(0, 6)) === "GIF89a";
   const mime = jpeg ? "image/jpeg" : png ? "image/png" : webp ? "image/webp" : gif ? "image/gif" : "";
   if (!mime) throw new HttpError(415, "That file isn't a supported image.");
+  if (mime !== "image/gif" && b.length > MAX_IMG) throw new HttpError(413, "That image is too big.");
   return { mime, data: b };
 }
 

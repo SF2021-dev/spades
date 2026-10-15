@@ -16,7 +16,7 @@
    ds-mb-outline, sent as [o=name] prefix; outline with no color gets a white fill (black for white/gold outlines) (or [o=name]...[/o] around selected text). Rendered as a tight stroke hugging the glyphs (paint-order stroke fill,
    so the fill color stays fully visible, same text size) plus a 1px offset shadow. Color only = no outline.
    All [c=]/[o=] tags are stripped from the email notification.
-   Pictures: picture button (file picker) or paste an image into the compose line (Ctrl/Cmd+V, or long-press Paste on phones); PIN-gated like sending. The image is resized in the browser (longest side <= 1000px, WebP/JPEG, aimed < 300 KB; GIFs are sent as-is, must be < 400 KB, to stay animated; a GIF copied from a web page is fetched by the server from its <img src>) and
+   Pictures: picture button (file picker) or paste an image into the compose line (Ctrl/Cmd+V, or long-press Paste on phones); PIN-gated like sending. The image is resized in the browser (longest side <= 1000px, WebP/JPEG, aimed < 300 KB; GIFs are sent as-is, must be < 1.5 MB, to stay animated; a GIF copied from a web page is fetched by the server from its <img src>) and
    posted as its own message; the server stores it in D1 (msg_images) and the message reads "[img:<id>]", shown as "Name: <picture>"
    (thumbnail fits the message area; tap for full-screen view, tap again to close). */
 (function(){
@@ -226,7 +226,7 @@
   }
   function postShared(entry){
     return fetch(API, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
-      body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message, pin: entry.pin, image: entry.image || undefined, imageUrl: entry.imageUrl || undefined, cv: 56})})
+      body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message, pin: entry.pin, image: entry.image || undefined, imageUrl: entry.imageUrl || undefined, cv: 57})})
       .then(function(r){
         return r.json().catch(function(){ return {}; }).then(function(d){
           if (!r.ok || !d.ok) { var e = new Error(d.error || ("HTTP " + r.status)); e.status = r.status; throw e; }
@@ -733,7 +733,7 @@
       throw new Error("That picture is too big, even after shrinking.");
     });
   }
-  // GIFs skip the canvas (which would flatten animation): original bytes are sent as data:image/gif (<= 400 KB).
+  // GIFs skip the canvas (which would flatten animation): original bytes are sent as data:image/gif (<= 1.5 MB).
   function gifData(file){
     return new Promise(function(res, rej){
       var r = new FileReader();
@@ -765,7 +765,7 @@
     var pin = getPin();
     if (!savedName || !pin) { gate(function(){}); return; }
     var isGif = /^image\/gif$/i.test(file.type || "") || /\.gif$/i.test(file.name || "");
-    if (isGif && file.size > 400 * 1024) { st.textContent = "GIFs must be under 400 KB (this one is " + Math.round(file.size / 1024) + " KB). Your picture was NOT posted."; st.dataset.err = "send"; return; }
+    if (isGif && file.size > 1536 * 1024) { st.textContent = "GIFs must be under 1.5 MB (this one is " + (file.size / 1048576).toFixed(1) + " MB). Your picture was NOT posted."; st.dataset.err = "send"; return; }
     imgBusy = true; st.dataset.err = ""; st.textContent = "Uploading picture…";
     (isGif ? gifData(file) : shrink(file)).then(function(data){
       var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: savedName, message: "", image: data, pin: pin === "*" ? "" : pin};

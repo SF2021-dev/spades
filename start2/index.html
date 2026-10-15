@@ -80,6 +80,16 @@
         .icon-wrapper img {
             height: 100%; width: 100%; object-fit: contain; display: block;
         }
+        .top-right {
+            position: absolute; top: 8px; right: 24px; z-index: 30;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .top-right .clock { position: static; }
+        .icon-wrapper.ds-site {
+            display: block;
+            height: clamp(72px, min(calc((100vw - 150px) / 7.5), calc((100vh - 225px) / 3.6), 170px), 170px);
+            width: clamp(72px, min(calc((100vw - 150px) / 7.5), calc((100vh - 225px) / 3.6), 170px), 170px);
+        }
         .hint {
             position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
             font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15;
@@ -103,10 +113,15 @@
 </head>
 <body>
     <div class="background"></div>
+    <div class="top-right">
     <div class="clock">
         <div class="time" id="time">12:00 PM</div>
         <div class="date" id="date">Tue, Apr 21</div>
         <div class="est" id="est">EST 12:00:00</div>
+    </div>
+        <a href="https://diamondspaders.online/" target="_blank" class="icon-wrapper ds-site" title="Diamond Spaders site">
+                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'" src="/icons/dsbanner-icon.jpg" alt="Diamond Spaders">
+            </a>
     </div>
 
     <div class="search">
@@ -133,9 +148,6 @@
         </div>
 
         <div class="icon-row">
-            <a href="https://diamondspaders.online/" target="_blank" class="icon-wrapper" title="Diamond Spaders site">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'" src="/icons/dsbanner-icon.jpg" alt="Diamond Spaders">
-            </a>
             <a href="https://www.myleague.com/diamondspaders/" target="_blank" class="icon-wrapper" title="Diamond Spaders">
                 <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="/icons/ds.png" alt="Diamond Spaders">
             </a>

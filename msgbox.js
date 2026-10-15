@@ -226,7 +226,7 @@
   }
   function postShared(entry){
     return fetch(API, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
-      body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message, pin: entry.pin, image: entry.image || undefined, imageUrl: entry.imageUrl || undefined, cv: 55})})
+      body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message, pin: entry.pin, image: entry.image || undefined, imageUrl: entry.imageUrl || undefined, cv: 56})})
       .then(function(r){
         return r.json().catch(function(){ return {}; }).then(function(d){
           if (!r.ok || !d.ok) { var e = new Error(d.error || ("HTTP " + r.status)); e.status = r.status; throw e; }
@@ -284,7 +284,7 @@
     '<div class="mb-tools" id="mb-tools">' +
     '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
     '<img src="' + EMO_DIR + 'smile.svg?v=' + EMO_V + '" width="24" height="24" alt=""></button>' +
-    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button><button type="button" class="mb-emobtn" id="mb-imgbtn" aria-label="Upload a picture" title="Upload a picture"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="#fff8e6" stroke="#5a3d00" stroke-width="1.6"/><circle cx="8" cy="9.5" r="2" fill="#f3bf56" stroke="#5a3d00" stroke-width="1"/><path d="M4 18l5.5-6 4 4 2.5-2.5L20 18z" fill="#2e8b57" stroke="#5a3d00" stroke-width="1"/></svg></button><input type="file" id="mb-imgfile" accept="image/*" style="display:none"></div></div>' +
+    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button><label class="mb-emobtn" id="mb-imgbtn" for="mb-imgfile" role="button" tabindex="0" aria-label="Upload a picture" title="Upload a picture"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="#fff8e6" stroke="#5a3d00" stroke-width="1.6"/><circle cx="8" cy="9.5" r="2" fill="#f3bf56" stroke="#5a3d00" stroke-width="1"/><path d="M4 18l5.5-6 4 4 2.5-2.5L20 18z" fill="#2e8b57" stroke="#5a3d00" stroke-width="1"/></svg></label><input type="file" id="mb-imgfile" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none" tabindex="-1"></div></div>' +
     '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
 
@@ -708,7 +708,7 @@
     return new Promise(function(res, rej){
       var url = URL.createObjectURL(file), im = new Image();
       im.onload = function(){ res(im); setTimeout(function(){ URL.revokeObjectURL(url); }, 1000); };
-      im.onerror = function(){ URL.revokeObjectURL(url); rej(new Error("That picture couldn't be opened. Try a JPEG or PNG.")); };
+      im.onerror = function(){ URL.revokeObjectURL(url); rej(new Error(/heic|heif/i.test((file.type || "") + (file.name || "")) ? "this browser can't open HEIC photos; choose a JPEG or PNG" : "that picture couldn't be opened; try a JPEG or PNG")); };
       im.src = url;
     });
   }
@@ -760,13 +760,13 @@
       }).finally(function(){ imgBusy = false; });
       return;
     }
-    if (!file || !/^image\//.test(file.type || "")) { st.textContent = "Please choose a picture (JPEG, PNG, WebP…)."; return; }
+    if (!file || !(/^image\//.test(file.type || "") || /\.(jpe?g|png|gif|webp|bmp|heic|heif)$/i.test(file.name || ""))) { st.textContent = "Please choose a picture (JPEG, PNG, WebP, GIF)."; st.dataset.err = "send"; return; }
     if (file.size > 25 * 1024 * 1024) { st.textContent = "That picture is too big (25 MB max)."; return; }
     var pin = getPin();
     if (!savedName || !pin) { gate(function(){}); return; }
     var isGif = /^image\/gif$/i.test(file.type || "") || /\.gif$/i.test(file.name || "");
     if (isGif && file.size > 400 * 1024) { st.textContent = "GIFs must be under 400 KB (this one is " + Math.round(file.size / 1024) + " KB). Your picture was NOT posted."; st.dataset.err = "send"; return; }
-    imgBusy = true; st.dataset.err = "";
+    imgBusy = true; st.dataset.err = ""; st.textContent = "Uploading picture…";
     (isGif ? gifData(file) : shrink(file)).then(function(data){
       var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: savedName, message: "", image: data, pin: pin === "*" ? "" : pin};
       return postShared(entry).then(function(list){
@@ -803,13 +803,16 @@
       postImage(f); return;
     }
   });
+  // Picture button is a <label for=file input>: the browser opens the picker natively (no scripted click that can be blocked).
+  // The PIN check happens after a file is chosen; the file waits and is posted once the PIN is OK.
   var imgBtn = document.getElementById("mb-imgbtn"), imgFile = document.getElementById("mb-imgfile");
   if (imgBtn && imgFile) {
-    imgBtn.addEventListener("click", function(){ gate(function(){ imgFile.value = ""; imgFile.click(); }); });
+    imgBtn.addEventListener("click", function(ev){ ev.stopPropagation(); imgFile.value = ""; });
+    imgBtn.addEventListener("keydown", function(ev){ if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); imgFile.value = ""; imgFile.click(); } });
     imgFile.addEventListener("change", function(){
-      var f = imgFile.files && imgFile.files[0]; imgFile.value = ""; if (!f) return;
-      if (askingName || pinMode || !getPin()) { gate(function(){}); return; }
-      postImage(f);
+      var f = imgFile.files && imgFile.files[0]; if (!f) return;
+      gate(function(){ postImage(f); });
     });
   }
+
 })();

@@ -1,0 +1,109 @@
+{
+  "routes": [
+    {
+      "routePath": "/api/auth/confirm",
+      "mountPath": "/api/auth",
+      "method": "GET",
+      "module": [
+        "api/auth/confirm.js:onRequestGet"
+      ]
+    },
+    {
+      "routePath": "/api/auth/login",
+      "mountPath": "/api/auth",
+      "method": "POST",
+      "module": [
+        "api/auth/login.js:onRequestPost"
+      ]
+    },
+    {
+      "routePath": "/api/auth/logout",
+      "mountPath": "/api/auth",
+      "method": "POST",
+      "module": [
+        "api/auth/logout.js:onRequestPost"
+      ]
+    },
+    {
+      "routePath": "/api/auth/me",
+      "mountPath": "/api/auth",
+      "method": "GET",
+      "module": [
+        "api/auth/me.js:onRequestGet"
+      ]
+    },
+    {
+      "routePath": "/api/auth/register",
+      "mountPath": "/api/auth",
+      "method": "POST",
+      "module": [
+        "api/auth/register.js:onRequestPost"
+      ]
+    },
+    {
+      "routePath": "/api/auth/resend",
+      "mountPath": "/api/auth",
+      "method": "POST",
+      "module": [
+        "api/auth/resend.js:onRequestPost"
+      ]
+    },
+    {
+      "routePath": "/api/img/:id",
+      "mountPath": "/api/img",
+      "method": "GET",
+      "module": [
+        "api/img/[id].js:onRequestGet"
+      ]
+    },
+    {
+      "routePath": "/api/live",
+      "mountPath": "/api",
+      "method": "GET",
+      "module": [
+        "api/live.js:onRequestGet"
+      ]
+    },
+    {
+      "routePath": "/api/messages",
+      "mountPath": "/api",
+      "method": "GET",
+      "module": [
+        "api/messages.js:onRequestGet"
+      ]
+    },
+    {
+      "routePath": "/api/messages",
+      "mountPath": "/api",
+      "method": "POST",
+      "module": [
+        "api/messages.js:onRequestPost"
+      ]
+    },
+    {
+      "routePath": "/api/pin",
+      "mountPath": "/api",
+      "method": "GET",
+      "module": [
+        "api/pin.js:onRequestGet"
+      ]
+    },
+    {
+      "routePath": "/api/pin",
+      "mountPath": "/api",
+      "method": "POST",
+      "module": [
+        "api/pin.js:onRequestPost"
+      ]
+    },
+    {
+      "routePath": "/api/count",
+      "mountPath": "/api",
+      "method": "",
+      "module": [
+        "api/count.js:onRequest"
+      ]
+    }
+  ],
+  "baseURL": "/"
+}

@@ -115,6 +115,7 @@
     <div class="clock">
         <div class="time" id="time">12:00 PM</div>
         <div class="date" id="date">Tue, Apr 21</div>
+        <div class="est" id="est"></div>
     </div>
 
     <div class="icons-area">
@@ -185,6 +186,7 @@
         function updateClock() {
             const now = new Date();
             document.getElementById('time').textContent = now.toLocaleTimeString('de-CH', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit' });
+            document.getElementById('est').textContent = now.toLocaleTimeString('de-CH', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' }) + ' ET';
             document.getElementById('date').textContent = now.toLocaleDateString('de-CH', { timeZone: 'Europe/Zurich', weekday: 'short', day: 'numeric', month: 'long' });
         }
         setInterval(updateClock, 1000);

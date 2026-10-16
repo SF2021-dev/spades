@@ -166,7 +166,7 @@ function makeRenderer(cfg, names = {}) {
   function day(tours, d, today) {
     const dl = dayLabel(d, today), cells = [], keys = [];
     for (const t of tours) {
-      if (t.date !== d || !t.winners.length) continue;
+      if (t.date !== d || !t.winners.length || (cfg.hidden || []).map(String).includes(String(t.id))) continue;
       const clk = clock12(t.h, t.m), lab = label(t);
       const text = dl === "TODAY" || dl === "YESTERDAY" ? `${clk} ${lab}` : `${dl} ${clk} ${lab}`;
       const size = (cfg.fonts || {})[`${clk}|${t.winners.map(n => shown(n).toLowerCase()).join(",")}`];

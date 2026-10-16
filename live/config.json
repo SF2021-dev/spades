@@ -240,11 +240,13 @@
 "11953546": "SINGLES",
 "11953634": "SUI PASS 2 PAB",
 "11953679": "SUI PASS 2",
+"11954156": "SUI PASS 2 PAB",
 "_11923667": "2026-10-10: feed text just '500/50 pass 2' (2 per team); was shown as SUI PASS 2 in TOURS, keep it so in winners",
 "_11953266": "User 2026-10-10: Sat Oct 10 10:15 PM ET (feed 'LW SINGLES') is Loser Wins",
 "_11953267": "User 2026-10-10: Sat Oct 10 11:15 PM ET (BluAngel1950) -> CUT",
 "_11953321": "2026-10-10: Sat Oct 10 9:15 PM ET Ellisandrew80 feed was just 500/100 (2 per team) => REG PARTNERS",
-"_11953546": "2026-10-12: AceyLynn 22:15 ET feed '1 vs 1' / CHOICE SINGLES => SINGLES (was stuck as PARDS)"
+"_11953546": "2026-10-12: AceyLynn 22:15 ET feed '1 vs 1' / CHOICE SINGLES => SINGLES (was stuck as PARDS)",
+"_11954156": "2026-10-16: user set 14:15 ET => SUI PASS 2 PAB"
 },
 "by_slot": {},
 "official": [
@@ -580,7 +582,7 @@
 "11954069": "SUI PASS 2 RANDOM",
 "11954070": "CUT",
 "11954154": "CUT",
-"11954156": "REG SPADES PAB",
+"11954156": "SUI PASS 2 PAB",
 "11954162": "REG PARTNERS",
 "11954163": "PASS 2",
 "11954166": "REG PARTNERS",

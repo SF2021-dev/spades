@@ -190,29 +190,7 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        const form = document.getElementById('search-form');
-        const input = document.getElementById('search-input');
-        form.addEventListener('submit', function (e) {
-            const query = input.value.trim();
-            if (!query) {
-                e.preventDefault();
-                return;
-            }
-            setTimeout(function () { input.value = ''; }, 300);
-        });
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                input.value = '';
-                input.focus();
-            }
-        });
-
-        document.body.addEventListener('click', function(e) {
-            if (e.target === document.body || e.target.classList.contains('background')) {
-                input.focus();
-            }
-        });
     </script>
 </body>
 </html>>

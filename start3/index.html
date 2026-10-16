@@ -52,7 +52,7 @@
             position: absolute;
             left: 24px;
             right: 24px;
-            bottom: 56px;
+            bottom: 56px; top: 115px; justify-content: flex-end;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -68,7 +68,7 @@
         }
         .tile { display:flex; flex-direction:column; align-items:center; text-decoration:none; color:#fff; width:var(--sz); }
         .lbl { margin-top:5px; font-size:0.78rem; text-align:center; text-shadow:0 1px 3px #000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
-        .icons-area { --sz: clamp(52px, min(calc((100vw - 300px) / 8), calc((100vh - 420px) / 4), 72px), 72px); --big: clamp(80px, min(calc(100vh - 560px), calc((100vw - 220px) / 9)), 170px); }
+        .icons-area { --sz: clamp(52px, min(calc((100vw - 300px) / 8), calc((100vh - 420px) / 4), 72px), 72px); --big: clamp(80px, min(calc(100vh - 640px), calc((100vw - 220px) / 9)), 170px); }
         .icon-row { justify-content:center; gap:18px !important; }
         .top-row { min-height: var(--big); margin-bottom: 8px; }
         .top-row .tile { width: var(--big); }
@@ -97,11 +97,11 @@
             .clock-icon { display: block; margin: 10px 0 0 auto; width: 120px; height: 120px; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
         .clock-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .weather { position: absolute; top: 8px; left: 24px; z-index: 30; color: rgba(255,255,255,0.9);
-            background: rgba(0,0,0,0.35); border-radius: 14px; padding: 10px 14px; text-shadow: 0 1px 3px rgba(0,0,0,0.7); min-width: 200px; }
-        .weather .wcity { font-size: 0.95rem; opacity: 0.85; }
-        .weather .wnow { font-size: 2rem; font-weight: 500; white-space: nowrap; }
-        .weather .wdays { display: flex; gap: 12px; margin-top: 6px; font-size: 0.85rem; text-align: center; }
-        .weather .wdays .wi { font-size: 1.3rem; }
+            background: rgba(0,0,0,0.35); border-radius: 14px; padding: 6px 10px; text-shadow: 0 1px 3px rgba(0,0,0,0.7);  }
+        .weather .wcity { font-size: 0.75rem; opacity: 0.85; }
+        .weather .wnow { font-size: 1.2rem; font-weight: 500; white-space: nowrap; }
+        .weather .wdays { display: flex; gap: 8px; margin-top: 2px; font-size: 0.7rem; text-align: center; }
+        .weather .wdays .wi { font-size: 0.95rem; }
     </style>
 <script>
 /* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */

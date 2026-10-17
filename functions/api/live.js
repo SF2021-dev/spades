@@ -183,6 +183,7 @@ function makeRenderer(cfg, names = {}) {
   const icon = (url, size, radius) => url
     ? `<img src="${url}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:${radius}px;border:1px solid ${BORDER};">`
     : `<svg width="${size}" height="${size}" viewBox="0 0 22 22">${SVG_ICON}</svg>`;
+  const prof = (name, inner) => `<a href="https://www.myleague.com/diamondspaders/profile/${encodeURIComponent(name)}" title="${attr(name)}" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;">${inner}</a>`;
   function teamName(t) {
     const n = (cfg.manual_teams || {})[String(t.id)];
     if (n) return n;
@@ -195,12 +196,12 @@ function makeRenderer(cfg, names = {}) {
     const bg = i % 2 === 0 ? `background:${BG_EVEN};` : "background:#000;";
     if (names.length === 1) {
       const n = shown(names[0]);
-      return `<div style="padding:14px 10px;${bg}"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">${icon(avatar(names[0]), 64, 8)}`
+      return `<div style="padding:14px 10px;${bg}"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">${prof(names[0], icon(avatar(names[0]), 64, 8))}`
         + `<div><div style="font-size:13px;font-weight:700;">${esc(lab)}${champ(sub)}</div><div style="font-size:${size || nameSize(n)}px;font-weight:800;">${esc(n)}</div></div></div></div>`;
     }
     const longest = Math.max(...names.map(w => shown(w).length));
     const fs = longest <= 7 ? 15 : longest <= 9 ? 14 : longest <= 11 ? 13 : 12;
-    const pairs = names.map(w => `<div style="display:flex;align-items:center;gap:6px;min-width:0;">${icon(avatar(w), 44, 8)}<div style="font-size:${fs}px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">${esc(shown(w))}</div></div>`).join("");
+    const pairs = names.map(w => `<div style="display:flex;align-items:center;gap:6px;min-width:0;">${prof(w, icon(avatar(w), 44, 8))}<div style="font-size:${fs}px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">${esc(shown(w))}</div></div>`).join("");
     const teamHtml = team ? `<div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">${esc(team)}</div>` : '<div style="margin-bottom:4px;"></div>';
     return `<div style="padding:14px 10px;${bg}"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">${esc(lab)}${champ(sub)}</div>${teamHtml}`
       + `<div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;">${pairs}</div></div>`;

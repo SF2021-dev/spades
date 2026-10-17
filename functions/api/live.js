@@ -51,6 +51,48 @@ async function fetchCalendar(start, end, league) {
   }
   throw last;
 }
+
+// Winning team name straight from the tour's TEAMS page, so names show even while the box is asleep
+function defaultTeam(name, players) {
+  const n = name.replace(/\s+/g, "").toLowerCase();
+  if (players.length !== 2) return false;
+  const parts = name.split("&").map(x => x.trim().replace(/\.+$/, "").toLowerCase());
+  const pl = players.map(x => x.toLowerCase());
+  if (parts.length === 2 && parts.every(Boolean) &&
+      ((pl[0].startsWith(parts[0]) && pl[1].startsWith(parts[1])) || (pl[1].startsWith(parts[0]) && pl[0].startsWith(parts[1])))) return true;
+  for (const [a, b] of [[pl[0], pl[1]], [pl[1], pl[0]]])
+    if (n.endsWith(b) && n.length > b.length && a.startsWith(n.slice(0, n.length - b.length))) return true;
+  return false;
+}
+function unhtml(s) { return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0?39;|&#x27;/g, "'"); }
+async function fetchTeam(t, league) {
+  const cache = caches.default, ck = new Request(`https://team-cache.local/${t.id}/${t.winners.join(",").toLowerCase()}`);
+  const hit = await cache.match(ck);
+  if (hit) return (await hit.text()) || null;
+  const want = t.winners.map(w => w.toLowerCase()).sort().join("|");
+  let found = null, ok = false;
+  for (const srv of ["cgi6", "plus2"]) {
+    try {
+      const r = await fetch(`https://${srv}.igl.net/tourneysystem/players.php?tcount=${t.id}&path=${league}`, { headers: { "User-Agent": UA } });
+      const page = await r.text();
+      const m = page.match(/\$\.parseJSON\('([\s\S]*?)'\);/);
+      if (!m) continue;
+      const d = JSON.parse(m[1].replace(/\\\\/g, "\x00").replace(/\\'/g, "'").replace(/\x00/g, "\\"));
+      ok = true;
+      for (const tm of d.teams || []) {
+        const names = (tm.players || []).map(p => { const mm = String(p).match(/<strong>([\s\S]*?)<\/strong>/); return unhtml(mm ? mm[1] : String(p).replace(/<[^>]+>/g, "")).trim(); });
+        if (names.map(n => n.toLowerCase()).sort().join("|") === want) {
+          const name = unhtml(String(tm.team || "")).trim();
+          found = name && !defaultTeam(name, names) ? name : null;
+          break;
+        }
+      }
+      break;
+    } catch (e) { continue; }
+  }
+  if (ok) await cache.put(ck, new Response(found || "", { headers: { "cache-control": "max-age=86400" } }));
+  return found;
+}
 function parseCalendar(xml) {
   const out = [], seen = new Set();
   for (const rec of xml.match(/<objRecord>[\s\S]*?<\/objRecord>/g) || []) {
@@ -192,6 +234,9 @@ async function build(env, origin) {
     if (!t.winners.length && mw[t.id]?.length) t.winners = [...mw[t.id]];     // manual winner only where the feed has none
     if (mo[t.id]?.length) t.winners = [...mo[t.id]];
   }
+  cfg.manual_teams = { ...(cfg.manual_teams || {}) };
+  await Promise.all(tours.filter(t => t.date >= addDays(today, -1) && t.winners.length === 2 && t.id && !cfg.manual_teams[String(t.id)])
+    .map(async t => { try { const n = await fetchTeam(t, cfg.league || "diamondspaders"); if (n) cfg.manual_teams[String(t.id)] = n; } catch (e) {} }));
   const names = {};
   await Promise.all(tours.filter(t => t.date >= today && ambiguous(t) && (cfg.labels_by_id || {})[t.id] == null)
     .map(async t => { const n = await tourName(t.id, cfg.league || "diamondspaders"); if (n) names[t.id] = n; }));

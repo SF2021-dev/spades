@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startseite</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root { --bg: #0a0a0a; --text: #f0f0f0; --accent: #00d4ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg) center/cover no-repeat fixed;
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background-image 0.8s ease;
+        }
+        .background {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(0, 212, 255, 0.06) 0%, rgba(10, 10, 10, 0.85) 65%);
+            pointer-events: none; z-index: 1;
+        }
+        .search {
+            position: absolute;
+            top: 12px; left: 20px;
+            width: calc(100% - 280px); max-width: 520px; padding: 0; z-index: 10;
+        }
+        .search-input {
+            width: 100%; padding: 14px 24px; font-size: 1.25rem; font-weight: 500;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08);
+            border-radius: 9999px; color: white; outline: none;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .search-input:focus {
+            border-color: var(--accent); background: rgba(255,255,255,0.11);
+            box-shadow: 0 0 0 14px rgba(0,212,255,0.18); transform: scale(1.015);
+        }
+        .clock {
+            position: absolute; top: 8px; right: 24px; font-size: 1.15rem; font-weight: 500;
+            color: rgba(255,255,255,0.85); z-index: 30; text-align: right;
+            line-height: 1.35; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+        }
+        .clock .est {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.7);
+            margin-top: 2px;
+        }
+        .icons-area {
+            position: absolute;
+            left: 24px;
+            right: 24px;
+            bottom: 56px; top: 115px; justify-content: flex-end;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .icon-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+        }
+        .tile { display:flex; flex-direction:column; align-items:center; text-decoration:none; color:#fff; width:var(--sz); }
+        .lbl { margin-top:5px; font-size:0.78rem; text-align:center; text-shadow:0 1px 3px #000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+        .icons-area { --sz: clamp(52px, min(calc((100vw - 300px) / 8), calc((100vh - 420px) / 4), 72px), 72px); --big: clamp(80px, min(calc(100vh - 640px), calc((100vw - 220px) / 9)), 170px); }
+        .icon-row { justify-content:center; gap:18px !important; }
+        .top-row { min-height: var(--big); margin-bottom: 8px; }
+        .top-row .tile { width: var(--big); }
+        .top-row .icon-wrapper { width: var(--big); height: var(--big); padding: 0; }
+        .lbl { font-size:0.72rem; }
+        .icon-wrapper {
+            display:block; height: var(--sz); width: var(--sz); background: rgba(255,255,255,0.92) !important; padding: 12%; border-radius: 10px; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.75); transition: all 0.35s;
+            cursor: pointer;
+            flex: 0 0 auto;
+            background: rgba(0,0,0,0.25);
+        }
+        .icon-wrapper:hover {
+            transform: scale(1.08) translateY(-6px);
+            box-shadow: 0 16px 40px rgba(0,212,255,0.28);
+        }
+        .icon-wrapper img {
+            height: 100%; width: 100%; object-fit: contain; display: block;
+        }
+        
+        .hint {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+            font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15;
+            white-space: nowrap;
+        }
+            .clock-icon { display: block; margin: 10px 0 0 auto; width: 120px; height: 120px; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .clock-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .weather { position: absolute; top: 8px; left: 24px; z-index: 30; color: rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.35); border-radius: 14px; padding: 6px 10px; text-shadow: 0 1px 3px rgba(0,0,0,0.7);  }
+        .weather .wcity { font-size: 0.75rem; opacity: 0.85; }
+        .weather .wnow { font-size: 1.2rem; font-weight: 500; white-space: nowrap; }
+        .weather .wdays { display: flex; gap: 8px; margin-top: 2px; font-size: 0.7rem; text-align: center; }
+        .weather .wdays .wi { font-size: 0.95rem; }
+    </style>
+<script>
+/* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */
+(function () {
+  function check() {
+    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      var lm = new Date(r.headers.get("last-modified")).getTime(), mine = new Date(document.lastModified).getTime();
+      var tag = "stale-" + location.pathname + "-" + lm;
+      if (lm && mine && Math.abs(lm - mine) > 2000 && !sessionStorage.getItem(tag)) { sessionStorage.setItem(tag, "1"); location.reload(); }
+    }).catch(function () {});
+  }
+  check();
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
+})();
+</script>
+</head>
+<body>
+    <div class="background"></div>
+    <a class="weather" id="weather" href="https://www.meteoschweiz.admin.ch/lokalprognose/bern/3011.html" style="text-decoration:none"><div class="wcity">Bern</div><div class="wnow" id="wnow">…</div><div class="wdays" id="wdays"></div></a>
+    <div class="clock">
+        <div class="time" id="time">12:00 PM</div>
+        <div class="date" id="date">Tue, Apr 21</div>
+        <div class="est" id="est"></div>
+        <a href="https://diamondspaders.online/" class="clock-icon" title="Diamond Spaders site"><img src="/icons/start3/ds-site.png" alt="Diamond Spaders"></a>
+    </div>
+
+    <div class="icons-area">
+    <div class="icon-row top-row">
+      <a href="https://www.myleague.com/diamondspaders/" class="tile" title="Diamond Spaders"><span class="icon-wrapper"><img src="/icons/start3/ds-myleague.png" alt=""></span><span class="lbl">Diamond Spaders</span></a>
+      <a href="https://www.myleague.com/dagreathoudini/" class="tile" title="houdini"><span class="icon-wrapper"><img src="/icons/houdini.png" alt=""></span><span class="lbl">houdini</span></a>
+      <a href="https://www.myleague.com/fantasyspaders/" class="tile" title="fantasy"><span class="icon-wrapper"><img src="/icons/fantasy.png" alt=""></span><span class="lbl">fantasy</span></a>
+      <a href="https://www.myleague.com/teamtfriends/index.php/" class="tile" title="Team T Friends"><span class="icon-wrapper"><img src="/icons/tfs.png" alt=""></span><span class="lbl">Team T Friends</span></a>
+      <a href="https://www.myleague.com/allspaders/" class="tile" title="All Spaders"><span class="icon-wrapper"><img src="/icons/as.png" alt=""></span><span class="lbl">All Spaders</span></a>
+      <a href="https://notepad.uk.com/" class="tile" title="online notepad"><span class="icon-wrapper"><img src="/icons/np-online.png" alt=""></span><span class="lbl">online notepad</span></a>
+    </div>
+    <div class="icon-row">
+      <a href="https://www.facebook.com/" class="tile" title="Facebook"><span class="icon-wrapper"><img src="/icons/start3/facebook.png" alt=""></span><span class="lbl">Facebook</span></a>
+      <a href="https://www.mahjongkostenlos.de/spielen/mahjong-relax" class="tile" title="Mahjong Relax"><span class="icon-wrapper"><img src="/icons/start3/mahjong.png" alt=""></span><span class="lbl">Mahjong Relax</span></a>
+      <a href="https://worldofsolitaire.com/" class="tile" title="Solitaire"><span class="icon-wrapper"><img src="/icons/start3/solitaire.png" alt=""></span><span class="lbl">Solitaire</span></a>
+      <a href="https://www.google.ch/" class="tile" title="Google"><span class="icon-wrapper"><img src="/icons/start3/google.png" alt=""></span><span class="lbl">Google</span></a>
+      <a href="https://www.meteoschweiz.admin.ch/" class="tile" title="MeteoSchweiz"><span class="icon-wrapper"><img src="/icons/start3/meteo.png" alt=""></span><span class="lbl">MeteoSchweiz</span></a>
+      <a href="https://www.bka.ch/" class="tile" title="BKA"><span class="icon-wrapper"><img src="/icons/start3/bka.png" alt=""></span><span class="lbl">BKA</span></a>
+      <a href="https://www.dict.cc/" class="tile" title="dict.cc"><span class="icon-wrapper"><img src="/icons/start3/dictcc.png" alt=""></span><span class="lbl">dict.cc</span></a>
+      <a href="https://www.sbb.ch/" class="tile" title="SBB"><span class="icon-wrapper"><img src="/icons/start3/sbb.png" alt=""></span><span class="lbl">SBB</span></a>
+    </div>
+    <div class="icon-row">
+      <a href="https://www.worldofcardgames.com/" class="tile" title="Card Games"><span class="icon-wrapper"><img src="/icons/start3/wocg.png" alt=""></span><span class="lbl">Card Games</span></a>
+      <a href="https://www.myleague.com/diamondspaders/" class="tile" title="MyLeague"><span class="icon-wrapper"><img src="/icons/start3/myleague.png" alt=""></span><span class="lbl">MyLeague</span></a>
+      <a href="https://www.google.com/search?hl=de&amp;q=Pullover+%26+Cardigans+Damen" class="tile" title="Pullover"><span class="icon-wrapper"><img src="/icons/start3/pullover.png" alt=""></span><span class="lbl">Pullover</span></a>
+      <a href="https://www.brax.com/de/de" class="tile" title="Brax"><span class="icon-wrapper"><img src="/icons/start3/brax.png" alt=""></span><span class="lbl">Brax</span></a>
+      <a href="https://lexico.ch/" class="tile" title="Lexico"><span class="icon-wrapper"><img src="/icons/start3/lexico.png" alt=""></span><span class="lbl">Lexico</span></a>
+      <a href="https://www.google.com/search?hl=de&amp;q=Scrabble%20Hilfe" class="tile" title="Scrabble-Hilfe"><span class="icon-wrapper"><img src="/icons/start3/scrabble.png" alt=""></span><span class="lbl">Scrabble-Hilfe</span></a>
+      <a href="https://maps.google.ch/" class="tile" title="Maps"><span class="icon-wrapper"><img src="/icons/start3/maps.png" alt=""></span><span class="lbl">Maps</span></a>
+      <a href="https://fooby.ch/de.html" class="tile" title="FOOBY"><span class="icon-wrapper"><img src="/icons/start3/fooby.png" alt=""></span><span class="lbl">FOOBY</span></a>
+    </div>
+    <div class="icon-row">
+      <a href="https://www.myleague.com/" class="tile" title="SiLkY_SpArKIE"><span class="icon-wrapper"><img src="/icons/start3/silky.png" alt=""></span><span class="lbl">SiLkY_SpArKIE</span></a>
+      <a href="https://www.youtube.com/results?search_query=how+to+pronounce" class="tile" title="Pronounce"><span class="icon-wrapper"><img src="/icons/start3/pronounce.png" alt=""></span><span class="lbl">Pronounce</span></a>
+      <a href="https://www.google.com/search?hl=de&amp;q=Der%20Schwertfarn%20Nephrolepis" class="tile" title="Schwertfarn"><span class="icon-wrapper"><img src="/icons/start3/schwertfarn.png" alt=""></span><span class="lbl">Schwertfarn</span></a>
+      <a href="https://www.google.com/search?hl=de&amp;q=Aktuelles%20Mode" class="tile" title="Mode"><span class="icon-wrapper"><img src="/icons/start3/mode.png" alt=""></span><span class="lbl">Mode</span></a>
+      <a href="https://www.teamviewer.com/de/" class="tile" title="TeamViewer"><span class="icon-wrapper"><img src="/icons/start3/teamviewer.png" alt=""></span><span class="lbl">TeamViewer</span></a>
+      <a href="https://patoisromands.ch/" class="tile" title="Patois romands"><span class="icon-wrapper"><img src="/icons/start3/patois.png" alt=""></span><span class="lbl">Patois romands</span></a>
+      <a href="https://www.google.com/search?hl=de&amp;q=Lieblingskochb%C3%BCcher" class="tile" title="Kochbücher"><span class="icon-wrapper"><img src="/icons/start3/kochbuch.png" alt=""></span><span class="lbl">Kochbücher</span></a>
+      <a href="https://www.google.com/search?hl=de&amp;q=Pr%C3%A4parate%20f%C3%BCr%20Haut%20Apotheke" class="tile" title="Haut"><span class="icon-wrapper"><img src="/icons/start3/haut.png" alt=""></span><span class="lbl">Haut</span></a>
+    </div>
+    <div class="icon-row">
+      <a href="https://www.srf.ch/" class="tile" title="SRF"><span class="icon-wrapper"><img src="/icons/start3/srf.png" alt=""></span><span class="lbl">SRF</span></a>
+      <a href="https://www.heine.ch/" class="tile" title="heine"><span class="icon-wrapper"><img src="/icons/start3/heine.png" alt=""></span><span class="lbl">heine</span></a>
+      <a href="https://www.google.com/search?hl=de&amp;q=Pflege%20von%20Nephrolepis" class="tile" title="Nephrolepis"><span class="icon-wrapper"><img src="/icons/start3/nephrolepis.png" alt=""></span><span class="lbl">Nephrolepis</span></a>
+      <a href="https://de.wikipedia.org/wiki/Drosophila_melanogaster" class="tile" title="Wikipedia"><span class="icon-wrapper"><img src="/icons/start3/wikipedia.png" alt=""></span><span class="lbl">Wikipedia</span></a>
+      <a href="https://www.twint.ch/" class="tile" title="TWINT"><span class="icon-wrapper"><img src="/icons/start3/twint.png" alt=""></span><span class="lbl">TWINT</span></a>
+      <a href="https://www.google.com/search?hl=de&amp;q=Schreibwaren%20Papeterie%20Schweiz" class="tile" title="Schreibwaren"><span class="icon-wrapper"><img src="/icons/start3/schreibwaren.png" alt=""></span><span class="lbl">Schreibwaren</span></a>
+      <a href="https://www.witt-weiden.ch/" class="tile" title="Witt"><span class="icon-wrapper"><img src="/icons/start3/witt.png" alt=""></span><span class="lbl">Witt</span></a>
+      <a href="https://www.bejazz.ch/" class="tile" title="BeJazz"><span class="icon-wrapper"><img src="/icons/start3/bejazz.png" alt=""></span><span class="lbl">BeJazz</span></a>
+    </div>
+    </div>
+
+    <div class="hint">
+        <span style="color:var(--accent)">Enter</span> = Google-Suche •
+        <span style="color:var(--accent)">Esc</span> = löschen
+    </div>
+
+    <script>
+        (function () {
+            var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+            document.body.style.backgroundImage = 'url(/bing-today.jpg?d=' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + ')';
+        })();
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('time').textContent = now.toLocaleTimeString('de-CH', { timeZone: 'Europe/Zurich', hour: '2-digit', minute: '2-digit' });
+            document.getElementById('est').textContent = now.toLocaleTimeString('de-CH', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit' }) + ' ET';
+            document.getElementById('date').textContent = now.toLocaleDateString('de-CH', { timeZone: 'Europe/Zurich', weekday: 'short', day: 'numeric', month: 'long' });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+
+    </script>
+<script>
+(function(){
+ function ic(c){ if(c==0)return'☀️'; if(c<=2)return'🌤️'; if(c==3)return'☁️'; if(c<=48)return'🌫️'; if(c<=57)return'🌦️'; if(c<=67)return'🌧️'; if(c<=77)return'🌨️'; if(c<=82)return'🌧️'; if(c<=86)return'🌨️'; return'⛈️'; }
+ function load(){
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=46.95&longitude=7.45&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe/Zurich&forecast_days=4')
+  .then(function(r){return r.json();}).then(function(d){
+   document.getElementById('wnow').textContent=ic(d.current.weather_code)+' '+Math.round(d.current.temperature_2m)+'°C';
+   var h='';
+   for(var i=0;i<4;i++){ var dt=new Date(d.daily.time[i]+'T12:00:00');
+    var n=i==0?'Heute':dt.toLocaleDateString('de-CH',{weekday:'short'});
+    h+='<div><div>'+n+'</div><div class="wi">'+ic(d.daily.weather_code[i])+'</div><div>'+Math.round(d.daily.temperature_2m_max[i])+'° / '+Math.round(d.daily.temperature_2m_min[i])+'°</div></div>'; }
+   document.getElementById('wdays').innerHTML=h;
+  }).catch(function(){});
+ }
+ load(); setInterval(load, 30*60*1000);
+})();
+</script>
+</body>
+</html>>

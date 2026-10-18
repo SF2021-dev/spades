@@ -27,6 +27,11 @@
     ".sm-slot{position:fixed;z-index:998;pointer-events:none;border:2px dashed #00d4ff;border-radius:10px;background:rgba(0,212,255,.12)}" +
     ".icons-area .icon-row>a,.icons-area .icon-row>a img{-webkit-user-drag:none;user-select:none;touch-action:none}" +
     ".sm-plus{position:fixed;z-index:15;pointer-events:none;align-items:center;justify-content:center;border:2px dashed rgba(255,255,255,.35);border-radius:10px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-weight:300;line-height:1}" +
+    ".sm-thumbs{display:flex;flex-wrap:wrap;gap:8px;padding:6px;max-width:440px}" +
+    ".sm-thumb{display:flex;flex-direction:column;align-items:center;gap:4px;width:80px;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;cursor:pointer;font:11px system-ui,sans-serif}" +
+    ".sm-thumb:hover{background:rgba(0,212,255,.18);border-color:#00d4ff}" +
+    ".sm-thumb img{width:56px;height:56px;object-fit:contain;background:#fff;border-radius:8px}" +
+    ".sm-thumb span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8}" +
     ".sm-pop .sm-head{font-size:12px;opacity:.7;padding:4px 12px}";
   document.head.appendChild(css);
   // fixed slots per row: start.html 9, start2 10 (start3 keeps width-based); those rows are centered
@@ -150,7 +155,8 @@
     delete a.dataset.smNew; save(); closePop();
   }
   function imageMenu(a, btn, url) {
-    showPop(btn, '<div class="sm-head">' + esc(host(url)) + '</div><button class="sm-opt" data-a="up">📁 Upload image</button><button class="sm-opt" data-a="auto">✨ Auto-generate</button>', a);
+    showPop(btn, '<div class="sm-head">' + esc(host(url)) + '</div><button class="sm-opt" data-a="up">📁 Upload image</button><button class="sm-opt" data-a="auto">✨ Auto-generate</button><button class="sm-opt" data-a="db">🔎 Icon from public database</button>', a);
+    q('[data-a="db"]').onclick = function () { dbPicker(a, btn, url); };
     q('[data-a="up"]').onclick = function () {
       var f = document.createElement("input"); f.type = "file"; f.accept = "image/*";
       f.onchange = function () {
@@ -171,13 +177,125 @@
       };
       f.click();
     };
-    q('[data-a="auto"]').onclick = function () {
+    q('[data-a="auto"]').onclick = function () { autoGen(a, url); };
+  }
+  function autoGen(a, url) {
+    {
       var h = host(url), src = "https://www.google.com/s2/favicons?sz=128&domain_url=" + encodeURIComponent(url);
       var test = new Image();
       test.onload = function () { apply(a, url, test.naturalWidth > 16 ? src : letterTile(h)); };
       test.onerror = function () { apply(a, url, letterTile(h)); };
       test.src = src;
     };
+  }
+
+
+  /* ---- "Icon from public database": Simple Icons (CC0) + free no-key favicon services ---- */
+  var SI_KEY = "startmenu:simpleicons:v1", SI_URLS = ["https://cdn.jsdelivr.net/npm/simple-icons@latest/data/simple-icons.json", "https://cdn.jsdelivr.net/npm/simple-icons@latest/_data/simple-icons.json"];
+  function norm(t) { return String(t || "").toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, ""); }
+  function loadSimpleIcons() {
+    try { var c = JSON.parse(localStorage.getItem(SI_KEY) || "null"); if (c && c.t > Date.now() - 7 * 864e5) return Promise.resolve(c.d); } catch (e) {}
+    function tryUrl(i) {
+      if (i >= SI_URLS.length) return Promise.resolve([]);
+      return fetch(SI_URLS[i]).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (j) {
+        var list = Array.isArray(j) ? j : (j.icons || []);
+        // compact: [slug, title, hex, aka-aliases..., source host]
+        var d = list.map(function (x) {
+          var aka = (x.aliases && x.aliases.aka) || [], dup = ((x.aliases && x.aliases.dup) || []).map(function (y) { return y.title; });
+          return [x.slug || norm(x.title), x.title, x.hex, aka.concat(dup).map(norm).join(","), host(x.source || "").replace(/^www\./, "")];
+        });
+        try { localStorage.setItem(SI_KEY, JSON.stringify({ t: Date.now(), d: d })); } catch (e) {}
+        return d;
+      }).catch(function () { return tryUrl(i + 1); });
+    }
+    return tryUrl(0);
+  }
+  function matchSlugs(data, url, title) {
+    var h = host(url).replace(/^www\./, ""), parts = h.split("."), label = norm(parts.length > 1 ? parts[parts.length - 2] : parts[0]);
+    if (parts.length > 2 && /^(co|com|org|net|ac|gov)$/.test(parts[parts.length - 2])) label = norm(parts[parts.length - 3]);
+    var keys = [label, norm(h), norm(title)].filter(function (k) { return k && k.length > 1; }), out = [];
+    data.forEach(function (x) {
+      var al = x[3] ? x[3].split(",") : [], score = 0;
+      if (x[0] === label) score = 5; else if (norm(x[1]) === label) score = 4;
+      else if (keys.indexOf(x[0]) >= 0 || keys.indexOf(norm(x[1])) >= 0) score = 3;
+      else if (al.some(function (k) { return keys.indexOf(k) >= 0; })) score = 2;
+      else if (x[4] && (x[4] === h || x[4].slice(-h.length - 1) === "." + h)) score = 1;
+      if (score) out.push({ s: score, x: x });
+    });
+    out.sort(function (p, q) { return q.s - p.s; });
+    // only keep source-host matches (score 1, e.g. icons whose logo source is on github.com) when nothing better exists,
+    // and only those whose name contains the site label
+    var best = out.length ? out[0].s : 0;
+    out = out.filter(function (o) { return o.s >= 2 ? o.s === best || o.s >= 4 : best === 1 && norm(o.x[1]).indexOf(label) >= 0; });
+    return out.slice(0, 2).map(function (o) { return o.x; });
+  }
+  function tileFromSvg(svgUrl, hex) { // white glyph on brand-color tile, 128px data URL
+    return new Promise(function (res) {
+      var im = new Image(); im.crossOrigin = "anonymous";
+      im.onload = function () {
+        try {
+          var c = document.createElement("canvas"); c.width = c.height = 128; var g = c.getContext("2d");
+          g.fillStyle = "#" + hex; g.beginPath(); if (g.roundRect) g.roundRect(0, 0, 128, 128, 22); else g.rect(0, 0, 128, 128); g.fill();
+          g.drawImage(im, 28, 28, 72, 72); res(c.toDataURL("image/png"));
+        } catch (e) { res(null); }
+      };
+      im.onerror = function () { res(null); }; im.src = svgUrl;
+    });
+  }
+  function probe(src) { // resolves {src,w,h} or null if broken/tiny
+    return new Promise(function (res) {
+      var im = new Image(), done = false, t = setTimeout(function () { if (!done) { done = true; res(null); } }, 6000);
+      im.onload = function () { if (done) return; done = true; clearTimeout(t); var w = im.naturalWidth || 128, h = im.naturalHeight || 128; res(w < 32 || h < 32 ? null : { src: src, w: w, h: h }); };
+      im.onerror = function () { if (done) return; done = true; clearTimeout(t); res(null); };
+      im.src = src;
+    });
+  }
+  function dbCandidates(url, title) {
+    var h = host(url), origin = new URL(url).origin;
+    return loadSimpleIcons().then(function (data) {
+      var si = matchSlugs(data, url, title), jobs = [];
+      si.forEach(function (x) {
+        jobs.push(probe("https://cdn.simpleicons.org/" + x[0]).then(function (r) { if (r) { r.label = x[1] + " (Simple Icons)"; r.kind = "si"; } return r; }));
+        jobs.push(tileFromSvg("https://cdn.simpleicons.org/" + x[0] + "/white", x[2]).then(function (d) { return d ? { src: d, label: x[1] + " tile (Simple Icons)", w: 128, h: 128, kind: "tile" } : null; }));
+      });
+      [[origin + "/apple-touch-icon.png", "site apple-touch-icon"], ["https://www.google.com/s2/favicons?sz=128&domain=" + h, "Google favicon"],
+       ["https://icons.duckduckgo.com/ip3/" + h + ".ico", "DuckDuckGo"], ["https://icon.horse/icon/" + h, "icon.horse"]].forEach(function (c) {
+        jobs.push(probe(c[0]).then(function (r) {
+          if (r && c[1] === "DuckDuckGo" && r.w === 48 && r.h === 48) return null; // DDG's grey "no icon" placeholder (served with a 404)
+          if (r) r.label = c[1]; return r;
+        }));
+      });
+      return Promise.all(jobs);
+    }).then(function (rs) {
+      var seen = {}, out = [];
+      rs.forEach(function (r) {
+        if (!r) return;
+        var k = r.kind === "tile" ? r.src.length + ":" + r.src.slice(-64) : r.kind === "si" ? r.src : r.w + "x" + r.h + ":" + r.label;
+        if (seen[k]) return; seen[k] = 1; out.push(r);
+      });
+      return out.slice(0, 5);
+    });
+  }
+  function dbPicker(a, btn, url) {
+    showPop(btn, '<div class="sm-head">Public icon databases · ' + esc(host(url)) + '</div><div class="sm-db">Searching…</div>', a);
+    var myPop = pop;
+    var sameSite = host(a.getAttribute("href") || "") === host(url);
+    dbCandidates(url, sameSite ? a.getAttribute("title") || "" : "").then(function (list) {
+      if (pop !== myPop) return; // menu was closed meanwhile
+      var box = q(".sm-db");
+      if (!list.length) {
+        box.innerHTML = '<div style="padding:6px 12px">No icons found for this site.</div><button class="sm-opt" data-a="auto">✨ Auto-generate</button>';
+        q('[data-a="auto"]').onclick = function () { autoGen(a, url); };
+        return;
+      }
+      box.innerHTML = '<div class="sm-thumbs">' + list.map(function (c, i) {
+        return '<button class="sm-thumb" data-i="' + i + '" title="' + esc(c.label) + '"><img src="' + esc(c.src) + '" alt=""><span>' + esc(c.label) + '</span></button>';
+      }).join("") + '</div>';
+      [].forEach.call(pop.querySelectorAll(".sm-thumb"), function (b) { b.onclick = function () { apply(a, url, list[+b.dataset.i].src); }; });
+      var pr = pop.getBoundingClientRect(); // keep the grown picker on screen
+      if (pr.bottom > innerHeight - 8) pop.style.top = Math.max(8, innerHeight - 8 - pr.height) + "px";
+      if (pr.right > innerWidth - 8) pop.style.left = Math.max(8, innerWidth - 8 - pr.width) + "px";
+    });
   }
 
   function decorate() {

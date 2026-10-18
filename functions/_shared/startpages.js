@@ -1,5 +1,5 @@
 // Shared helpers for start-page owners (/api/startlogin, /api/startlayout). D1 binding "DB".
-export const PAGES = { start2: 1, start3: 1 };
+export const PAGES = { start: 1, start2: 1, start3: 1 };
 export const SESSION_DAYS = 365;
 const enc = new TextEncoder();
 const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");

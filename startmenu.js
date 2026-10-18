@@ -4,7 +4,9 @@
 (function () {
   var KEY = "startmenu:" + location.pathname.replace(/index\.html$/, ""); // old per-browser layout (only read once, for migration)
   // start2 = Judy's page, start3 = Christina's page; layouts live on the server (/api/startlayout). /start.html is not editable.
-  var PAGE = (location.pathname.match(/\/(start[23])(\/|\/index\.html)?$/) || [])[1] || null;
+  // /start or /start.html = site owner's page; start2 = Judy; start3 = Christina
+  var PAGE = (location.pathname.match(/\/(start[23]?)(\.html|\/|\/index\.html)?$/) || [])[1] || null;
+  if (PAGE === "start" && /\/$/.test(location.pathname)) PAGE = null;
   if (!PAGE) return;
   var CACHE = "startlayout-cache:" + PAGE, canEdit = false;
   var area = document.querySelector(".icons-area");
@@ -41,7 +43,7 @@
     ".sm-pop .sm-head{font-size:12px;opacity:.7;padding:4px 12px}";
   document.head.appendChild(css);
   // fixed slots per row: start.html 9, start2 10 (start3 keeps width-based); those rows are centered
-  var FIXED_CAP = /\/start\.html$/.test(location.pathname) ? 9 : /\/start[23]\/?(index\.html)?$/.test(location.pathname) ? 10 : 0;
+  var FIXED_CAP = PAGE === "start" ? 9 : PAGE ? 10 : 0;
   if (FIXED_CAP) css.textContent += ".icons-area .icon-row{justify-content:center}";
 
   function rows() { return [].slice.call(area.querySelectorAll(".icon-row")); }
@@ -520,7 +522,9 @@
 
   /* ---- server layout + owner login ---- */
   function setEdit(on) { canEdit = !!on; decorate(); if (!on) { closePop(); showPlus(null); } lock.classList.toggle("sm-on", canEdit); lock.textContent = canEdit ? "🔓" : "🔒"; }
-  var ownerName = PAGE === "start2" ? "Judy" : "Christina";
+  var ownerName = PAGE === "start2" ? "Judy" : PAGE === "start3" ? "Christina" : "Owner";
+  // old per-browser layouts: /start.html was also saved as /start (pretty URL)
+  var OLD_KEYS = PAGE === "start" ? ["startmenu:/start", "startmenu:/start.html"] : [KEY];
   var lock = document.createElement("button"); lock.type = "button"; lock.className = "sm-lock"; lock.textContent = "🔒"; lock.title = "Owner login";
   document.body.appendChild(lock);
   function loginBox() {
@@ -549,11 +553,13 @@
   lock.addEventListener("click", function (e) { e.stopPropagation(); if (pop) { closePop(); return; } if (canEdit) ownerMenu(); else loginBox(); });
   // one-time: an old per-browser layout from before server saving
   function offerMigration() {
-    var old = null; try { old = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+    var old = null, oldKey = null;
+    OLD_KEYS.forEach(function (k) { if (old) return; try { var v = JSON.parse(localStorage.getItem(k) || "null"); if (v && v.length) { old = v; oldKey = k; } } catch (e) {} });
     if (!old || !old.length) return;
     var ok = confirm("This browser has a saved layout for this page from before. Use my saved layout for everyone?");
-    if (ok && template) { render(old); save(old).then(function (done) { if (done) localStorage.removeItem(KEY); }); }
-    else localStorage.removeItem(KEY);
+    function clear() { OLD_KEYS.forEach(function (k) { localStorage.removeItem(k); }); }
+    if (ok && template) { render(old); save(old).then(function (done) { if (done) clear(); }); }
+    else clear();
   }
   var cached = null; try { cached = JSON.parse(localStorage.getItem(CACHE) || "null"); } catch (e) {}
   if (cached && cached.length && template) render(cached); // fast paint; the server copy below wins

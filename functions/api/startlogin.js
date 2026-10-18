@@ -1,4 +1,4 @@
-// Start-page owner login. GET ?page=start2|start3 -> {page, owner (name), loggedIn}
+// Start-page owner login. GET ?page=start|start2|start3 -> {page, owner (name), loggedIn}
 // POST {page,password} -> sets HttpOnly cookie ds_start_<page> (1 year). 5 wrong tries per 15 min per IP -> 429.
 // POST {page, action:"logout"} -> clears it.
 import { wrap, json, readJson, HttpError, verifyPassword } from "../_shared/auth.js";

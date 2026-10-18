@@ -1,4 +1,4 @@
-// Start-page layouts. GET ?page=start2|start3 (public) -> {page, layout|null, updated_at}
+// Start-page layouts. GET ?page=start|start2|start3 (public) -> {page, layout|null, updated_at}
 // PUT ?page=... (owner cookie ds_start_<page> required) body {layout:[{top,items:[{href,title,img,label}]}]}
 //   Uploaded/generated icons arrive as data:image/... URLs; they are stored in D1 msg_images (<=200 KB each)
 //   and replaced with /api/img/<id>. Returns the stored layout.

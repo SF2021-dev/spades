@@ -20,6 +20,12 @@
     ".sm-pop .sm-row{display:flex;justify-content:flex-end;gap:6px;padding:4px 6px}" +
     ".sm-pop .sm-row button{padding:5px 12px;border-radius:6px;border:0;cursor:pointer;font:inherit}" +
     ".sm-pop .sm-ok{background:#00d4ff;color:#000}" +
+    ".sm-ghost{position:fixed;z-index:999;pointer-events:none;opacity:.85;transform:scale(1.05);box-shadow:0 18px 40px rgba(0,0,0,.7);border-radius:10px;overflow:hidden}" +
+    ".sm-ghost .sm-dots{display:none}" +
+    ".sm-dragging{opacity:.3;outline:2px dashed #00d4ff;outline-offset:2px}" +
+    ".sm-target{outline:3px solid #00d4ff;outline-offset:2px}" +
+    ".sm-slot{position:fixed;z-index:998;pointer-events:none;border:2px dashed #00d4ff;border-radius:10px;background:rgba(0,212,255,.12)}" +
+    ".icons-area .icon-row>a,.icons-area .icon-row>a img{-webkit-user-drag:none;user-select:none;touch-action:none}" +
     ".sm-pop .sm-head{font-size:12px;opacity:.7;padding:4px 12px}";
   document.head.appendChild(css);
 
@@ -80,10 +86,18 @@
     rows().forEach(function (r) { if (!items(r).length && !r.classList.contains("top-row")) r.remove(); });
   }
 
-  var pop = null, openItem = null;
-  function closePop() { if (pop) pop.remove(); pop = null; if (openItem) openItem.classList.remove("sm-open"); openItem = null; }
+  var pop = null, openItem = null, justOpened = false;
+  function closePop(keep) {
+    if (pop) pop.remove(); pop = null;
+    if (openItem) {
+      openItem.classList.remove("sm-open");
+      if (!keep && openItem.dataset.smNew) { var r = openItem.parentNode; openItem.remove(); if (r && !items(r).length && !r.classList.contains("top-row")) r.remove(); }
+    }
+    openItem = null;
+  }
   function showPop(anchorEl, html, a) {
-    closePop(); openItem = a; a.classList.add("sm-open");
+    closePop(true); openItem = a; a.classList.add("sm-open");
+    justOpened = true; setTimeout(function () { justOpened = false; }, 0);
     pop = document.createElement("div"); pop.className = "sm-pop"; pop.innerHTML = html;
     pop.addEventListener("click", function (e) { e.stopPropagation(); });
     document.body.appendChild(pop);
@@ -129,7 +143,7 @@
     if (!t || host(url) !== oldHost) { a.setAttribute("title", host(url).replace(/^www\./, "")); var l = a.querySelector(".lbl"); if (l) l.textContent = a.getAttribute("title"); }
     var img = a.querySelector("img");
     if (img) { img.removeAttribute("onerror"); img.src = src; }
-    save(); closePop();
+    delete a.dataset.smNew; save(); closePop();
   }
   function imageMenu(a, btn, url) {
     showPop(btn, '<div class="sm-head">' + esc(host(url)) + '</div><button class="sm-opt" data-a="up">📁 Upload image</button><button class="sm-opt" data-a="auto">✨ Auto-generate</button>', a);
@@ -174,9 +188,132 @@
     });
   }
 
+
+  /* ---- drag to swap/move, click blank row spot or below last row to add ---- */
+  function normalRows() { return rows().filter(function (r) { return !r.classList.contains("top-row"); }); }
+  function itemSize(r) { var a = items(r)[0] || area.querySelector(".icon-row > a"); var b = a.getBoundingClientRect(); return { w: b.width, h: b.height }; }
+  function gapOf(r) { return parseFloat(getComputedStyle(r).columnGap) || 12; }
+  function capacity(r) {
+    var sz = itemSize(r), g = gapOf(r), w = r.getBoundingClientRect().width;
+    var fit = Math.max(1, Math.floor((w + g) / (sz.w + g)));
+    return fit;
+  }
+  function insertIndex(r, x, skip) {
+    var n = 0; items(r).forEach(function (a) { if (a === skip) return; var b = a.getBoundingClientRect(); if (b.left + b.width / 2 < x) n++; }); return n;
+  }
+  // where would a point land? {row, index} for a blank spot in a row with room, {newRow:true} below the last row, or null
+  function slotAt(x, y, dragged) {
+    var ar = area.getBoundingClientRect();
+    if (x < ar.left || x > ar.right) return null;
+    var rs = rows();
+    for (var i = 0; i < rs.length; i++) {
+      var r = rs[i], b = r.getBoundingClientRect(), its = items(r);
+      if (y < b.top || y > b.bottom) continue;
+      var onItem = its.some(function (a) { var c = a.getBoundingClientRect(); return x >= c.left && x <= c.right && y >= c.top && y <= c.bottom; });
+      if (onItem) return null;
+      var count = its.filter(function (a) { return a !== dragged; }).length;
+      if (count >= capacity(r)) return null;
+      return { row: r, index: insertIndex(r, x, dragged) };
+    }
+    var last = rs[rs.length - 1]; if (!last) return null;
+    var lb = last.getBoundingClientRect(), sz = itemSize(last);
+    var floor = Math.min(innerHeight - 4, ar.bottom + 50);
+    if (y > lb.bottom && y <= floor && floor - lb.bottom >= 20) return { newRow: true };
+    return null;
+  }
+  function placeAt(a, slot) {
+    var r = slot.row;
+    if (slot.newRow) { var base = normalRows().pop() || rows().pop(); r = base.cloneNode(false); r.className = "icon-row"; area.appendChild(r); }
+    var its = items(r).filter(function (e) { return e !== a; }), ref = its[slot.index || 0] || null;
+    var old = a.parentNode;
+    if (ref) r.insertBefore(a, ref); else { var after = its[its.length - 1]; if (after) after.after(a); else r.insertBefore(a, r.firstChild); }
+    if (old && old !== r && !items(old).length && !old.classList.contains("top-row")) old.remove();
+  }
+  function swap(a, b) {
+    var m = document.createElement("span"); a.before(m); b.before(a); m.replaceWith(b);
+  }
+
+  var drag = null, suppressClick = false, slotBox = null;
+  function showSlot(slot) {
+    if (!slot) { if (slotBox) slotBox.remove(); slotBox = null; return; }
+    if (!slotBox) { slotBox = document.createElement("div"); slotBox.className = "sm-slot"; document.body.appendChild(slotBox); }
+    var sz = itemSize(slot.row || normalRows().pop() || rows()[0]), left, top;
+    if (slot.newRow) { var l = rows()[rows().length - 1].getBoundingClientRect(); var ar = area.getBoundingClientRect(); left = drag.x0 = drag.lastX - sz.w / 2; top = l.bottom + 8; left = Math.max(ar.left, Math.min(left, ar.right - sz.w)); }
+    else {
+      var its = items(slot.row).filter(function (e) { return !drag || e !== drag.a; }), rb = slot.row.getBoundingClientRect(), g = gapOf(slot.row);
+      var prev = its[slot.index - 1], next = its[slot.index];
+      if (prev) left = prev.getBoundingClientRect().right + g / 2 - 2; else if (next) left = next.getBoundingClientRect().left - sz.w - g / 2; else left = rb.left;
+      left = Math.max(rb.left, Math.min(left, rb.right - sz.w));
+      top = rb.top + (rb.height - sz.h) / 2;
+    }
+    slotBox.style.cssText = "left:" + left + "px;top:" + top + "px;width:" + sz.w + "px;height:" + sz.h + "px";
+  }
+  function itemFrom(el) { var a = el && el.closest && el.closest(".icons-area .icon-row > a"); return a || null; }
+
+  area.addEventListener("dragstart", function (e) { e.preventDefault(); });
+  document.addEventListener("pointerdown", function (e) {
+    if (e.button !== 0 || pop) return;
+    if (e.target.closest(".sm-dots")) return;
+    var a = itemFrom(e.target); if (!a) return;
+    drag = { a: a, x: e.clientX, y: e.clientY, lastX: e.clientX, started: false, id: e.pointerId };
+  });
+  document.addEventListener("pointermove", function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag.lastX = e.clientX;
+    if (!drag.started) {
+      if (Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) < 6) return;
+      drag.started = true;
+      var b = box(drag.a), r = b.getBoundingClientRect();
+      drag.ox = drag.x - r.left; drag.oy = drag.y - r.top;
+      drag.ghost = b.cloneNode(true); drag.ghost.classList.add("sm-ghost"); drag.ghost.classList.remove("sm-item");
+      drag.ghost.style.width = r.width + "px"; drag.ghost.style.height = r.height + "px";
+      document.body.appendChild(drag.ghost); drag.a.classList.add("sm-dragging");
+    }
+    e.preventDefault();
+    drag.ghost.style.left = (e.clientX - drag.ox) + "px"; drag.ghost.style.top = (e.clientY - drag.oy) + "px";
+    var over = itemFrom(document.elementFromPoint(e.clientX, e.clientY));
+    if (drag.over && drag.over !== over) box(drag.over).classList.remove("sm-target");
+    drag.over = over && over !== drag.a ? over : null;
+    if (drag.over) { box(drag.over).classList.add("sm-target"); showSlot(null); }
+    else showSlot(slotAt(e.clientX, e.clientY, drag.a));
+  });
+  function endDrag(e, cancel) {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    var d = drag; drag = null;
+    if (!d.started) return;
+    suppressClick = true; setTimeout(function () { suppressClick = false; }, 400);
+    d.ghost.remove(); d.a.classList.remove("sm-dragging"); showSlot(null);
+    if (d.over) box(d.over).classList.remove("sm-target");
+    if (cancel) return;
+    if (d.over) { swap(d.a, d.over); save(); return; }
+    var slot = slotAt(e.clientX, e.clientY, d.a);
+    if (slot) { placeAt(d.a, slot); save(); }
+  }
+  document.addEventListener("pointerup", function (e) { endDrag(e, false); });
+  document.addEventListener("pointercancel", function (e) { endDrag(e, true); });
+
+  function addAt(slot) {
+    var a = build({ href: "https://", title: "New link", img: letterTile("+"), label: "" });
+    a.dataset.smNew = "1";
+    placeAt(a, slot); decorate();
+    editUrl(a, box(a).querySelector(".sm-dots"));
+    var inp = pop && pop.querySelector(".sm-url"); if (inp) { inp.value = ""; inp.placeholder = "example.com"; }
+  }
+  // capture phase so a finished drag never follows the link
+  document.addEventListener("click", function (e) {
+    if (suppressClick) { e.preventDefault(); e.stopPropagation(); suppressClick = false; return; }
+  }, true);
+  document.addEventListener("click", function (e) {
+    if (pop) return; // the other listener closes the menu
+    var t = e.target;
+    if (!(t === document.body || t === document.documentElement || t.classList.contains("background") || t === area || t.classList.contains("icon-row"))) return;
+    var slot = slotAt(e.clientX, e.clientY, null);
+    if (slot && template) { e.stopPropagation(); addAt(slot); }
+  });
+
   var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
   if (saved && saved.length && template) render(saved); else decorate();
-  document.addEventListener("click", function (e) { if (pop && !pop.contains(e.target)) closePop(); });
+  document.addEventListener("click", function (e) { if (pop && !pop.contains(e.target) && !justOpened) closePop(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePop(); });
   window.startMenuReset = function () { localStorage.removeItem(KEY); location.reload(); };
   void defaults;

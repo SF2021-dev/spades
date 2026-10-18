@@ -28,6 +28,9 @@
     ".icons-area .icon-row>a,.icons-area .icon-row>a img{-webkit-user-drag:none;user-select:none;touch-action:none}" +
     ".sm-pop .sm-head{font-size:12px;opacity:.7;padding:4px 12px}";
   document.head.appendChild(css);
+  // fixed slots per row: start.html 9, start2 10 (start3 keeps width-based); those rows are centered
+  var FIXED_CAP = /\/start\.html$/.test(location.pathname) ? 9 : /\/start[23]\/?(index\.html)?$/.test(location.pathname) ? 10 : 0;
+  if (FIXED_CAP) css.textContent += ".icons-area .icon-row{justify-content:center}";
 
   function rows() { return [].slice.call(area.querySelectorAll(".icon-row")); }
   function items(row) { return [].slice.call(row.children).filter(function (e) { return e.tagName === "A"; }); }
@@ -178,6 +181,7 @@
 
   function decorate() {
     rows().forEach(function (r) {
+      if (r.classList.contains("top-row")) return; // locked: no menu, no drag
       items(r).forEach(function (a) {
         var b = box(a); b.classList.add("sm-item");
         if (b.querySelector(".sm-dots")) return;
@@ -195,8 +199,8 @@
   function gapOf(r) { return parseFloat(getComputedStyle(r).columnGap) || 12; }
   function capacity(r) {
     var sz = itemSize(r), g = gapOf(r), w = r.getBoundingClientRect().width;
-    var fit = Math.max(1, Math.floor((w + g) / (sz.w + g)));
-    return fit;
+    if (FIXED_CAP) return FIXED_CAP;
+    return Math.max(1, Math.floor((w + g) / (sz.w + g)));
   }
   function insertIndex(r, x, skip) {
     var n = 0; items(r).forEach(function (a) { if (a === skip) return; var b = a.getBoundingClientRect(); if (b.left + b.width / 2 < x) n++; }); return n;
@@ -209,6 +213,7 @@
     for (var i = 0; i < rs.length; i++) {
       var r = rs[i], b = r.getBoundingClientRect(), its = items(r);
       if (y < b.top || y > b.bottom) continue;
+      if (r.classList.contains("top-row")) return null; // start3 top row is locked
       var onItem = its.some(function (a) { var c = a.getBoundingClientRect(); return x >= c.left && x <= c.right && y >= c.top && y <= c.bottom; });
       if (onItem) return null;
       var count = its.filter(function (a) { return a !== dragged; }).length;
@@ -248,7 +253,7 @@
     }
     slotBox.style.cssText = "left:" + left + "px;top:" + top + "px;width:" + sz.w + "px;height:" + sz.h + "px";
   }
-  function itemFrom(el) { var a = el && el.closest && el.closest(".icons-area .icon-row > a"); return a || null; }
+  function itemFrom(el) { var a = el && el.closest && el.closest(".icons-area .icon-row:not(.top-row) > a"); return a || null; }
 
   area.addEventListener("dragstart", function (e) { e.preventDefault(); });
   document.addEventListener("pointerdown", function (e) {

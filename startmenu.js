@@ -212,7 +212,8 @@
     var rs = rows();
     for (var i = 0; i < rs.length; i++) {
       var r = rs[i], b = r.getBoundingClientRect(), its = items(r);
-      if (y < b.top || y > b.bottom) continue;
+      var slack = gapOf(r) / 2; // a little vertical slack above/below each row
+      if (y < b.top - slack || y > b.bottom + slack) continue;
       if (r.classList.contains("top-row")) return null; // start3 top row is locked
       var onItem = its.some(function (a) { var c = a.getBoundingClientRect(); return x >= c.left && x <= c.right && y >= c.top && y <= c.bottom; });
       if (onItem) return null;
@@ -257,12 +258,12 @@
     }
     slotBox.style.cssText = "left:" + left + "px;top:" + top + "px;width:" + bw + "px;height:" + sz.h + "px" + (bw < 10 ? ";background:#00d4ff;border-radius:3px" : "");
   }
-  // over the middle half of an icon = swap; over its outer 25% edges = insert before/after it (row needs room); gaps/blank = slotAt
+  // over the middle 24% of an icon = swap; over its outer 38% edges = insert before/after it (row needs room); gaps/blank = slotAt
   function dropTarget(x, y, dragged) {
     var over = itemFrom(document.elementFromPoint(x, y));
     if (over && over !== dragged) {
       var b = over.getBoundingClientRect(), f = (x - b.left) / b.width;
-      if (f >= 0.25 && f <= 0.75) return { swap: over };
+      if (f >= 0.38 && f <= 0.62) return { swap: over }; // middle 24% swaps; outer 38% each side inserts
       var r = over.parentNode, count = items(r).filter(function (a) { return a !== dragged; }).length;
       if (count >= capacity(r)) return {};
       return { slot: { row: r, index: insertIndex(r, x, dragged), between: true } };

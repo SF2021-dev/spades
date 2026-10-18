@@ -2,7 +2,11 @@
    Saves per browser in localStorage ("startmenu:<path>"); hardcoded links are the defaults.
    Reset: localStorage.removeItem("startmenu:" + location.pathname) and reload. */
 (function () {
-  var KEY = "startmenu:" + location.pathname.replace(/index\.html$/, "");
+  var KEY = "startmenu:" + location.pathname.replace(/index\.html$/, ""); // old per-browser layout (only read once, for migration)
+  // start2 = Judy's page, start3 = Christina's page; layouts live on the server (/api/startlayout). /start.html is not editable.
+  var PAGE = (location.pathname.match(/\/(start[23])(\/|\/index\.html)?$/) || [])[1] || null;
+  if (!PAGE) return;
+  var CACHE = "startlayout-cache:" + PAGE, canEdit = false;
   var area = document.querySelector(".icons-area");
   if (!area) return;
   var css = document.createElement("style");
@@ -32,6 +36,8 @@
     ".sm-thumb:hover{background:rgba(0,212,255,.18);border-color:#00d4ff}" +
     ".sm-thumb img{width:56px;height:56px;object-fit:contain;background:#fff;border-radius:8px}" +
     ".sm-thumb span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8}" +
+    ".sm-lock{position:fixed;right:6px;bottom:6px;z-index:40;border:0;background:none;font-size:13px;opacity:.18;cursor:pointer;padding:4px}" +
+    ".sm-lock:hover,.sm-lock.sm-on{opacity:.75}" +
     ".sm-pop .sm-head{font-size:12px;opacity:.7;padding:4px 12px}";
   document.head.appendChild(css);
   // fixed slots per row: start.html 9, start2 10 (start3 keeps width-based); those rows are centered
@@ -80,7 +86,25 @@
     rs.slice(state.length).forEach(function (r) { r.remove(); });
     decorate();
   }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(snapshot())); } catch (e) { alert("Couldn't save (browser storage full?)"); } }
+  var saving = Promise.resolve();
+  function save(state) {
+    if (!canEdit) return Promise.resolve(false);
+    var body = JSON.stringify({ layout: state || snapshot() });
+    saving = saving.then(function () {
+      return fetch("/api/startlayout?page=" + PAGE, { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: body })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || ("HTTP " + r.status)); return j; }); })
+        .then(function (j) {
+          try { localStorage.setItem(CACHE, JSON.stringify(j.layout)); } catch (e) {}
+          // swap uploaded data: images for their stored /api/img/ addresses
+          var all = []; rows().forEach(function (r) { all = all.concat(items(r)); });
+          var flat = []; j.layout.forEach(function (r) { flat = flat.concat(r.items); });
+          if (flat.length === all.length) all.forEach(function (a, i) { var im = a.querySelector("img"); if (im && /^data:/.test(im.getAttribute("src") || "")) im.setAttribute("src", flat[i].img); });
+          return true;
+        })
+        .catch(function (e) { alert("Couldn't save the page: " + e.message); if (/owner|Log in/.test(e.message)) setEdit(false); return false; });
+    });
+    return saving;
+  }
 
   // even out the normal rows after a delete; drop empty rows (top-row on start3 stays its own row)
   function relayout() {
@@ -299,6 +323,7 @@
   }
 
   function decorate() {
+    if (!canEdit) { [].forEach.call(area.querySelectorAll(".sm-dots"), function (d) { d.remove(); }); return; }
     rows().forEach(function (r) {
       if (r.classList.contains("top-row")) return; // locked: no menu, no drag
       items(r).forEach(function (a) {
@@ -394,6 +419,7 @@
 
   area.addEventListener("dragstart", function (e) { e.preventDefault(); });
   document.addEventListener("pointerdown", function (e) {
+    if (!canEdit) return;
     if (e.button !== 0 || pop) return;
     if (e.target.closest(".sm-dots")) return;
     var a = itemFrom(e.target); if (!a) return;
@@ -446,7 +472,7 @@
     if (suppressClick) { e.preventDefault(); e.stopPropagation(); suppressClick = false; return; }
   }, true);
   document.addEventListener("click", function (e) {
-    if (pop) return; // the other listener closes the menu
+    if (pop || !canEdit) return; // the other listener closes the menu
     var t = e.target;
     if (!blankTarget(t)) return;
     var ps = plusSlot(e.clientX, e.clientY);
@@ -487,15 +513,58 @@
     plusEl.style.cssText = "display:flex;left:" + ps.left + "px;top:" + ps.top + "px;width:" + ps.w + "px;height:" + ps.h + "px;font-size:" + Math.round(ps.h * 0.5) + "px";
   }
   document.addEventListener("pointermove", function (e) {
-    if (drag || pop || e.pointerType === "touch" || !template) { showPlus(null); return; }
+    if (!canEdit || drag || pop || e.pointerType === "touch" || !template) { showPlus(null); return; }
     showPlus(blankTarget(e.target) ? plusSlot(e.clientX, e.clientY) : null);
   });
   document.addEventListener("pointerleave", function () { showPlus(null); });
 
-  var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
-  if (saved && saved.length && template) render(saved); else decorate();
+  /* ---- server layout + owner login ---- */
+  function setEdit(on) { canEdit = !!on; decorate(); if (!on) { closePop(); showPlus(null); } lock.classList.toggle("sm-on", canEdit); lock.textContent = canEdit ? "🔓" : "🔒"; }
+  var ownerName = PAGE === "start2" ? "Judy" : "Christina";
+  var lock = document.createElement("button"); lock.type = "button"; lock.className = "sm-lock"; lock.textContent = "🔒"; lock.title = "Owner login";
+  document.body.appendChild(lock);
+  function loginBox() {
+    showPop(lock, '<div class="sm-head">' + esc(ownerName) + '</div><label>Password: <input type="password" class="sm-pw" autocomplete="current-password"></label><div class="sm-err"></div>' +
+      '<div class="sm-row"><button class="sm-cancel">Cancel</button><button class="sm-ok">Log in</button></div>', lock);
+    var inp = q(".sm-pw"); inp.focus();
+    function go() {
+      q(".sm-err").textContent = "";
+      fetch("/api/startlogin", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ page: PAGE, password: inp.value }) })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (x) {
+          if (!x.ok) { if (pop) q(".sm-err").textContent = x.j.error || "Login failed"; return; }
+          closePop(true); setEdit(true); offerMigration();
+        }).catch(function () { if (pop) q(".sm-err").textContent = "Network problem, try again."; });
+    }
+    q(".sm-ok").onclick = go; q(".sm-cancel").onclick = function () { closePop(); };
+    inp.onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); go(); } };
+  }
+  function ownerMenu() {
+    showPop(lock, '<div class="sm-head">Editing as ' + esc(ownerName) + '</div><button class="sm-opt" data-a="out">Log out</button>', lock);
+    q('[data-a="out"]').onclick = function () {
+      fetch("/api/startlogin", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ page: PAGE, action: "logout" }) })
+        .finally(function () { closePop(true); setEdit(false); });
+    };
+  }
+  lock.addEventListener("click", function (e) { e.stopPropagation(); if (pop) { closePop(); return; } if (canEdit) ownerMenu(); else loginBox(); });
+  // one-time: an old per-browser layout from before server saving
+  function offerMigration() {
+    var old = null; try { old = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+    if (!old || !old.length) return;
+    var ok = confirm("This browser has a saved layout for this page from before. Use my saved layout for everyone?");
+    if (ok && template) { render(old); save(old).then(function (done) { if (done) localStorage.removeItem(KEY); }); }
+    else localStorage.removeItem(KEY);
+  }
+  var cached = null; try { cached = JSON.parse(localStorage.getItem(CACHE) || "null"); } catch (e) {}
+  if (cached && cached.length && template) render(cached); // fast paint; the server copy below wins
+  fetch("/api/startlayout?page=" + PAGE, { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (j) {
+    if (drag || pop) return;
+    if (j.layout && j.layout.length && template) { render(j.layout); try { localStorage.setItem(CACHE, JSON.stringify(j.layout)); } catch (e) {} }
+    else if (!j.layout && cached) { render(defaults); localStorage.removeItem(CACHE); }
+  }).catch(function () {});
+  fetch("/api/startlogin?page=" + PAGE, { credentials: "same-origin", cache: "no-store" }).then(function (r) { return r.json(); })
+    .then(function (j) { if (j.loggedIn) { setEdit(true); offerMigration(); } }).catch(function () {});
   document.addEventListener("click", function (e) { if (pop && !pop.contains(e.target) && !justOpened) closePop(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePop(); });
-  window.startMenuReset = function () { localStorage.removeItem(KEY); location.reload(); };
   void defaults;
 })();

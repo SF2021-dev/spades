@@ -242,16 +242,33 @@
   function showSlot(slot) {
     if (!slot) { if (slotBox) slotBox.remove(); slotBox = null; return; }
     if (!slotBox) { slotBox = document.createElement("div"); slotBox.className = "sm-slot"; document.body.appendChild(slotBox); }
-    var sz = itemSize(slot.row || normalRows().pop() || rows()[0]), left, top;
+    var sz = itemSize(slot.row || normalRows().pop() || rows()[0]), left, top, prev, next;
     if (slot.newRow) { var l = rows()[rows().length - 1].getBoundingClientRect(); var ar = area.getBoundingClientRect(); left = drag.x0 = drag.lastX - sz.w / 2; top = l.bottom + 8; left = Math.max(ar.left, Math.min(left, ar.right - sz.w)); }
     else {
       var its = items(slot.row).filter(function (e) { return !drag || e !== drag.a; }), rb = slot.row.getBoundingClientRect(), g = gapOf(slot.row);
-      var prev = its[slot.index - 1], next = its[slot.index];
+      prev = its[slot.index - 1]; next = its[slot.index];
       if (prev) left = prev.getBoundingClientRect().right + g / 2 - 2; else if (next) left = next.getBoundingClientRect().left - sz.w - g / 2; else left = rb.left;
       left = Math.max(rb.left, Math.min(left, rb.right - sz.w));
       top = rb.top + (rb.height - sz.h) / 2;
     }
-    slotBox.style.cssText = "left:" + left + "px;top:" + top + "px;width:" + sz.w + "px;height:" + sz.h + "px";
+    var bw = sz.w;
+    if (!slot.newRow && prev && next) { // insertion bar in the gap between two icons
+      bw = 6; left = (prev.getBoundingClientRect().right + next.getBoundingClientRect().left) / 2 - 3;
+    }
+    slotBox.style.cssText = "left:" + left + "px;top:" + top + "px;width:" + bw + "px;height:" + sz.h + "px" + (bw < 10 ? ";background:#00d4ff;border-radius:3px" : "");
+  }
+  // over the middle half of an icon = swap; over its outer 25% edges = insert before/after it (row needs room); gaps/blank = slotAt
+  function dropTarget(x, y, dragged) {
+    var over = itemFrom(document.elementFromPoint(x, y));
+    if (over && over !== dragged) {
+      var b = over.getBoundingClientRect(), f = (x - b.left) / b.width;
+      if (f >= 0.25 && f <= 0.75) return { swap: over };
+      var r = over.parentNode, count = items(r).filter(function (a) { return a !== dragged; }).length;
+      if (count >= capacity(r)) return {};
+      return { slot: { row: r, index: insertIndex(r, x, dragged), between: true } };
+    }
+    if (over) return {}; // over its own spot
+    var sl = slotAt(x, y, dragged); return sl ? { slot: sl } : {};
   }
   function itemFrom(el) { var a = el && el.closest && el.closest(".icons-area .icon-row:not(.top-row) > a"); return a || null; }
 
@@ -276,11 +293,11 @@
     }
     e.preventDefault();
     drag.ghost.style.left = (e.clientX - drag.ox) + "px"; drag.ghost.style.top = (e.clientY - drag.oy) + "px";
-    var over = itemFrom(document.elementFromPoint(e.clientX, e.clientY));
-    if (drag.over && drag.over !== over) box(drag.over).classList.remove("sm-target");
-    drag.over = over && over !== drag.a ? over : null;
-    if (drag.over) { box(drag.over).classList.add("sm-target"); showSlot(null); }
-    else showSlot(slotAt(e.clientX, e.clientY, drag.a));
+    var tg = dropTarget(e.clientX, e.clientY, drag.a);
+    if (drag.over && drag.over !== tg.swap) box(drag.over).classList.remove("sm-target");
+    drag.over = tg.swap || null; drag.slot = tg.slot || null;
+    if (drag.over) box(drag.over).classList.add("sm-target");
+    showSlot(drag.slot);
   });
   function endDrag(e, cancel) {
     if (!drag || (e && e.pointerId !== drag.id)) return;
@@ -290,9 +307,9 @@
     d.ghost.remove(); d.a.classList.remove("sm-dragging"); showSlot(null);
     if (d.over) box(d.over).classList.remove("sm-target");
     if (cancel) return;
-    if (d.over) { swap(d.a, d.over); save(); return; }
-    var slot = slotAt(e.clientX, e.clientY, d.a);
-    if (slot) { placeAt(d.a, slot); save(); }
+    var tg = dropTarget(e.clientX, e.clientY, d.a);
+    if (tg.swap) { swap(d.a, tg.swap); save(); return; }
+    if (tg.slot) { placeAt(d.a, tg.slot); save(); }
   }
   document.addEventListener("pointerup", function (e) { endDrag(e, false); });
   document.addEventListener("pointercancel", function (e) { endDrag(e, true); });

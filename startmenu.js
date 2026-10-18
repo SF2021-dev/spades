@@ -26,6 +26,7 @@
     ".sm-target{outline:3px solid #00d4ff;outline-offset:2px}" +
     ".sm-slot{position:fixed;z-index:998;pointer-events:none;border:2px dashed #00d4ff;border-radius:10px;background:rgba(0,212,255,.12)}" +
     ".icons-area .icon-row>a,.icons-area .icon-row>a img{-webkit-user-drag:none;user-select:none;touch-action:none}" +
+    ".sm-plus{position:fixed;z-index:15;pointer-events:none;align-items:center;justify-content:center;border:2px dashed rgba(255,255,255,.35);border-radius:10px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-weight:300;line-height:1}" +
     ".sm-pop .sm-head{font-size:12px;opacity:.7;padding:4px 12px}";
   document.head.appendChild(css);
   // fixed slots per row: start.html 9, start2 10 (start3 keeps width-based); those rows are centered
@@ -329,10 +330,49 @@
   document.addEventListener("click", function (e) {
     if (pop) return; // the other listener closes the menu
     var t = e.target;
-    if (!(t === document.body || t === document.documentElement || t.classList.contains("background") || t === area || t.classList.contains("icon-row"))) return;
-    var slot = slotAt(e.clientX, e.clientY, null);
-    if (slot && template) { e.stopPropagation(); addAt(slot); }
+    if (!blankTarget(t)) return;
+    var ps = plusSlot(e.clientX, e.clientY);
+    if (ps && template) { e.stopPropagation(); showPlus(null); addAt(ps.slot); }
   });
+
+  /* ---- "+" tile on hover over an unused position ---- */
+  function blankTarget(t) { return t === document.body || t === document.documentElement || t.classList.contains("background") || t === area || t.classList.contains("icon-row"); }
+  // unused positions sit left/right of a centered row (up to capacity), or one centered slot below the last row
+  function plusSlot(x, y) {
+    var slot = slotAt(x, y, null); if (!slot) return null;
+    var ar = area.getBoundingClientRect();
+    if (slot.newRow) {
+      var last = rows()[rows().length - 1], lb = last.getBoundingClientRect(), sz = itemSize(normalRows().pop() || last), g = gapOf(last);
+      var top = lb.bottom + g, left = ar.left + (ar.width - sz.w) / 2;
+      if (top + sz.h > innerHeight - 4) top = innerHeight - 4 - sz.h;
+      return { slot: slot, left: left, top: top, w: sz.w, h: sz.h };
+    }
+    var r = slot.row, its = items(r), n = its.length, cap = capacity(r), free = cap - n;
+    var sz2 = itemSize(r), g2 = gapOf(r), step = sz2.w + g2, rb = r.getBoundingClientRect();
+    var first = its[0].getBoundingClientRect(), lastI = its[n - 1].getBoundingClientRect();
+    var leftFree = Math.ceil(free / 2), rightFree = free - Math.floor(free / 2), k, lx;
+    // clamp to the row; if the side space is narrower than an icon (odd number of free slots), shrink the tile to fit
+    function fit(lx, idx, top) {
+      var l = Math.max(rb.left, lx), rr = Math.min(rb.right, lx + sz2.w);
+      if (idx === 0) rr = Math.min(rr, first.left - 4); else l = Math.max(l, lastI.right + 4);
+      if (rr - l < 24) return null;
+      return { slot: { row: r, index: idx }, left: l, top: top, w: rr - l, h: sz2.h };
+    }
+    if (x < first.left) { k = Math.ceil((first.left - x) / step); if (k > leftFree) return null; lx = first.left - k * step + g2; return fit(lx, 0, first.top); }
+    if (x > lastI.right) { k = Math.ceil((x - lastI.right) / step); if (k > rightFree) return null; lx = lastI.right + (k - 1) * step + g2; return fit(lx, n, lastI.top); }
+    return null; // gaps between icons: no + (drag-insert only)
+  }
+  var plusEl = null;
+  function showPlus(ps) {
+    if (!ps) { if (plusEl) plusEl.style.display = "none"; return; }
+    if (!plusEl) { plusEl = document.createElement("div"); plusEl.className = "sm-plus"; plusEl.textContent = "+"; document.body.appendChild(plusEl); }
+    plusEl.style.cssText = "display:flex;left:" + ps.left + "px;top:" + ps.top + "px;width:" + ps.w + "px;height:" + ps.h + "px;font-size:" + Math.round(ps.h * 0.5) + "px";
+  }
+  document.addEventListener("pointermove", function (e) {
+    if (drag || pop || e.pointerType === "touch" || !template) { showPlus(null); return; }
+    showPlus(blankTarget(e.target) ? plusSlot(e.clientX, e.clientY) : null);
+  });
+  document.addEventListener("pointerleave", function () { showPlus(null); });
 
   var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
   if (saved && saved.length && template) render(saved); else decorate();

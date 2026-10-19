@@ -580,7 +580,6 @@
 "11953690": "REG PARTNERS",
 "11953691": "REG PARTNERS",
 "11953692": "CUT",
-"11953693": "CUT",
 "11953694": "REG PARTNERS",
 "11953700": "CUT",
 "11953722": "SUI PASS 2 PAB",
@@ -649,7 +648,8 @@
 "11954662": "SINGLES",
 "11954663": "REG PARTNERS",
 "11954664": "LOSER WINS",
-"11954665": "CUT"
+"11954665": "CUT",
+"11954931": "CUT"
 },
 "league": "diamondspaders",
 "manual_overrides": {
@@ -818,11 +818,11 @@
 "tk_ok": [
 "11953655",
 "11953692",
-"11953693",
 "11953694",
 "11953791",
 "11953792",
-"11954659"
+"11954659",
+"11954931"
 ],
 "tour_url": "https://www.myleague.com/diamondspaders/tournament/%s/"
 }

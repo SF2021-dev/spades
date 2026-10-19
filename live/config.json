@@ -649,7 +649,8 @@
 "11954663": "REG PARTNERS",
 "11954664": "LOSER WINS",
 "11954665": "CUT",
-"11954931": "CUT"
+"11954931": "CUT",
+"11954934": "PASS 2"
 },
 "league": "diamondspaders",
 "manual_overrides": {
@@ -822,7 +823,8 @@
 "11953791",
 "11953792",
 "11954659",
-"11954931"
+"11954931",
+"11954934"
 ],
 "tour_url": "https://www.myleague.com/diamondspaders/tournament/%s/"
 }

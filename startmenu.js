@@ -248,13 +248,15 @@
     }
     return tryUrl(0);
   }
-  function matchSlugs(data, url, title) {
+  function matchSlugs(data, url, title, products) {
+    var pk = (products || []).map(norm).filter(Boolean);
     var h = host(url).replace(/^www\./, ""), parts = h.split("."), label = norm(parts.length > 1 ? parts[parts.length - 2] : parts[0]);
     if (parts.length > 2 && /^(co|com|org|net|ac|gov)$/.test(parts[parts.length - 2])) label = norm(parts[parts.length - 3]);
     var keys = [label, norm(h), norm(title)].filter(function (k) { return k && k.length > 1; }), out = [];
     data.forEach(function (x) {
       var al = x[3] ? x[3].split(",") : [], score = 0;
-      if (x[0] === label) score = 5; else if (norm(x[1]) === label) score = 4;
+      if (pk.length && (pk.indexOf(x[0]) >= 0 || pk.indexOf(norm(x[1])) >= 0 || al.some(function (k) { return pk.indexOf(k) >= 0; }))) score = 7; // product (Google Docs)
+      else if (x[0] === label) score = 5; else if (norm(x[1]) === label) score = 4;
       else if (keys.indexOf(x[0]) >= 0 || keys.indexOf(norm(x[1])) >= 0) score = 3;
       else if (al.some(function (k) { return keys.indexOf(k) >= 0; })) score = 2;
       else if (x[4] && (x[4] === h || x[4].slice(-h.length - 1) === "." + h)) score = 1;
@@ -264,8 +266,10 @@
     // only keep source-host matches (score 1, e.g. icons whose logo source is on github.com) when nothing better exists,
     // and only those whose name contains the site label
     var best = out.length ? out[0].s : 0;
-    out = out.filter(function (o) { return o.s >= 2 ? o.s === best || o.s >= 4 : best === 1 && norm(o.x[1]).indexOf(label) >= 0; });
-    return out.slice(0, 2).map(function (o) { return o.x; });
+    var prodHits = out.filter(function (o) { return o.s === 7; });
+    out = out.filter(function (o) { return o.s < 7 && (o.s >= 2 ? o.s === best || o.s >= 4 || prodHits.length : best === 1 && norm(o.x[1]).indexOf(label) >= 0); });
+    var res = prodHits.slice(0, 1).concat(out.slice(0, prodHits.length ? 1 : 2));   // product first, parent brand only as a generic extra
+    return res.map(function (o) { var x = o.x.slice(); x.product = o.s === 7 || !pk.length; return x; });
   }
   function tileFromSvg(svgUrl, hex) { // white glyph on brand-color tile, SZ px data URL (vector, so sharp)
     return new Promise(function (res) {
@@ -280,7 +284,7 @@
       im.onerror = function () { res(null); }; im.src = svgUrl;
     });
   }
-  function proxied(u) { return /^data:/.test(u) || /^https:\/\/cdn\.simpleicons\.org\//.test(u) ? u : "/api/iconfind?page=" + PAGE + "&fetch=" + encodeURIComponent(u); }
+  function proxied(u) { return /^data:/.test(u) || /^https:\/\/(cdn\.simpleicons\.org|api\.iconify\.design)\//.test(u) ? u : "/api/iconfind?page=" + PAGE + "&fetch=" + encodeURIComponent(u); }
   function probe(src, timeout) { // resolves {src,w,h} or null if broken
     return new Promise(function (res) {
       var im = new Image(), done = false, t = setTimeout(function () { if (!done) { done = true; res(null); } }, timeout || 9000);
@@ -296,19 +300,22 @@
     var finder = fetch("/api/iconfind?page=" + PAGE + "&url=" + encodeURIComponent(url), { credentials: "same-origin" })
       .then(function (r) { return r.ok ? r.json() : { candidates: [] }; }).catch(function () { return { candidates: [] }; });
     return Promise.all([finder, loadSimpleIcons()]).then(function (x) {
-      var found = x[0].candidates || [], si = matchSlugs(x[1], url, title || x[0].title || "");
+      var found = x[0].candidates || [], si = matchSlugs(x[1], url, title || x[0].title || "", x[0].products || []);
       found.forEach(function (c) {
-        jobs.push(probe(proxied(c.src)).then(function (r) { if (!r) return null; r.orig = c.src; r.label = c.source; r.svg = !!c.svg; return r; }));
+        jobs.push(probe(proxied(c.src)).then(function (r) { if (!r) return null; r.orig = c.src; r.label = c.source; r.svg = !!c.svg; r.product = c.product !== false; return r; }));
       });
       si.forEach(function (x) {
-        jobs.push(Promise.resolve({ src: "https://cdn.simpleicons.org/" + x[0], orig: "https://cdn.simpleicons.org/" + x[0], w: 0, h: 0, svg: true, label: x[1] + " (Simple Icons)" }));
-        jobs.push(tileFromSvg("https://cdn.simpleicons.org/" + x[0] + "/white", x[2]).then(function (d) { return d ? { src: d, orig: d, w: SZ, h: SZ, svg: true, tile: true, label: x[1] + " tile (Simple Icons)" } : null; }));
+        jobs.push(Promise.resolve({ src: "https://cdn.simpleicons.org/" + x[0], orig: "https://cdn.simpleicons.org/" + x[0], w: 0, h: 0, svg: true, mono: true, product: x.product, label: x[1] + " (Simple Icons)" }));
+        jobs.push(tileFromSvg("https://cdn.simpleicons.org/" + x[0] + "/white", x[2]).then(function (d) { return d ? { src: d, orig: d, w: SZ, h: SZ, svg: true, mono: true, tile: true, product: x.product, label: x[1] + " tile (Simple Icons)" } : null; }));
       });
       return Promise.all(jobs);
     }).then(function (rs) {
       // vectors first, square-ish before wide wordmarks/banners (which shrink to a thin strip in a square icon)
-      function score(r) { var mn = Math.min(r.w, r.h), mx = Math.max(r.w, r.h), wide = mn > 0 && mx > mn * 1.6;
-        if (r.svg) return (wide ? 40000 : 100000) - (r.tile ? 1 : 0); return mn * (wide ? 0.4 : 1); }
+      // product-specific full-color vector > product big raster > product one-color (Simple Icons) > generic parent brand
+      function score(r) { var mn = Math.min(r.w, r.h), mx = Math.max(r.w, r.h), wide = mn > 0 && mx > mn * 1.6, v;
+        if (r.svg && !r.mono) v = 100000; else if (!r.svg) v = 10000 + Math.min(mn, 1024) * 50; else v = 60000;
+        if (r.svg && r.mono) v = 50000 - (r.tile ? 1 : 0);
+        if (wide) v *= 0.5; if (!r.svg && mn < 256) v *= 0.8; if (r.product === false) v *= 0.3; return v; }
       var seen = {}, out = rs.filter(function (r) {
         if (!r) return false;
         if (!r.svg && (Math.max(r.w, r.h) < 128 || Math.min(r.w, r.h) < 48)) return false;
@@ -327,8 +334,8 @@
   function choose(a, url, c) { // render the chosen candidate at SZ and store it on the server
     if (c.tile) { apply(a, url, c.src); return; }
     var im = new Image(); im.crossOrigin = "anonymous";
-    im.onload = function () { try { apply(a, url, toData(fitCanvas(im, "#fff", SZ * 0.06))); } catch (e) { apply(a, url, c.orig); } };
-    im.onerror = function () { apply(a, url, c.orig); };
+    im.onload = function () { try { apply(a, url, toData(fitCanvas(im, "#fff", SZ * 0.06))); } catch (e) { apply(a, url, /^https:/.test(c.orig) ? c.orig : letterTile(host(url))); } };
+    im.onerror = function () { apply(a, url, /^https:/.test(c.orig) ? c.orig : letterTile(host(url))); };
     im.src = proxied(c.orig);
   }
   function dbPicker(a, btn, url) {

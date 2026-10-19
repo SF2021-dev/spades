@@ -33,10 +33,11 @@
     ".sm-slot{position:fixed;z-index:998;pointer-events:none;border:2px dashed #00d4ff;border-radius:10px;background:rgba(0,212,255,.12)}" +
     ".icons-area .icon-row>a,.icons-area .icon-row>a img{-webkit-user-drag:none;user-select:none;touch-action:none}" +
     ".sm-plus{position:fixed;z-index:15;pointer-events:none;align-items:center;justify-content:center;border:2px dashed rgba(255,255,255,.35);border-radius:10px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-weight:300;line-height:1}" +
-    ".sm-thumbs{display:flex;flex-wrap:wrap;gap:8px;padding:6px;max-width:440px}" +
-    ".sm-thumb{display:flex;flex-direction:column;align-items:center;gap:4px;width:80px;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;cursor:pointer;font:11px system-ui,sans-serif}" +
+    ".sm-thumbs{display:flex;flex-wrap:wrap;gap:8px;padding:6px;max-width:540px}" +
+    ".sm-thumb{display:flex;flex-direction:column;align-items:center;gap:3px;width:96px;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:inherit;cursor:pointer;font:11px system-ui,sans-serif}" +
     ".sm-thumb:hover{background:rgba(0,212,255,.18);border-color:#00d4ff}" +
-    ".sm-thumb img{width:56px;height:56px;object-fit:contain;background:#fff;border-radius:8px}" +
+    ".sm-thumb img{width:72px;height:72px;object-fit:contain;background:#fff;border-radius:8px}" +
+    ".sm-thumb small{opacity:.55;font-size:10px}" +
     ".sm-thumb span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8}" +
     ".sm-lock{position:fixed;right:6px;bottom:6px;z-index:40;border:0;background:none;font-size:13px;opacity:.18;cursor:pointer;padding:4px}" +
     ".sm-lock:hover,.sm-lock.sm-on{opacity:.75}" +
@@ -58,13 +59,28 @@
   var defaults = snapshot();
 
   function host(u) { try { return new URL(u).hostname; } catch (e) { return ""; } }
+  // stored icon size: icons render up to ~180 CSS px, so 384px stays sharp at devicePixelRatio 2
+  var SZ = 384;
+  function toData(c) { var w = c.toDataURL("image/webp", 0.9); return /^data:image\/webp/.test(w) && w.length < 750000 ? w : c.toDataURL("image/png"); }
+  function fitCanvas(im, bg, pad) { // center-fit any image into an SZ x SZ canvas (transparent, or bg color with padding)
+    var c = document.createElement("canvas"); c.width = c.height = SZ; var g = c.getContext("2d"), P = pad || 0;
+    if (bg) { g.fillStyle = bg; g.fillRect(0, 0, SZ, SZ); }
+    var iw = im.naturalWidth || SZ, ih = im.naturalHeight || SZ, sc = Math.min((SZ - 2 * P) / iw, (SZ - 2 * P) / ih), w = iw * sc, h = ih * sc;
+    g.imageSmoothingQuality = "high"; g.drawImage(im, (SZ - w) / 2, (SZ - h) / 2, w, h); return c;
+  }
   function letterTile(text) {
     var c = document.createElement("canvas"); c.width = c.height = 128; var g = c.getContext("2d");
     var h = 0; for (var i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) % 360;
     g.fillStyle = "hsl(" + h + ",55%,40%)"; g.fillRect(0, 0, 128, 128);
     g.fillStyle = "#fff"; g.font = "bold 72px system-ui,sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
     g.fillText((text.replace(/^www\./, "")[0] || "?").toUpperCase(), 64, 70);
-    return c.toDataURL("image/png");
+    var big = document.createElement("canvas"); big.width = big.height = SZ; var bg = big.getContext("2d");
+    bg.scale(SZ / 128, SZ / 128); bg.fillStyle = g.fillStyle; // redraw crisply at SZ
+    var h2 = 0; for (var j = 0; j < text.length; j++) h2 = (h2 * 31 + text.charCodeAt(j)) % 360;
+    bg.fillStyle = "hsl(" + h2 + ",55%,40%)"; bg.fillRect(0, 0, 128, 128);
+    bg.fillStyle = "#fff"; bg.font = "bold 72px system-ui,sans-serif"; bg.textAlign = "center"; bg.textBaseline = "middle";
+    bg.fillText((text.replace(/^www\./, "")[0] || "?").toUpperCase(), 64, 70);
+    return big.toDataURL("image/png");
   }
   function build(d) {
     var a = template.cloneNode(true);
@@ -191,10 +207,7 @@
         rd.onload = function () {
           var im = new Image();
           im.onload = function () {
-            var s = 128, c = document.createElement("canvas"); c.width = c.height = s; var g = c.getContext("2d");
-            var sc = Math.min(s / im.width, s / im.height), w = im.width * sc, h = im.height * sc;
-            g.drawImage(im, (s - w) / 2, (s - h) / 2, w, h);
-            apply(a, url, c.toDataURL("image/png"));
+            apply(a, url, toData(fitCanvas(im)));
           };
           im.onerror = function () { alert("That file isn't an image I can read."); };
           im.src = rd.result;
@@ -205,14 +218,13 @@
     };
     q('[data-a="auto"]').onclick = function () { autoGen(a, url); };
   }
-  function autoGen(a, url) {
-    {
-      var h = host(url), src = "https://www.google.com/s2/favicons?sz=128&domain_url=" + encodeURIComponent(url);
-      var test = new Image();
-      test.onload = function () { apply(a, url, test.naturalWidth > 16 ? src : letterTile(h)); };
-      test.onerror = function () { apply(a, url, letterTile(h)); };
-      test.src = src;
-    };
+  function autoGen(a, url) { // best high-res candidate, else a letter tile
+    var myPop = pop; if (pop) { var o = pop.querySelector(".sm-head"); if (o) o.textContent = "Looking for a sharp icon…"; }
+    dbCandidates(url, "").then(function (list) {
+      if (myPop && pop !== myPop) return;
+      var best = list.filter(function (c) { return !c.lowres; })[0];
+      if (best) choose(a, url, best); else apply(a, url, letterTile(host(url)));
+    });
   }
 
 
@@ -255,52 +267,69 @@
     out = out.filter(function (o) { return o.s >= 2 ? o.s === best || o.s >= 4 : best === 1 && norm(o.x[1]).indexOf(label) >= 0; });
     return out.slice(0, 2).map(function (o) { return o.x; });
   }
-  function tileFromSvg(svgUrl, hex) { // white glyph on brand-color tile, 128px data URL
+  function tileFromSvg(svgUrl, hex) { // white glyph on brand-color tile, SZ px data URL (vector, so sharp)
     return new Promise(function (res) {
       var im = new Image(); im.crossOrigin = "anonymous";
       im.onload = function () {
         try {
-          var c = document.createElement("canvas"); c.width = c.height = 128; var g = c.getContext("2d");
-          g.fillStyle = "#" + hex; g.beginPath(); if (g.roundRect) g.roundRect(0, 0, 128, 128, 22); else g.rect(0, 0, 128, 128); g.fill();
-          g.drawImage(im, 28, 28, 72, 72); res(c.toDataURL("image/png"));
+          var c = document.createElement("canvas"); c.width = c.height = SZ; var g = c.getContext("2d"), r = SZ * 0.17, m = SZ * 0.22;
+          g.fillStyle = "#" + hex; g.beginPath(); if (g.roundRect) g.roundRect(0, 0, SZ, SZ, r); else g.rect(0, 0, SZ, SZ); g.fill();
+          g.drawImage(im, m, m, SZ - 2 * m, SZ - 2 * m); res(c.toDataURL("image/png"));
         } catch (e) { res(null); }
       };
       im.onerror = function () { res(null); }; im.src = svgUrl;
     });
   }
-  function probe(src) { // resolves {src,w,h} or null if broken/tiny
+  function proxied(u) { return /^data:/.test(u) || /^https:\/\/cdn\.simpleicons\.org\//.test(u) ? u : "/api/iconfind?page=" + PAGE + "&fetch=" + encodeURIComponent(u); }
+  function probe(src, timeout) { // resolves {src,w,h} or null if broken
     return new Promise(function (res) {
-      var im = new Image(), done = false, t = setTimeout(function () { if (!done) { done = true; res(null); } }, 6000);
-      im.onload = function () { if (done) return; done = true; clearTimeout(t); var w = im.naturalWidth || 128, h = im.naturalHeight || 128; res(w < 32 || h < 32 ? null : { src: src, w: w, h: h }); };
+      var im = new Image(), done = false, t = setTimeout(function () { if (!done) { done = true; res(null); } }, timeout || 9000);
+      im.onload = function () { if (done) return; done = true; clearTimeout(t); res({ src: src, w: im.naturalWidth || 0, h: im.naturalHeight || 0 }); };
       im.onerror = function () { if (done) return; done = true; clearTimeout(t); res(null); };
       im.src = src;
     });
   }
+  // candidates, sharpest first: Wikimedia logo, manifest / apple-touch / og:image (server finder), Simple Icons SVG + tile.
+  // Low-res favicon services only when nothing sharp exists. Never under 128px unless it's a vector.
   function dbCandidates(url, title) {
-    var h = host(url), origin = new URL(url).origin;
-    return loadSimpleIcons().then(function (data) {
-      var si = matchSlugs(data, url, title), jobs = [];
-      si.forEach(function (x) {
-        jobs.push(probe("https://cdn.simpleicons.org/" + x[0]).then(function (r) { if (r) { r.label = x[1] + " (Simple Icons)"; r.kind = "si"; } return r; }));
-        jobs.push(tileFromSvg("https://cdn.simpleicons.org/" + x[0] + "/white", x[2]).then(function (d) { return d ? { src: d, label: x[1] + " tile (Simple Icons)", w: 128, h: 128, kind: "tile" } : null; }));
+    var h = host(url), jobs = [];
+    var finder = fetch("/api/iconfind?page=" + PAGE + "&url=" + encodeURIComponent(url), { credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : { candidates: [] }; }).catch(function () { return { candidates: [] }; });
+    return Promise.all([finder, loadSimpleIcons()]).then(function (x) {
+      var found = x[0].candidates || [], si = matchSlugs(x[1], url, title || x[0].title || "");
+      found.forEach(function (c) {
+        jobs.push(probe(proxied(c.src)).then(function (r) { if (!r) return null; r.orig = c.src; r.label = c.source; r.svg = !!c.svg; return r; }));
       });
-      [[origin + "/apple-touch-icon.png", "site apple-touch-icon"], ["https://www.google.com/s2/favicons?sz=128&domain=" + h, "Google favicon"],
-       ["https://icons.duckduckgo.com/ip3/" + h + ".ico", "DuckDuckGo"], ["https://icon.horse/icon/" + h, "icon.horse"]].forEach(function (c) {
-        jobs.push(probe(c[0]).then(function (r) {
-          if (r && c[1] === "DuckDuckGo" && r.w === 48 && r.h === 48) return null; // DDG's grey "no icon" placeholder (served with a 404)
-          if (r) r.label = c[1]; return r;
-        }));
+      si.forEach(function (x) {
+        jobs.push(Promise.resolve({ src: "https://cdn.simpleicons.org/" + x[0], orig: "https://cdn.simpleicons.org/" + x[0], w: 0, h: 0, svg: true, label: x[1] + " (Simple Icons)" }));
+        jobs.push(tileFromSvg("https://cdn.simpleicons.org/" + x[0] + "/white", x[2]).then(function (d) { return d ? { src: d, orig: d, w: SZ, h: SZ, svg: true, tile: true, label: x[1] + " tile (Simple Icons)" } : null; }));
       });
       return Promise.all(jobs);
     }).then(function (rs) {
-      var seen = {}, out = [];
-      rs.forEach(function (r) {
-        if (!r) return;
-        var k = r.kind === "tile" ? r.src.length + ":" + r.src.slice(-64) : r.kind === "si" ? r.src : r.w + "x" + r.h + ":" + r.label;
-        if (seen[k]) return; seen[k] = 1; out.push(r);
-      });
-      return out.slice(0, 5);
+      // vectors first, square-ish before wide wordmarks/banners (which shrink to a thin strip in a square icon)
+      function score(r) { var mn = Math.min(r.w, r.h), mx = Math.max(r.w, r.h), wide = mn > 0 && mx > mn * 1.6;
+        if (r.svg) return (wide ? 40000 : 100000) - (r.tile ? 1 : 0); return mn * (wide ? 0.4 : 1); }
+      var seen = {}, out = rs.filter(function (r) {
+        if (!r) return false;
+        if (!r.svg && (Math.max(r.w, r.h) < 128 || Math.min(r.w, r.h) < 48)) return false;
+        var k = r.svg ? r.orig : r.w + "x" + r.h + ":" + r.label.split(" ")[0]; if (seen[k]) return false; seen[k] = 1; return true;
+      }).sort(function (p, q) { return score(q) - score(p); });
+      if (out.length) return out.slice(0, 5);
+      // nothing sharp: low-res fallbacks
+      return Promise.all([["https://www.google.com/s2/favicons?sz=128&domain=" + h, "Google favicon"], ["https://icons.duckduckgo.com/ip3/" + h + ".ico", "DuckDuckGo"], ["https://icon.horse/icon/" + h, "icon.horse"]].map(function (c) {
+        return probe(c[0], 6000).then(function (r) {
+          if (!r || r.w < 32 || (c[1] === "DuckDuckGo" && r.w === 48 && r.h === 48)) return null;
+          r.orig = c[0]; r.label = c[1] + " (low-res)"; r.lowres = true; return r;
+        });
+      })).then(function (l) { return l.filter(Boolean); });
     });
+  }
+  function choose(a, url, c) { // render the chosen candidate at SZ and store it on the server
+    if (c.tile) { apply(a, url, c.src); return; }
+    var im = new Image(); im.crossOrigin = "anonymous";
+    im.onload = function () { try { apply(a, url, toData(fitCanvas(im, "#fff", SZ * 0.06))); } catch (e) { apply(a, url, c.orig); } };
+    im.onerror = function () { apply(a, url, c.orig); };
+    im.src = proxied(c.orig);
   }
   function dbPicker(a, btn, url) {
     showPop(btn, '<div class="sm-head">Public icon databases · ' + esc(host(url)) + '</div><div class="sm-db">Searching…</div>', a);
@@ -315,9 +344,10 @@
         return;
       }
       box.innerHTML = '<div class="sm-thumbs">' + list.map(function (c, i) {
-        return '<button class="sm-thumb" data-i="' + i + '" title="' + esc(c.label) + '"><img src="' + esc(c.src) + '" alt=""><span>' + esc(c.label) + '</span></button>';
+        var size = c.svg && !c.w ? "vector" : c.w + "×" + c.h + (c.svg ? " · vector" : "");
+        return '<button class="sm-thumb" data-i="' + i + '" title="' + esc(c.label) + '"><img src="' + esc(c.src) + '" alt=""><span>' + esc(c.label) + '</span><small>' + esc(size) + '</small></button>';
       }).join("") + '</div>';
-      [].forEach.call(pop.querySelectorAll(".sm-thumb"), function (b) { b.onclick = function () { apply(a, url, list[+b.dataset.i].src); }; });
+      [].forEach.call(pop.querySelectorAll(".sm-thumb"), function (b) { b.onclick = function () { b.disabled = true; choose(a, url, list[+b.dataset.i]); }; });
       var pr = pop.getBoundingClientRect(); // keep the grown picker on screen
       if (pr.bottom > innerHeight - 8) pop.style.top = Math.max(8, innerHeight - 8 - pr.height) + "px";
       if (pr.right > innerWidth - 8) pop.style.left = Math.max(8, innerWidth - 8 - pr.width) + "px";

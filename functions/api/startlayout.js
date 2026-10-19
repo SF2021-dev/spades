@@ -1,10 +1,10 @@
 // Start-page layouts. GET ?page=start|start2|start3 (public) -> {page, layout|null, updated_at}
 // PUT ?page=... (owner cookie ds_start_<page> required) body {layout:[{top,items:[{href,title,img,label}]}]}
-//   Uploaded/generated icons arrive as data:image/... URLs; they are stored in D1 msg_images (<=200 KB each)
+//   Uploaded/generated icons arrive as data:image/... URLs; they are stored in D1 msg_images (<=600 KB each)
 //   and replaced with /api/img/<id>. Returns the stored layout.
 import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
 import { pageParam, isOwner } from "../_shared/startpages.js";
-const MAX_JSON = 400 * 1024, MAX_IMG = 200 * 1024, MAX_ITEMS = 120, MAX_ROWS = 12;
+const MAX_JSON = 400 * 1024, MAX_IMG = 600 * 1024, MAX_ITEMS = 120, MAX_ROWS = 12;
 
 export const onRequestGet = wrap(async ({ request, env }) => {
   const page = pageParam(new URL(request.url).searchParams.get("page"));
@@ -35,7 +35,7 @@ export const onRequestPut = wrap(async ({ request, env }) => {
   const page = pageParam(new URL(request.url).searchParams.get("page"));
   if (!page) throw new HttpError(400, "Unknown page");
   if (!(await isOwner(request, env, page))) throw new HttpError(403, "Only this page's owner can save it. Log in first.");
-  if (Number(request.headers.get("Content-Length") || 0) > MAX_JSON * 3) throw new HttpError(413, "Too big");
+  if (Number(request.headers.get("Content-Length") || 0) > 6 * 1024 * 1024) throw new HttpError(413, "Too big");
   const b = await readJson(request), now = Date.now(), inserts = [];
   if (!Array.isArray(b.layout) || !b.layout.length || b.layout.length > MAX_ROWS) throw new HttpError(400, "Bad layout");
   let n = 0;
@@ -43,7 +43,7 @@ export const onRequestPut = wrap(async ({ request, env }) => {
     if (!row || !Array.isArray(row.items)) throw new HttpError(400, "Bad row");
     return { top: !!row.top, items: row.items.map((it) => {
       if (++n > MAX_ITEMS) throw new HttpError(400, "Too many icons");
-      let img = str(it.img, 300 * 1024);
+      let img = str(it.img, 900 * 1024);
       if (img.startsWith("data:")) {
         const d = decodeImg(img), id = "st" + now.toString(36) + crypto.randomUUID().replace(/-/g, "").slice(0, 10);
         inserts.push(env.DB.prepare("INSERT INTO msg_images (id, name, mime, bytes, data, t) VALUES (?, ?, ?, ?, ?, ?)").bind(id, "startpage:" + page, d.mime, d.data.length, d.data, now));

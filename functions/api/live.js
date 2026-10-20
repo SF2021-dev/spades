@@ -208,7 +208,8 @@ function makeRenderer(cfg, names = {}) {
   }
   function day(tours, d, today) {
     const dl = dayLabel(d, today), cells = [], keys = [];
-    for (const t of tours) {
+    const bot = (cfg.bottom || []).map(String), bk = t => { const i = bot.indexOf(String(t.id)); return i < 0 ? 0 : i + 1; };
+    for (const t of [...tours].sort((a, b) => bk(a) - bk(b))) {   // bottom_tours.json: these tiles go last in their day
       if (t.date !== d || !t.winners.length || (cfg.hidden || []).map(String).includes(String(t.id))) continue;
       const clk = clock12(t.h, t.m), lab = label(t);
       const text = dl === "TODAY" || dl === "YESTERDAY" ? `${clk} ${lab}` : `${dl} ${clk} ${lab}`;

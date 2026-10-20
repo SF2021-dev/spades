@@ -119,7 +119,7 @@ const PARSE_SYS = `You convert one question about MyLeague card tournaments into
 Fields:
 - "league": league name or abbreviation exactly as written in the question, or "" if none mentioned.
 - "date_from","date_to": YYYY-MM-DD in US Eastern time. "last night"/"yesterday" = yesterday. A late-night time "last night" (e.g. 11pm) = yesterday. No date mentioned = today, except "last time"/"most recent" questions: use the last 60 days. Weekday names = most recent such day (today or earlier).
-- "time": "HH:MM" 24-hour ET if a time is mentioned, else "".
+- "time": "HH:MM" 24-hour ET if a time is mentioned, else "". A time with no AM/PM from 1:00 to 7:59 means PM (e.g. "1:15" = "13:15"); 8:00 to 11:59 means AM.
 - "ask": one of "winner" (who won), "players" (who was on the winning team), "td" (who ran/hosted), "game" (game type/format/rules), "count_tours" (how many tours), "player_wins" (how many / which tours a player won), "last_win" (when a player last won), "list" (what tours ran / all winners), "unsupported" (anything else, e.g. standings, ratings, who played, scores).
 - "player": player name exactly as written, or "".
 Today is {TODAY} ({WEEKDAY}), current ET time {NOW}. Known leagues: {LEAGUES}.`;

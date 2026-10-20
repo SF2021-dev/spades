@@ -9,6 +9,7 @@ form{display:flex;gap:10px}
 input{flex:1;background:#111;color:#fff;border:2px solid #fbe646;border-radius:8px;padding:14px;font-size:17px;outline:none}
 button{background:#fbe646;color:#000;border:0;border-radius:8px;padding:0 26px;font-size:17px;font-weight:800;cursor:pointer}
 button:disabled{opacity:.5;cursor:wait}
+.searching{color:#fbe646;font-style:italic}.searching::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4) infinite}@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
 #a{margin-top:24px;min-height:60px;border:1px solid #fbe646;border-radius:8px;padding:18px;background:#1a1200;font-size:18px;line-height:1.5;white-space:pre-wrap;display:none}
 </style></head><body><main>
 <h1>ASK MYLEAGUE</h1>
@@ -17,7 +18,7 @@ button:disabled{opacity:.5;cursor:wait}
 <div id="a"></div>
 <script>
 const f=document.getElementById("f"),q=document.getElementById("q"),a=document.getElementById("a"),b=document.getElementById("b");
-f.onsubmit=async e=>{e.preventDefault();const v=q.value.trim();if(!v)return;b.disabled=true;a.style.display="block";a.textContent="…";
-try{const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({q:v})});const d=await r.json();a.textContent=d.answer||"No answer."}
-catch(_){a.textContent="The answer service could not be reached."}b.disabled=false};
+f.onsubmit=async e=>{e.preventDefault();const v=q.value.trim();if(!v)return;b.disabled=true;a.style.display="block";a.className="searching";a.textContent="♠ Searching";
+try{const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({q:v})});const d=await r.json();a.className="";a.textContent=d.answer||"No answer."}
+catch(_){a.className="";a.textContent="The answer service could not be reached."}b.disabled=false};
 </script></main></body></html>

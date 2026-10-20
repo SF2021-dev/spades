@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ask MyLeague · Diamond Spaders</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Segoe UI,Arial,sans-serif;display:flex;justify-content:center}
+main{width:min(720px,92vw);padding:48px 0}
+h1{color:#fbe646;font-size:30px;margin:0 0 6px;letter-spacing:1px}
+p.sub{color:#aaa;margin:0 0 24px;font-size:14px}
+form{display:flex;gap:10px}
+input{flex:1;background:#111;color:#fff;border:2px solid #fbe646;border-radius:8px;padding:14px;font-size:17px;outline:none}
+button{background:#fbe646;color:#000;border:0;border-radius:8px;padding:0 26px;font-size:17px;font-weight:800;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+#a{margin-top:24px;min-height:60px;border:1px solid #fbe646;border-radius:8px;padding:18px;background:#1a1200;font-size:18px;line-height:1.5;white-space:pre-wrap;display:none}
+</style></head><body><main>
+<h1>ASK MYLEAGUE</h1>
+<p class="sub">One question, one answer, from MyLeague's tour data. Times are Eastern.</p>
+<form id="f"><input id="q" maxlength="300" autocomplete="off" placeholder="e.g. Who won last night's TFS at 11pm ET?" autofocus><button id="b">Ask</button></form>
+<div id="a"></div>
+<script>
+const f=document.getElementById("f"),q=document.getElementById("q"),a=document.getElementById("a"),b=document.getElementById("b");
+f.onsubmit=async e=>{e.preventDefault();const v=q.value.trim();if(!v)return;b.disabled=true;a.style.display="block";a.textContent="…";
+try{const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({q:v})});const d=await r.json();a.textContent=d.answer||"No answer."}
+catch(_){a.textContent="The answer service could not be reached."}b.disabled=false};
+</script></main></body></html>

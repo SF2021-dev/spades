@@ -126,12 +126,14 @@ Today is {TODAY} ({WEEKDAY}), current ET time {NOW}. Known leagues: {LEAGUES}.`;
 const ANSWER_SYS = `You answer one question about MyLeague card tournaments using ONLY the DATA given. Rules:
 - Reply with the answer only, in 1-3 short plain sentences. No greeting, no dialogue, no suggestions, no offers, no questions, no requests for clarification.
 - Never invent or guess anything not in DATA. If DATA says the information isn't available, say so plainly in one sentence.
+- If a tour status is "cancelled", say it was cancelled. If "not finished", say it has no winner yet.
 - If DATA marks a tour as "nearest" (no tour at the asked time), say it is the nearest tour that day.
-- Give times exactly as in DATA (ET). Include the winning team's players when DATA lists them. Mention the TD when it is in DATA and relevant.`;
+- Name the tour the answer is about (date and time) and give times exactly as in DATA (ET). Include the winning team's players when DATA lists them. Mention the TD when it is in DATA and relevant.`;
 
 async function ai(env, sys, user, max = 300) {
   const r = await env.AI.run(MODEL, { messages: [{ role: "system", content: sys }, { role: "user", content: user }], max_tokens: max, temperature: 0 });
-  return String(r.response ?? r.result?.response ?? "").trim();
+  const v = r?.response ?? r?.result?.response ?? "";
+  return (typeof v === "string" ? v : JSON.stringify(v)).trim();
 }
 async function parse(env, q, now) {
   const sys = PARSE_SYS.replace("{TODAY}", now.date).replace("{WEEKDAY}", now.weekday).replace("{NOW}", now.time)
@@ -165,7 +167,7 @@ async function run(Q, now) {
     const [hh, mm] = (Q.time || "00:00").split(":").map(Number), want = hh * 60 + mm;
     let best = day[0];
     for (const t of day) if (Math.abs(t.h * 60 + t.m - want) < Math.abs(best.h * 60 + best.m - want)) best = t;
-    const exact = !Q.time || Math.abs(best.h * 60 + best.m - want) <= 10;
+    const exact = !Q.time || Math.abs(best.h * 60 + best.m - want) <= 20;
     const tour = brief(best);
     if (!exact) tour.nearest = `No tour at ${fmtTime(hh, mm)}; this is the nearest tour that day.`;
     const pl = await winnerPlayers(best, slug);
@@ -213,8 +215,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (!env.AI) return json({ answer: "The answer service is not configured." }, 500);
 
   let Q, data, answer;
-  try { Q = await parse(env, q, now); } catch (_) {}
-  if (!Q) return json({ answer: "The question could not be read." });
+  let perr = "";
+  try { Q = await parse(env, q, now); } catch (e) { perr = String(e && e.message || e).slice(0, 200); }
+  if (!Q) return json({ answer: "The question could not be read.", error: perr });
   try { data = await run(Q, now); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now." }; }
   try {
     answer = await ai(env, ANSWER_SYS, `QUESTION: ${q}\nDATA: ${JSON.stringify(data)}`, 350);

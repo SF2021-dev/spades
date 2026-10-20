@@ -681,7 +681,8 @@
 "11955079": "CUT",
 "11955080": "CUT",
 "11955110": "REG PARTNERS",
-"11955120": "SUI PASS 2 PAB"
+"11955120": "SUI PASS 2 PAB",
+"11955128": "CUT"
 },
 "league": "diamondspaders",
 "manual_overrides": {
@@ -861,8 +862,10 @@
 "11953951",
 "11954851",
 "11954890",
+"11955079",
 "11955110",
-"11955120"
+"11955120",
+"11955128"
 ],
 "tour_url": "https://www.myleague.com/diamondspaders/tournament/%s/"
 }

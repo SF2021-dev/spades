@@ -231,6 +231,14 @@ async function build(env, origin) {
   const now = new Date(), et = etParts(now), today = et.date;
   const xml = await fetchCalendar(addDays(today, -2), addDays(today, 2), cfg.league || "diamondspaders");
   const tours = parseCalendar(xml);
+  for (const e of cfg.extra_tours || []) {     // extra_tours.json: hand-run tours not in the feed (never upcoming)
+    const [hh, mm] = String(e.time || "").split(":").map(Number);
+    if (!e.id || !e.date || Number.isNaN(hh) || Number.isNaN(mm)) continue;
+    tours.push({ id: String(e.id), date: e.date, h: hh, m: mm, td: e.td || "", game: e.label || "", status: "extra", perteam: "",
+      winners: [...(e.winners || [])] });
+    if (e.label) { cfg.labels_by_id = { ...(cfg.labels_by_id || {}) }; if (cfg.labels_by_id[e.id] == null) cfg.labels_by_id[e.id] = e.label; }
+  }
+  tours.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.h - b.h) || (a.m - b.m) || (String(a.id) < String(b.id) ? -1 : 1));
   const mw = cfg.manual_winners || {}, mo = cfg.manual_overrides || {};
   for (const t of tours) {
     if (!t.winners.length && mw[t.id]?.length) t.winners = [...mw[t.id]];     // manual winner only where the feed has none
@@ -247,7 +255,7 @@ async function build(env, origin) {
   for (const d of [today, addDays(today, -1), addDays(today, -2)]) days[d] = R.day(tours, d, today);
   // tk_ok (written by update_winners.py): MyLeague ids TourneyKing league 20 lists; only those are shown as upcoming
   const tkOk = Array.isArray(cfg.tk_ok) ? new Set(cfg.tk_ok.map(String)) : null;
-  const upcoming = tours.filter(t => !hidden.has(String(t.id)) && (!tkOk || tkOk.has(String(t.id))) && t.date === today && !t.winners.length && t.status !== "2"
+  const upcoming = tours.filter(t => !hidden.has(String(t.id)) && (!tkOk || tkOk.has(String(t.id))) && t.date === today && !t.winners.length && t.status !== "2" && t.status !== "extra"
     && et.min < t.h * 60 + t.m + 50)
     .map(t => ({ dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td, url: (cfg.tour_url || "").replace("%s", t.id), ava: R.avatar(t.td) || "", ...(R.subtitle(t) ? { sub: R.subtitle(t) } : {}) }));
   return { ok: true, now: now.toISOString(), today, days, tours: upcoming };

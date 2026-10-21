@@ -262,7 +262,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { Q = await parse(env, q, now); } catch (e) { perr = String(e && e.message || e).slice(0, 200); }
   if (!Q) return json({ answer: "The question could not be read.", error: perr });
   try { data = await run(Q, now); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now." }; }
-  try {
+  if (data.info && Object.keys(data).every(k => ["info", "league", "dates", "player"].includes(k))) answer = data.info;
+  else try {
     answer = await ai(env, ANSWER_SYS, `QUESTION: ${q}\nDATA: ${JSON.stringify(data)}`, 350);
   } catch (_) {}
   if (!answer) answer = data.info || "The answer could not be produced.";

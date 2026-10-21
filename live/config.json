@@ -698,7 +698,7 @@
 "11955151": "SUI PASS 2 RANDOM",
 "11955222": "SINGLES",
 "11955269": "SUI PASS 2 PAB",
-"11955392": "CUT"
+"11955394": "CUT"
 },
 "league": "diamondspaders",
 "manual_overrides": {
@@ -896,7 +896,7 @@
 "11955134",
 "11955151",
 "11955269",
-"11955392"
+"11955394"
 ],
 "tour_url": "https://www.myleague.com/diamondspaders/tournament/%s/"
 }

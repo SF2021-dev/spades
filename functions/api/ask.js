@@ -90,7 +90,7 @@ async function range(slug, from, to) {
 // Teams + players from the tour's TEAMS page
 async function teams(t, slug) {
   return cached(`teams/${slug}/${t.id}`, t.status === "finished" ? 86400 : 300, async () => {
-    for (const srv of ["cgi6", "plus2"]) {
+    for (const srv of (REG.servers||{})[slug] === "plus2" ? ["plus2", "cgi6"] : ["cgi6", "plus2"]) {
       try {
         const page = await (await fetch(`https://${srv}.igl.net/tourneysystem/players.php?tcount=${t.id}&path=${slug}`, { headers: { "User-Agent": UA } })).text();
         const m = page.match(/\$\.parseJSON\('([\s\S]*?)'\);/);
@@ -149,7 +149,7 @@ async function parse(env, q, now) {
 async function buxlog(slug, player) {
   return cached(`bux/${slug}/${player.toLowerCase()}`, 300, async () => {
     const body = new URLSearchParams({ name: "", pass: "", final: "1", path: slug, playername: player, timespan: "all" });
-    const t = await (await fetch("https://cgi6.igl.net/tourneysystem/buxlog.php", { method: "POST", body,
+    const t = await (await fetch(`https://${(REG.servers||{})[slug]||"cgi6"}.igl.net/tourneysystem/buxlog.php`, { method: "POST", body,
       headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" } })).text();
     const nm = t.match(/([^\s>|]+) LadderBux Log \(Player I\.D\. is (\d+)\)/);
     if (!nm) return null;

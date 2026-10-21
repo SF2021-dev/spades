@@ -1,11 +1,37 @@
 {
   "_help": "One line per league: \"slug\": [\"names and abbreviations people might type\"]. The slug is the part after myleague.com/ in the league's URL.",
   "leagues": {
-    "diamondspaders": ["Diamond Spaders", "Diamonds Spaders", "DS", "Diamonds", "Diamond"],
-    "teamtfriends": ["TFS", "Team T Friends", "TeamTFriends", "T Friends"],
-    "ams": ["AMS"],
-    "hardwood": ["Hardwood", "Just4Fun", "Just 4 Fun", "J4F", "HW"]
+    "diamondspaders": [
+      "Diamond Spaders",
+      "Diamonds Spaders",
+      "DS",
+      "Diamonds",
+      "Diamond"
+    ],
+    "teamtfriends": [
+      "TFS",
+      "Team T Friends",
+      "TeamTFriends",
+      "T Friends"
+    ],
+    "ams": [
+      "AMS"
+    ],
+    "hardwood": [
+      "Hardwood",
+      "Just4Fun",
+      "Just 4 Fun",
+      "J4F",
+      "HW"
+    ]
   },
   "default": "diamondspaders",
-  "aliases": { "Looks__": "Lookslikeapickel" }
+  "aliases": {
+    "Looks__": "Lookslikeapickel"
+  },
+  "servers": {
+    "_help": "tourneysystem host per league (MyLeague Plus leagues use plus2); default cgi6",
+    "ams": "plus2",
+    "hardwood": "plus2"
+  }
 }

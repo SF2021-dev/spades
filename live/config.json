@@ -108,6 +108,17 @@
 "zappycow": "https://diamondspaders.online/ZappyCow-ava.png"
 },
 "bottom": [],
+"extra_tours": [
+{
+"date": "2026-10-21",
+"id": "manual-20261021-1315",
+"label": "CUT",
+"time": "13:15",
+"winners": [
+"BluAngel1950"
+]
+}
+],
 "fonts": {
 "10:15 AM|apearl_521": 20,
 "10:15 AM|coastalkat": 20,
@@ -698,7 +709,8 @@
 "11955151": "SUI PASS 2 RANDOM",
 "11955222": "SINGLES",
 "11955269": "SUI PASS 2 PAB",
-"11955394": "CUT"
+"11955394": "CUT",
+"manual-20261021-1315": "CUT"
 },
 "league": "diamondspaders",
 "manual_overrides": {
@@ -896,7 +908,8 @@
 "11955134",
 "11955151",
 "11955269",
-"11955394"
+"11955394",
+"manual-20261021-1315"
 ],
 "tour_url": "https://www.myleague.com/diamondspaders/tournament/%s/"
 }

@@ -118,7 +118,7 @@ const brief = t => ({ date: fmtDate(t.date), time: fmtTime(t.h, t.m), td: t.td, 
 const PARSE_SYS = `You convert one question about MyLeague card tournaments into JSON. Output ONLY a JSON object, no prose.
 Fields:
 - "league": league name or abbreviation exactly as written in the question, or "" if none mentioned.
-- "date_from","date_to": YYYY-MM-DD in US Eastern time. "last night"/"yesterday" = yesterday. A late-night time "last night" (e.g. 11pm) = yesterday. No date mentioned = today, except "last time"/"most recent" questions: use the last 60 days. Weekday names = most recent such day (today or earlier).
+- "date_from","date_to": YYYY-MM-DD in US Eastern time. "last night"/"yesterday" = yesterday. A late-night time "last night" (e.g. 11pm) = yesterday. No date mentioned = today, except "last time"/"most recent" questions: for "player_tours" leave both dates "" (whole history); for "last_win" use the last 60 days. Weekday names = most recent such day (today or earlier).
 - "time": "HH:MM" 24-hour ET if a time is mentioned, else "". A time with no AM/PM from 1:00 to 7:59 means PM (e.g. "1:15" = "13:15"); 8:00 to 11:59 means AM.
 - "ask": one of "winner" (who won), "players" (who was on the winning team), "td" (who ran/hosted), "game" (game type/format/rules), "count_tours" (how many tours), "player_wins" (how many / which tours a player won), "last_win" (when a player last won), "list" (what tours ran / all winners), "player_tours" (how many / which tours a player played, entered or joined, when a player last played, a player's placings / 2nd / 3rd places / bux won), "unsupported" (anything else, e.g. standings, ratings, who played, scores).
 - "player": player name exactly as written, or "". If the question says "I"/"me"/"my" and gives no name, use "".
@@ -261,6 +261,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   let perr = "";
   try { Q = await parse(env, q, now); } catch (e) { perr = String(e && e.message || e).slice(0, 200); }
   if (!Q) return json({ answer: "The question could not be read.", error: perr });
+  // Player-history questions with no period in the question: search the whole log, never a default window
+  const PERIOD = /\b(today|tonight|yesterday|night|morning|afternoon|evening|week|month|year|since|between|before|after|until|days?|ago|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december|monday|tuesday|wednesday|thursday|friday|saturday|sunday|20\d\d)\b|\d{1,2}\/\d{1,2}/i;
+  if (Q.ask === "player_tours" && !PERIOD.test(q)) { Q.date_from = ""; Q.date_to = ""; }
   try { data = await run(Q, now); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now." }; }
   if (data.info && Object.keys(data).every(k => ["info", "league", "dates", "player"].includes(k))) answer = data.info;
   else try {

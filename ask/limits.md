@@ -6,7 +6,7 @@ Works (any league in leagues.json, last ~60 days, times in ET):
 - How many tours ran in a league on a day or in a date range.
 - How many tours a player won (and which) on a day or in a range.
 - List of a day's tours and winners.
-- How many tours a player played (entered), with 1st/2nd/3rd counts, bux won and last entry, all time or for a date range. Source: the league's public Ladderbux log on cgi6.igl.net (full history for that league; Ochwiay's starts Jun 20, 2026).
+- How many tours a player played (entered), with 1st/2nd/3rd counts, bux won and last entry, all time or for a date range. Any player-history question with no period (including "when did X last play") searches the player's entire log, not 60 days. Source: the league's public Ladderbux log (cgi6.igl.net, or plus2.igl.net for MyLeague Plus leagues such as AMS and Just4Fun) (full history for that league; Ochwiay's starts Jun 20, 2026).
 - When a player last won a tour in a league (searches back up to 60 days).
 
 Not reachable / not supported yet:
@@ -16,5 +16,5 @@ Not reachable / not supported yet:
 - Ladder standings, ratings, Ladderbux balances, player profiles.
 - Leagues not in leagues.json (add them there).
 - Tour names that exist only on the tour's own page (the feed has the format text, e.g. "2 VS 2").
-- More than 60 days back.
+- More than 60 days back for winner/calendar questions (player tours-played history has no limit).
 - Player wins inside team tours where the feed lists only the team name (counted only when the TEAMS page is checked, which is done for single-tour questions).

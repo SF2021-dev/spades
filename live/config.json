@@ -117,6 +117,15 @@
 "winners": [
 "BluAngel1950"
 ]
+},
+{
+"date": "2026-10-21",
+"id": "manual-20261021-1415",
+"label": "CUT MIRRORS",
+"time": "14:15",
+"winners": [
+"TATSUJIN"
+]
 }
 ],
 "fonts": {
@@ -710,7 +719,8 @@
 "11955222": "SINGLES",
 "11955269": "SUI PASS 2 PAB",
 "11955394": "CUT",
-"manual-20261021-1315": "CUT"
+"manual-20261021-1315": "CUT",
+"manual-20261021-1415": "CUT MIRRORS"
 },
 "league": "diamondspaders",
 "manual_overrides": {
@@ -909,7 +919,8 @@
 "11955151",
 "11955269",
 "11955394",
-"manual-20261021-1315"
+"manual-20261021-1315",
+"manual-20261021-1415"
 ],
 "tour_url": "https://www.myleague.com/diamondspaders/tournament/%s/"
 }

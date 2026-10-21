@@ -120,8 +120,9 @@ Fields:
 - "league": league name or abbreviation exactly as written in the question, or "" if none mentioned.
 - "date_from","date_to": YYYY-MM-DD in US Eastern time. "last night"/"yesterday" = yesterday. A late-night time "last night" (e.g. 11pm) = yesterday. No date mentioned = today, except "last time"/"most recent" questions: use the last 60 days. Weekday names = most recent such day (today or earlier).
 - "time": "HH:MM" 24-hour ET if a time is mentioned, else "". A time with no AM/PM from 1:00 to 7:59 means PM (e.g. "1:15" = "13:15"); 8:00 to 11:59 means AM.
-- "ask": one of "winner" (who won), "players" (who was on the winning team), "td" (who ran/hosted), "game" (game type/format/rules), "count_tours" (how many tours), "player_wins" (how many / which tours a player won), "last_win" (when a player last won), "list" (what tours ran / all winners), "unsupported" (anything else, e.g. standings, ratings, who played, scores).
-- "player": player name exactly as written, or "".
+- "ask": one of "winner" (who won), "players" (who was on the winning team), "td" (who ran/hosted), "game" (game type/format/rules), "count_tours" (how many tours), "player_wins" (how many / which tours a player won), "last_win" (when a player last won), "list" (what tours ran / all winners), "player_tours" (how many / which tours a player played, entered or joined, when a player last played, a player's placings / 2nd / 3rd places / bux won), "unsupported" (anything else, e.g. standings, ratings, who played, scores).
+- "player": player name exactly as written, or "". If the question says "I"/"me"/"my" and gives no name, use "".
+- For "player_tours": if no date or period is mentioned, set "date_from" and "date_to" to "" (meaning all time).
 Today is {TODAY} ({WEEKDAY}), current ET time {NOW}. Known leagues: {LEAGUES}.`;
 const ANSWER_SYS = `You answer one question about MyLeague card tournaments using ONLY the DATA given. Rules:
 - Reply with the answer only, in 1-3 short plain sentences. No greeting, no dialogue, no suggestions, no offers, no questions, no requests for clarification.
@@ -143,11 +144,53 @@ async function parse(env, q, now) {
   return m ? JSON.parse(m[0]) : null;
 }
 
+
+// Player's full tour history: the league's public Ladderbux log (every entry fee + placing bux), cgi6.igl.net, no login.
+async function buxlog(slug, player) {
+  return cached(`bux/${slug}/${player.toLowerCase()}`, 300, async () => {
+    const body = new URLSearchParams({ name: "", pass: "", final: "1", path: slug, playername: player, timespan: "all" });
+    const t = await (await fetch("https://cgi6.igl.net/tourneysystem/buxlog.php", { method: "POST", body,
+      headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" } })).text();
+    const nm = t.match(/([^\s>|]+) LadderBux Log \(Player I\.D\. is (\d+)\)/);
+    if (!nm) return null;
+    const cells = [...t.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(m => m[1].replace(/<[^>]+>/g, "").trim());
+    const tours = {};
+    for (let i = 0; i + 4 < cells.length; i++) {
+      const d = cells[i].match(/^(\d\d)\/(\d\d)\/(\d{4}) (\d\d):(\d\d)/);
+      if (!d || !/^\d+$/.test(cells[i + 1])) continue;
+      const id = cells[i + 1], act = cells[i + 3];
+      // log time is Pacific; ET = +3h
+      const et = new Date(Date.UTC(+d[3], +d[1] - 1, +d[2], +d[4] + 3, +d[5]));
+      const x = tours[id] || (tours[id] = { id, date: et.toISOString().slice(0, 10), time: fmtTime(et.getUTCHours(), et.getUTCMinutes()), entered: false, place: "", bux: 0 });
+      if (/^Entry Fee/.test(act)) x.entered = true;
+      const pl = act.match(/(\d+)(?:st|nd|rd|th) Place/); if (pl && !x.place) x.place = pl[1];
+      const w = act.match(/Won: ([\d,]+)/); if (w) x.bux += +w[1].replace(/,/g, "");
+      i += 4;
+    }
+    return { name: nm[1], list: Object.values(tours).filter(x => x.entered).sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.id - b.id) };
+  });
+}
+
 // ---------------- run the query
 async function run(Q, now) {
   const slug = leagueFor(Q.league);
   if (!slug) return { info: `The league "${Q.league}" is not in the list of leagues this page can read.` };
   const lname = leagueName(slug);
+  if (Q.ask === "player_tours") {
+    if (!Q.player) return { league: lname, info: "The question does not name a player (\"I\" or \"me\" can't be identified here), so no player's tours could be counted." };
+    const h = await buxlog(slug, Q.player);
+    if (!h) return { league: lname, info: `No ${lname} tour history was found for a player named ${Q.player}.` };
+    const all = validDate(Q.date_from) || validDate(Q.date_to);
+    let f = validDate(Q.date_from) ? Q.date_from : "0000-00-00", t2 = validDate(Q.date_to) ? Q.date_to : (validDate(Q.date_from) ? Q.date_from : "9999-99-99");
+    const L = h.list.filter(x => x.date >= f && x.date <= t2), first = h.list[0];
+    const pc = n => L.filter(x => x.place === n).length;
+    const r = { league: lname, player: display(h.name), period: all ? (f === t2 ? fmtDate(f) : `${fmtDate(f)} to ${fmtDate(t2)}`) : `all recorded tours (log starts ${first ? fmtDate(first.date) : "n/a"})`,
+      tours_played: L.length, first_place: pc("1"), second_place: pc("2"), third_place: pc("3"), bux_won: L.reduce((a, x) => a + x.bux, 0),
+      last_entry_time: L.length ? `${fmtDate(L[L.length - 1].date)} ${L[L.length - 1].time}` : "none",
+      source: "the league's Ladderbux log (one entry fee per tour entered; times are when the entry was made)" };
+    if (L.length <= 15) r.tours = L.map(x => `tour ${x.id}, entered ${fmtDate(x.date)} ${x.time}${x.place ? ` (place ${x.place})` : ""}`);
+    return r;
+  }
   let from = validDate(Q.date_from) ? Q.date_from : now.date, to = validDate(Q.date_to) ? Q.date_to : from;
   if (to < from) [from, to] = [to, from];
   if (Q.ask === "last_win") { to = now.date; from = addDays(now.date, -MAX_DAYS); }

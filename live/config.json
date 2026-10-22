@@ -126,6 +126,24 @@
 "winners": [
 "TATSUJIN"
 ]
+},
+{
+"date": "2026-10-21",
+"id": "manual-20261021-1015",
+"label": "CUT",
+"time": "10:15",
+"winners": [
+"MaKinpa"
+]
+},
+{
+"date": "2026-10-21",
+"id": "manual-20261021-1115",
+"label": "CUT",
+"time": "11:15",
+"winners": [
+"Ochwiay"
+]
 }
 ],
 "fonts": {
@@ -731,6 +749,8 @@
 "11955151": "SUI PASS 2 RANDOM",
 "11955222": "SINGLES",
 "11955394": "CUT",
+"manual-20261021-1015": "CUT",
+"manual-20261021-1115": "CUT",
 "manual-20261021-1315": "CUT",
 "manual-20261021-1415": "CUT MIRRORS"
 },

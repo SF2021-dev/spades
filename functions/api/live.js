@@ -261,7 +261,7 @@ async function build(env, origin) {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const url = new URL(request.url);
-  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v1");
+  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v2");
   const hit = await cache.match(ck);
   if (hit) return hit;
   let body, status = 200;

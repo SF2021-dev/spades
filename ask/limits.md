@@ -7,6 +7,7 @@ Works (any league in leagues.json, last ~60 days, times in ET):
 - How many tours a player won (and which) on a day or in a range.
 - List of a day's tours and winners.
 - How many tours a player played (entered), with 1st/2nd/3rd counts, bux won and last entry, all time or for a date range. Any player-history question with no period (including "when did X last play") searches the player's entire log, not 60 days. Source: the league's public Ladderbux log (cgi6.igl.net, or plus2.igl.net for MyLeague Plus leagues such as AMS and Just4Fun) (full history for that league; Ochwiay's starts Jun 20, 2026).
+- Tours-played questions that say any/all/every league, or name no league, search every league in leagues.json and answer per league (leagues with none are named). Naming a league searches only that league.
 - When a player last won a tour in a league (searches back up to 60 days).
 
 Not reachable / not supported yet:

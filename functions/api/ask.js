@@ -30,7 +30,7 @@ function leagueFor(name) {
     if (slug === n || names.some(x => x.toLowerCase().replace(/[^a-z0-9]/g, "") === n)) return slug;
   return null;
 }
-const leagueName = slug => (REG.leagues[slug] || [slug]).find(x => x.length > 3) || slug;
+const leagueName = slug => (REG.leagues[slug] || [slug]).find(x => x.length > 3) || (REG.leagues[slug] || [])[0] || slug;
 function playerKeys(p) {
   const k = new Set([p.toLowerCase()]);
   for (const [shown, real] of Object.entries(REG.aliases || {})) {
@@ -171,6 +171,24 @@ async function buxlog(slug, player) {
   });
 }
 
+async function playerTours(slug, Q) {
+  const lname = leagueName(slug);
+  const h = await buxlog(slug, Q.player);
+  const all = validDate(Q.date_from) || validDate(Q.date_to);
+  let f = validDate(Q.date_from) ? Q.date_from : "0000-00-00", t2 = validDate(Q.date_to) ? Q.date_to : (validDate(Q.date_from) ? Q.date_from : "9999-99-99");
+  if (!h) return { league: lname, tours_played: 0, info: `No ${lname} tour history was found for a player named ${Q.player}.`, period: all ? (f === t2 ? fmtDate(f) : `${fmtDate(f)} to ${fmtDate(t2)}`) : "" };
+  const L = h.list.filter(x => x.date >= f && x.date <= t2), first = h.list[0];
+  const pc = n => L.filter(x => x.place === n).length;
+  const r = { league: lname, player: display(h.name), period: all ? (f === t2 ? fmtDate(f) : `${fmtDate(f)} to ${fmtDate(t2)}`) : `all recorded tours (log starts ${first ? fmtDate(first.date) : "n/a"})`,
+    tours_played: L.length, first_place: pc("1"), second_place: pc("2"), third_place: pc("3"), bux_won: L.reduce((a, x) => a + x.bux, 0),
+    last_entry_time: L.length ? `${fmtDate(L[L.length - 1].date)} ${L[L.length - 1].time}` : "none",
+    source: "the league's Ladderbux log (one entry fee per tour entered; times are when the entry was made)" };
+  if (L.length <= 15) r.tours = L.map(x => `tour ${x.id}, entered ${fmtDate(x.date)} ${x.time}${x.place ? ` (place ${x.place})` : ""}`);
+  Object.defineProperty(r, "list", { value: L, enumerable: false });
+  Object.defineProperty(r, "multiday", { value: f !== t2, enumerable: false });
+  return r;
+}
+
 // ---------------- run the query
 async function run(Q, now) {
   const slug = leagueFor(Q.league);
@@ -178,18 +196,27 @@ async function run(Q, now) {
   const lname = leagueName(slug);
   if (Q.ask === "player_tours") {
     if (!Q.player) return { league: lname, info: "The question does not name a player (\"I\" or \"me\" can't be identified here), so no player's tours could be counted." };
-    const h = await buxlog(slug, Q.player);
-    if (!h) return { league: lname, info: `No ${lname} tour history was found for a player named ${Q.player}.` };
-    const all = validDate(Q.date_from) || validDate(Q.date_to);
-    let f = validDate(Q.date_from) ? Q.date_from : "0000-00-00", t2 = validDate(Q.date_to) ? Q.date_to : (validDate(Q.date_from) ? Q.date_from : "9999-99-99");
-    const L = h.list.filter(x => x.date >= f && x.date <= t2), first = h.list[0];
-    const pc = n => L.filter(x => x.place === n).length;
-    const r = { league: lname, player: display(h.name), period: all ? (f === t2 ? fmtDate(f) : `${fmtDate(f)} to ${fmtDate(t2)}`) : `all recorded tours (log starts ${first ? fmtDate(first.date) : "n/a"})`,
-      tours_played: L.length, first_place: pc("1"), second_place: pc("2"), third_place: pc("3"), bux_won: L.reduce((a, x) => a + x.bux, 0),
-      last_entry_time: L.length ? `${fmtDate(L[L.length - 1].date)} ${L[L.length - 1].time}` : "none",
-      source: "the league's Ladderbux log (one entry fee per tour entered; times are when the entry was made)" };
-    if (L.length <= 15) r.tours = L.map(x => `tour ${x.id}, entered ${fmtDate(x.date)} ${x.time}${x.place ? ` (place ${x.place})` : ""}`);
-    return r;
+    if (Q.all_leagues) {
+      const slugs = Object.keys(REG.leagues);
+      const res = await Promise.all(slugs.map(s => playerTours(s, Q).catch(() => ({ league: leagueName(s), error: true }))));
+      const lines = [], none = [], nohist = [], err = [];
+      let who = display(Q.player), period = "";
+      for (const r of res) {
+        if (r.error) { err.push(r.league); continue; }
+        if (r.player) who = r.player;
+        if (!period && r.period) period = r.period;
+        if (!r.tours_played) { (r.player ? none : nohist).push(r.league); continue; }
+        const list = (r.list || []).map(x => `tour ${x.id} (entered ${x.time}${r.multiday ? " " + fmtDate(x.date) : ""}${x.place ? `, place ${x.place}` : ""})`);
+        lines.push(`${r.league}: ${r.tours_played} tour${r.tours_played > 1 ? "s" : ""}${list.length && list.length <= 15 ? " - " + list.join("; ") : ""}.`);
+      }
+      const ranged = !!(validDate(Q.date_from) || validDate(Q.date_to));
+      let txt = lines.length ? `${who}, ${ranged ? period : "all recorded tours"}: ${lines.join(" ")}` : `${who} played in no tours in any league${ranged ? ` (${period})` : ""}. Leagues searched: ${slugs.map(leagueName).join(", ")}.`;
+      if (lines.length && none.length) txt += ` No tours in: ${none.join(", ")}.`;
+      if (nohist.length) txt += ` No player named ${who} in: ${nohist.join(", ")}.`;
+      if (err.length) txt += ` Could not be read: ${err.join(", ")}.`;
+      return { info: txt, final: true };
+    }
+    return playerTours(slug, Q);
   }
   let from = validDate(Q.date_from) ? Q.date_from : now.date, to = validDate(Q.date_to) ? Q.date_to : from;
   if (to < from) [from, to] = [to, from];
@@ -264,8 +291,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
   // Player-history questions with no period in the question: search the whole log, never a default window
   const PERIOD = /\b(today|tonight|yesterday|night|morning|afternoon|evening|week|month|year|since|between|before|after|until|days?|ago|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december|monday|tuesday|wednesday|thursday|friday|saturday|sunday|20\d\d)\b|\d{1,2}\/\d{1,2}/i;
   if (Q.ask === "player_tours" && !PERIOD.test(q)) { Q.date_from = ""; Q.date_to = ""; }
+  // Tours-played questions: "any/all/every league" or no league named -> search every league
+  if (Q.ask === "player_tours" && (/\b(any|all|every|each)\s+(of\s+the\s+)?leagues?\b|\bleagues\b/i.test(q) || !String(Q.league || "").trim())) { Q.all_leagues = true; Q.league = ""; }
   try { data = await run(Q, now); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now." }; }
-  if (data.info && Object.keys(data).every(k => ["info", "league", "dates", "player"].includes(k))) answer = data.info;
+  if (data.final) answer = data.info;
+  else if (data.info && Object.keys(data).every(k => ["info", "league", "dates", "player"].includes(k))) answer = data.info;
   else try {
     answer = await ai(env, ANSWER_SYS, `QUESTION: ${q}\nDATA: ${JSON.stringify(data)}`, 350);
   } catch (_) {}

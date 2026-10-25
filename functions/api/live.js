@@ -246,6 +246,10 @@ async function build(env, origin) {
   tours.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.h - b.h) || (a.m - b.m) || (String(a.id) < String(b.id) ? -1 : 1));
   const mw = cfg.manual_winners || {}, mo = cfg.manual_overrides || {};
   for (const t of tours) {
+    // ABSOLUTE RULES (user t86u): 1) winners ONLY from the user (manual_winners/overrides/extra tours) or a standings.php
+    // champion (verified by update_winners.py and shipped in manual_winners) -- the raw feed "winner" field is never trusted
+    // for today/yesterday; 2) never >1 player / >1 team -- there are NO ties, extra names = invalid = no winner.
+    if (t.status !== "extra" && t.date >= addDays(today, -1)) t.winners = [];
     // User-reported winners always beat the MyLeague feed (and page fallbacks).
     if (mw[t.id]?.length && t.status !== "0") t.winners = [...mw[t.id]];   // status "0" = in progress: never show a cached/page winner
     if (mo[t.id]?.length) t.winners = [...mo[t.id]];   // overrides win over manual_winners
@@ -254,7 +258,7 @@ async function build(env, origin) {
     { const txt = `${t.game || ""} ${t.name || ""} ${(cfg.labels_by_id || {})[t.id] || ""}`;
       const pard = String(t.perteam) === "2" ? true : String(t.perteam) === "1" ? false
         : /\b(CUT|SINGLES?|SOLO|PAB|1 ?VS\.? ?1)\b/i.test(txt) ? false : /PAR(TNER)?D?S|SUI|SUICIDE|PASS ?2|RANDOM|2 ?VS\.? ?2/i.test(txt);
-      if (t.winners.length > (pard ? 2 : 1)) t.winners = t.winners.slice(0, pard ? 2 : 1); }
+      if (t.winners.length > (pard ? 2 : 1)) t.winners = []; }
   }
   cfg.manual_teams = { ...(cfg.manual_teams || {}) };
   await Promise.all(tours.filter(t => t.date >= addDays(today, -1) && t.winners.length === 2 && t.id && !cfg.manual_teams[String(t.id)])

@@ -266,7 +266,7 @@ async function build(env, origin) {
   const days = {};
   for (const d of [today, addDays(today, -1), addDays(today, -2)]) days[d] = R.day(tours, d, today);
     const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && !t.winners.length && t.status !== "2" && t.status !== "extra"
-    && et.min < t.h * 60 + t.m + 50)
+    && (t.status !== "-1" || et.min < t.h * 60 + t.m + 15))   // keep started tours until a winner posts; drop only not-started ones 15 min past start
     .map(t => ({ dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td, url: (cfg.tour_url || "").replace("%s", t.id), ava: R.avatar(t.td) || "", ...(R.subtitle(t) ? { sub: R.subtitle(t) } : {}) }));
   return { ok: true, now: now.toISOString(), today, days, tours: upcoming };
 }

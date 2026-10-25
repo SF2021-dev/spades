@@ -249,6 +249,12 @@ async function build(env, origin) {
     // User-reported winners always beat the MyLeague feed (and page fallbacks).
     if (mw[t.id]?.length) t.winners = [...mw[t.id]];
     if (mo[t.id]?.length) t.winners = [...mo[t.id]];   // overrides win over manual_winners
+
+    // HARD RULE: singles/CUT/PAB = 1 winner; partners = one team of 2. LadderBux payouts are never winners.
+    { const txt = `${t.game || ""} ${t.name || ""} ${(cfg.labels_by_id || {})[t.id] || ""}`;
+      const pard = String(t.perteam) === "2" ? true : String(t.perteam) === "1" ? false
+        : /\b(CUT|SINGLES?|SOLO|PAB|1 ?VS\.? ?1)\b/i.test(txt) ? false : /PAR(TNER)?D?S|SUI|SUICIDE|PASS ?2|RANDOM|2 ?VS\.? ?2/i.test(txt);
+      if (t.winners.length > (pard ? 2 : 1)) t.winners = t.winners.slice(0, pard ? 2 : 1); }
   }
   cfg.manual_teams = { ...(cfg.manual_teams || {}) };
   await Promise.all(tours.filter(t => t.date >= addDays(today, -1) && t.winners.length === 2 && t.id && !cfg.manual_teams[String(t.id)])

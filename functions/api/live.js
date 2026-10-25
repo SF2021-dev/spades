@@ -60,13 +60,18 @@ function defaultTeam(name, players) {
   const pl = players.map(x => x.toLowerCase());
   if (parts.length === 2 && parts.every(Boolean) &&
       ((pl[0].startsWith(parts[0]) && pl[1].startsWith(parts[1])) || (pl[1].startsWith(parts[0]) && pl[0].startsWith(parts[1])))) return true;
-  for (const [a, b] of [[pl[0], pl[1]], [pl[1], pl[0]]])
-    if (n.endsWith(b) && n.length > b.length && a.startsWith(n.slice(0, n.length - b.length))) return true;
+  // Require a substantial first-name prefix (min 8 chars, or the whole name if shorter)
+  // so real names like HotEgammer are not treated as MyLeague's auto default.
+  for (const [a, b] of [[pl[0], pl[1]], [pl[1], pl[0]]]) {
+    if (!(n.endsWith(b) && n.length > b.length)) continue;
+    const prefix = n.slice(0, n.length - b.length);
+    if (a.startsWith(prefix) && prefix.length >= Math.min(8, a.length)) return true;
+  }
   return false;
 }
 function unhtml(s) { return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0?39;|&#x27;/g, "'"); }
 async function fetchTeam(t, league) {
-  const cache = caches.default, ck = new Request(`https://team-cache.local/${t.id}/${t.winners.join(",").toLowerCase()}`);
+  const cache = caches.default, ck = new Request(`https://team-cache.local/v2/${t.id}/${t.winners.join(",").toLowerCase()}`);
   const hit = await cache.match(ck);
   if (hit) return (await hit.text()) || null;
   const want = t.winners.map(w => w.toLowerCase()).sort().join("|");
@@ -262,7 +267,7 @@ async function build(env, origin) {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const url = new URL(request.url);
-  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v3");
+  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v4");
   const hit = await cache.match(ck);
   if (hit) return hit;
   let body, status = 200;

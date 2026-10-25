@@ -241,8 +241,9 @@ async function build(env, origin) {
   tours.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.h - b.h) || (a.m - b.m) || (String(a.id) < String(b.id) ? -1 : 1));
   const mw = cfg.manual_winners || {}, mo = cfg.manual_overrides || {};
   for (const t of tours) {
-    if (!t.winners.length && mw[t.id]?.length) t.winners = [...mw[t.id]];     // manual winner only where the feed has none
-    if (mo[t.id]?.length) t.winners = [...mo[t.id]];
+    // User-reported winners always beat the MyLeague feed (and page fallbacks).
+    if (mw[t.id]?.length) t.winners = [...mw[t.id]];
+    if (mo[t.id]?.length) t.winners = [...mo[t.id]];   // overrides win over manual_winners
   }
   cfg.manual_teams = { ...(cfg.manual_teams || {}) };
   await Promise.all(tours.filter(t => t.date >= addDays(today, -1) && t.winners.length === 2 && t.id && !cfg.manual_teams[String(t.id)])
@@ -261,7 +262,7 @@ async function build(env, origin) {
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const url = new URL(request.url);
-  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v2");
+  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v3");
   const hit = await cache.match(ck);
   if (hit) return hit;
   let body, status = 200;

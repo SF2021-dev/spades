@@ -247,7 +247,7 @@ async function build(env, origin) {
   const mw = cfg.manual_winners || {}, mo = cfg.manual_overrides || {};
   for (const t of tours) {
     // User-reported winners always beat the MyLeague feed (and page fallbacks).
-    if (mw[t.id]?.length) t.winners = [...mw[t.id]];
+    if (mw[t.id]?.length && t.status !== "0") t.winners = [...mw[t.id]];   // status "0" = in progress: never show a cached/page winner
     if (mo[t.id]?.length) t.winners = [...mo[t.id]];   // overrides win over manual_winners
 
     // HARD RULE: singles/CUT/PAB = 1 winner; partners = one team of 2. LadderBux payouts are never winners.

@@ -253,18 +253,18 @@ async function build(env, origin) {
     // champion (verified by update_winners.py and shipped in manual_winners) -- the raw feed "winner" field is never trusted
     // for today/yesterday; 2) never >1 player / >1 team -- there are NO ties, extra names = invalid = no winner.
     if (t.status !== "extra" && t.date >= addDays(today, -1)) t.winners = [];
-    // User-reported winners always beat the MyLeague feed (and page fallbacks).
-    if (mw[t.id]?.length && t.status !== "0") t.winners = [...mw[t.id]];   // status "0" = in progress: never show a cached/page winner
-    if (mo[t.id]?.length) t.winners = [...mo[t.id]];   // overrides win over manual_winners
+    // User report always wins (never blocked by calendar feed status). Standings-verified names ship in cfg.manual_winners via page_winners.
+    if (mw[t.id]?.length) t.winners = [...mw[t.id]];
+    if (mo[t.id]?.length) t.winners = [...mo[t.id]];
 
     // HARD RULE: singles/CUT/PAB = 1 winner; partners = one team of 2. LadderBux payouts are never winners.
     { const txt = `${t.game || ""} ${t.name || ""} ${(cfg.labels_by_id || {})[t.id] || ""}`;
       const pard = String(t.perteam) === "2" ? true : String(t.perteam) === "1" ? false
         : /\b(CUT|SINGLES?|SOLO|PAB|1 ?VS\.? ?1)\b/i.test(txt) ? false : /PAR(TNER)?D?S|SUI|SUICIDE|PASS ?2|RANDOM|2 ?VS\.? ?2/i.test(txt);
       if (t.winners.length > (pard ? 2 : 1)) t.winners = []; }
-    // Pending: started or MyLeague-finished but no verified/user winner yet — keep listed until one posts.
+    // Pending by clock only: started, no standings/user winner yet. Never use calendar feed status.
     if (!t.winners.length && t.status !== "extra" && t.date >= addDays(today, -1)
-        && t.status !== "-1" && t.status !== "") t.pending = true;
+        && t.date <= today && et.min >= t.h * 60 + t.m) t.pending = true;
   }
   cfg.manual_teams = { ...(cfg.manual_teams || {}) };
   await Promise.all(tours.filter(t => t.date >= addDays(today, -1) && t.winners.length === 2 && t.id && !cfg.manual_teams[String(t.id)])
@@ -275,16 +275,15 @@ async function build(env, origin) {
   const R = makeRenderer(cfg, names), hidden = new Set((cfg.hidden || []).map(String));
   const days = {};
   for (const d of [today, addDays(today, -1), addDays(today, -2)]) days[d] = R.day(tours, d, today);
-    // Keep tours with no posted winner even when MyLeague status is finished ("2"); only drop not-started ones 15 min past start.
-    const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && !t.winners.length && t.status !== "extra"
-    && (t.status !== "-1" || et.min < t.h * 60 + t.m + 15))
+    // Keep every today tour with no standings/user winner. Never drop based on calendar feed status.
+    const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && !t.winners.length && t.status !== "extra")
     .map(t => ({ dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td, url: (cfg.tour_url || "").replace("%s", t.id), ava: R.avatar(t.td) || "", ...(R.subtitle(t) ? { sub: R.subtitle(t) } : {}) }));
   return { ok: true, now: now.toISOString(), today, days, tours: upcoming };
 }
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const url = new URL(request.url);
-  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v5");
+  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v6");
   const hit = await cache.match(ck);
   if (hit) return hit;
   let body, status = 200;

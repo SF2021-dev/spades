@@ -215,12 +215,15 @@ function makeRenderer(cfg, names = {}) {
     const dl = dayLabel(d, today), cells = [], keys = [];
     const bot = (cfg.bottom || []).map(String), bk = t => { const i = bot.indexOf(String(t.id)); return i < 0 ? 0 : i + 1; };
     for (const t of [...tours].sort((a, b) => bk(a) - bk(b))) {   // bottom_tours.json: these tiles go last in their day
-      if (t.date !== d || !t.winners.length || (cfg.hidden || []).map(String).includes(String(t.id))) continue;
+      // Keep a tile when we have a winner OR the tour has started/finished with no verified winner yet (pending).
+      if (t.date !== d || (cfg.hidden || []).map(String).includes(String(t.id))) continue;
+      if (!t.winners.length && !t.pending) continue;
       const clk = clock12(t.h, t.m), lab = label(t);
       const text = dl === "TODAY" || dl === "YESTERDAY" ? `${clk} ${lab}` : `${dl} ${clk} ${lab}`;
-      const size = (cfg.fonts || {})[`${clk}|${t.winners.map(n => shown(n).toLowerCase()).join(",")}`];
-      cells.push(winnerCell(cells.length, text, t.winners, size, teamName(t), subtitle(t)));
-      keys.push(`${clk}|${lab}|${t.winners.map(n => shown(n).toLowerCase()).join("&")}|${t.winners.length === 2 ? teamName(t) : ""}`);
+      const names = t.winners.length ? t.winners : ["winner pending"];
+      const size = t.winners.length ? (cfg.fonts || {})[`${clk}|${t.winners.map(n => shown(n).toLowerCase()).join(",")}`] : undefined;
+      cells.push(winnerCell(cells.length, text, names, size, t.winners.length ? teamName(t) : null, subtitle(t)));
+      keys.push(`${clk}|${lab}|${names.map(n => shown(n).toLowerCase()).join("&")}|${t.winners.length === 2 ? teamName(t) : ""}`);
     }
     return { heading: dl, cells, keys,
       heading_html: `<div style="grid-column:1/-1;padding:12px 10px 4px;font-size:15px;font-weight:800;letter-spacing:0.14em;color:#fbe646;">${dl}</div>`,
@@ -259,6 +262,9 @@ async function build(env, origin) {
       const pard = String(t.perteam) === "2" ? true : String(t.perteam) === "1" ? false
         : /\b(CUT|SINGLES?|SOLO|PAB|1 ?VS\.? ?1)\b/i.test(txt) ? false : /PAR(TNER)?D?S|SUI|SUICIDE|PASS ?2|RANDOM|2 ?VS\.? ?2/i.test(txt);
       if (t.winners.length > (pard ? 2 : 1)) t.winners = []; }
+    // Pending: started or MyLeague-finished but no verified/user winner yet — keep listed until one posts.
+    if (!t.winners.length && t.status !== "extra" && t.date >= addDays(today, -1)
+        && t.status !== "-1" && t.status !== "") t.pending = true;
   }
   cfg.manual_teams = { ...(cfg.manual_teams || {}) };
   await Promise.all(tours.filter(t => t.date >= addDays(today, -1) && t.winners.length === 2 && t.id && !cfg.manual_teams[String(t.id)])
@@ -269,15 +275,16 @@ async function build(env, origin) {
   const R = makeRenderer(cfg, names), hidden = new Set((cfg.hidden || []).map(String));
   const days = {};
   for (const d of [today, addDays(today, -1), addDays(today, -2)]) days[d] = R.day(tours, d, today);
-    const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && !t.winners.length && t.status !== "2" && t.status !== "extra"
-    && (t.status !== "-1" || et.min < t.h * 60 + t.m + 15))   // keep started tours until a winner posts; drop only not-started ones 15 min past start
+    // Keep tours with no posted winner even when MyLeague status is finished ("2"); only drop not-started ones 15 min past start.
+    const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && !t.winners.length && t.status !== "extra"
+    && (t.status !== "-1" || et.min < t.h * 60 + t.m + 15))
     .map(t => ({ dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td, url: (cfg.tour_url || "").replace("%s", t.id), ava: R.avatar(t.td) || "", ...(R.subtitle(t) ? { sub: R.subtitle(t) } : {}) }));
   return { ok: true, now: now.toISOString(), today, days, tours: upcoming };
 }
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const url = new URL(request.url);
-  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v4");
+  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v5");
   const hit = await cache.match(ck);
   if (hit) return hit;
   let body, status = 200;

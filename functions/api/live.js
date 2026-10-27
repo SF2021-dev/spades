@@ -84,14 +84,19 @@ async function fetchTeam(t, league) {
       if (!m) continue;
       const d = JSON.parse(m[1].replace(/\\\\/g, "\x00").replace(/\\'/g, "'").replace(/\x00/g, "\\"));
       ok = true;
+      let byPlayers = undefined, byWinner = undefined;
       for (const tm of d.teams || []) {
-        const names = (tm.players || []).map(p => { const mm = String(p).match(/<strong>([\s\S]*?)<\/strong>/); return unhtml(mm ? mm[1] : String(p).replace(/<[^>]+>/g, "")).trim(); });
-        if (names.map(n => n.toLowerCase()).sort().join("|") === want) {
-          const name = unhtml(String(tm.team || "")).trim();
-          found = name && !defaultTeam(name, names) ? name : null;
-          break;
-        }
+        const names = (tm.players || []).map(p => {
+          const mm = String(p).match(/<strong>([\s\S]*?)<\/strong>/);
+          return unhtml(mm ? mm[1] : String(p).replace(/<[^>]+>/g, "")).trim();
+        });
+        if (names.map(n => n.toLowerCase()).sort().join("|") !== want) continue;
+        const name = unhtml(String(tm.team || "")).trim();
+        const resolved = name && !defaultTeam(name, names) ? name : null;
+        if (String(tm.status || "").toLowerCase().includes("winner")) byWinner = resolved;
+        else if (byPlayers === undefined) byPlayers = resolved;
       }
+      found = byWinner !== undefined ? byWinner : (byPlayers !== undefined ? byPlayers : null);
       break;
     } catch (e) { continue; }
   }
@@ -190,7 +195,9 @@ function makeRenderer(cfg, names = {}) {
     : `<svg width="${size}" height="${size}" viewBox="0 0 22 22">${SVG_ICON}</svg>`;
   const prof = (name, inner) => `<a href="https://www.myleague.com/diamondspaders/profile/${encodeURIComponent(name)}" title="${attr(name)}" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;">${inner}</a>`;
   function teamName(t) {
-    const n = (cfg.manual_teams || {})[String(t.id)];
+    const id = String(t.id);
+    // User manual_teams always win; auto_teams is learned and may be refreshed below for today/yesterday.
+    const n = (cfg.manual_teams || {})[id] || (cfg.auto_teams || {})[id];
     if (n) return n;
     return t.winners.length === 2 ? t.winners.map(shown).join(" & ") : null;
   }
@@ -265,8 +272,11 @@ async function build(env, origin) {
         && t.date <= today && et.min >= t.h * 60 + t.m) t.pending = true;
   }
   cfg.manual_teams = { ...(cfg.manual_teams || {}) };
+  cfg.auto_teams = { ...(cfg.auto_teams || {}) };
+  // Always re-resolve today/yesterday from players.php (CF-cached by id+winners). Do not trust a stale
+  // auto name locked mid-bracket to the finalist — that was the 7:15 "13 13 13 13 13" / Northern Exposure bug.
   await Promise.all(tours.filter(t => t.date >= addDays(today, -1) && t.winners.length === 2 && t.id && !cfg.manual_teams[String(t.id)])
-    .map(async t => { try { const n = await fetchTeam(t, cfg.league || "diamondspaders"); if (n) cfg.manual_teams[String(t.id)] = n; } catch (e) {} }));
+    .map(async t => { try { const n = await fetchTeam(t, cfg.league || "diamondspaders"); if (n) cfg.auto_teams[String(t.id)] = n; } catch (e) {} }));
   const names = {};
   await Promise.all(tours.filter(t => t.date >= today && ambiguous(t) && (cfg.labels_by_id || {})[t.id] == null)
     .map(async t => { const n = await tourName(t.id, cfg.league || "diamondspaders"); if (n) names[t.id] = n; }));

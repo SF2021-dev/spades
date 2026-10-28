@@ -55,7 +55,8 @@
 "11956057": "Old Pw",
 "11956059": "Northern Exposure",
 "11956061": "ROLL WITH IT",
-"11956064": "Need a New Dea"
+"11956064": "Need a New Dea",
+"11956066": "HotandEgammer"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png"
@@ -127,6 +128,7 @@
 "margomoo": "https://diamondspaders.online/MargoMoo-ava.png",
 "me6052": "https://diamondspaders.online/Me6052-ava.png",
 "mel1c1ous_1": "https://diamondspaders.online/MEL1c1ous_1-ava.png",
+"melicious_1": "https://diamondspaders.online/MEL1c1ous_1-ava.png",
 "mszigs": "https://diamondspaders.online/MsZigs-ava.png",
 "muziklvr": "https://diamondspaders.online/muziklvr-ava.png",
 "mybagsrgucci": "https://diamondspaders.online/MyBagsRGucci-ava.png",
@@ -1226,6 +1228,10 @@
 ],
 "11956065": [
 "muziklvr"
+],
+"11956066": [
+"Hotandspicey69",
+"EgammeR"
 ],
 "11956202": [
 "Lookslikeapickel"

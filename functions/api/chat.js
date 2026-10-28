@@ -11,18 +11,13 @@
 // POST {action:"audio", to, kind:"clip"|"live", audio:"data:audio/...;base64,..."}  (<= 1 MB)
 import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
 import { normName, tokenName } from "../_shared/pins.js";
+import { known } from "../_shared/chatnames.js";
 const MAX_AUDIO = 1024 * 1024, MAX_TXT = 1000;
 
 async function me(env, request) {
   const n = await tokenName(env, request);
   if (!n) throw new HttpError(401, "Please log in with your name and PIN.");
   return n;
-}
-async function known(env, name) {
-  const p = await env.DB.prepare("SELECT name FROM msg_pins WHERE name = ? COLLATE NOCASE").bind(name).first();
-  if (p) return p.name;
-  const m = await env.DB.prepare("SELECT name FROM messages WHERE name = ? COLLATE NOCASE LIMIT 1").bind(name).first();
-  return m ? m.name : "";
 }
 async function perm(env, a, b) {
   const out = await env.DB.prepare("SELECT status FROM chat_perms WHERE from_name = ? AND to_name = ?").bind(a, b).first();

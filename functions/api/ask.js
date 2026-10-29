@@ -196,6 +196,18 @@ async function run(Q, now) {
   const lname = leagueName(slug);
   if (Q.ask === "player_tours") {
     if (!Q.player) return { league: lname, info: "The question does not name a player (\"I\" or \"me\" can't be identified here), so no player's tours could be counted." };
+    if (Q.latest) { // "last/most recent tour": answer only the single newest tour
+      const slugs = Q.all_leagues ? Object.keys(REG.leagues) : [slug];
+      const res = await Promise.all(slugs.map(s => playerTours(s, Q).catch(() => null)));
+      const mins = x => { const m = String(x.time).match(/(\d+):(\d+)\s*([AP]M)/i); return m ? (+m[1] % 12 + (/p/i.test(m[3]) ? 12 : 0)) * 60 + +m[2] : 0; };
+      let best = null, who = display(Q.player);
+      for (const r of res) { if (!r || !r.list || !r.list.length) continue; if (r.player) who = r.player;
+        const x = r.list[r.list.length - 1], k = `${x.date} ${String(mins(x)).padStart(4, "0")}`;
+        if (!best || k > best.k) best = { k, x, league: r.league }; }
+      if (!best) return { info: `No tour history was found for a player named ${who}.`, final: true };
+      const x = best.x;
+      return { info: `${who}'s last recorded tour: ${best.league}, tour ${x.id}, entered ${x.time} ${fmtDate(x.date)}${x.place ? `, finished place ${x.place}` : ""}.`, final: true };
+    }
     if (Q.all_leagues) {
       const slugs = Object.keys(REG.leagues);
       const res = await Promise.all(slugs.map(s => playerTours(s, Q).catch(() => ({ league: leagueName(s), error: true }))));
@@ -300,6 +312,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (Q.ask === "player_tours" && !PERIOD.test(q)) { Q.date_from = ""; Q.date_to = ""; }
   // Tours-played questions: "any/all/every league" or no league named -> search every league
   if (Q.ask === "player_tours" && (/\b(any|all|every|each)\s+(of\s+the\s+)?leagues?\b|\bleagues\b/i.test(q) || !String(Q.league || "").trim())) { Q.all_leagues = true; Q.league = ""; }
+  if (Q.ask === "player_tours" && /\b(last|latest|most\s+recent(ly)?|recent|newest)\b/i.test(q) && !/\b(all|every|list|how many)\b/i.test(q)) Q.latest = true;
   try { data = await run(Q, now); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now." }; }
   if (data.final) answer = data.info;
   else if (data.info && Object.keys(data).every(k => ["info", "league", "dates", "player"].includes(k))) answer = data.info;

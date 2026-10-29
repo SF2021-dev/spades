@@ -183,7 +183,7 @@ async function playerTours(slug, Q) {
     tours_played: L.length, first_place: pc("1"), second_place: pc("2"), third_place: pc("3"), bux_won: L.reduce((a, x) => a + x.bux, 0),
     last_entry_time: L.length ? `${fmtDate(L[L.length - 1].date)} ${L[L.length - 1].time}` : "none",
     source: "the league's Ladderbux log (one entry fee per tour entered; times are when the entry was made)" };
-  if (L.length <= 15) r.tours = L.map(x => `tour ${x.id}, entered ${fmtDate(x.date)} ${x.time}${x.place ? ` (place ${x.place})` : ""}`);
+  r.tours = L.map(x => `tour ${x.id}, entered ${fmtDate(x.date)} ${x.time}${x.place ? ` (place ${x.place})` : ""}`);
   Object.defineProperty(r, "list", { value: L, enumerable: false });
   Object.defineProperty(r, "multiday", { value: f !== t2, enumerable: false });
   return r;
@@ -206,8 +206,15 @@ async function run(Q, now) {
         if (r.player) who = r.player;
         if (!period && r.period) period = r.period;
         if (!r.tours_played) { (r.player ? none : nohist).push(r.league); continue; }
-        const list = (r.list || []).map(x => `tour ${x.id} (entered ${x.time}${r.multiday ? " " + fmtDate(x.date) : ""}${x.place ? `, place ${x.place}` : ""})`);
-        lines.push(`${r.league}: ${r.tours_played} tour${r.tours_played > 1 ? "s" : ""}${list.length && list.length <= 15 ? " - " + list.join("; ") : ""}.`);
+        const L = r.list || [];
+        let detail;
+        if (L.length <= 15) detail = L.map(x => `tour ${x.id} (entered ${x.time}${r.multiday ? " " + fmtDate(x.date) : ""}${x.place ? `, place ${x.place}` : ""})`).join("; ");
+        else { // long history: group by day, newest first, so every tour is still listed
+          const byDay = new Map();
+          for (const x of [...L].reverse()) { if (!byDay.has(x.date)) byDay.set(x.date, []); byDay.get(x.date).push(`${x.id} ${x.time}${x.place ? ` (place ${x.place})` : ""}`); }
+          detail = [...byDay].map(([d, a]) => `${fmtDate(d)}: ${a.join(", ")}`).join(" | ");
+        }
+        lines.push(`${r.league}: ${r.tours_played} tour${r.tours_played > 1 ? "s" : ""}${detail ? " - " + detail : ""}.`);
       }
       const ranged = !!(validDate(Q.date_from) || validDate(Q.date_to));
       let txt = lines.length ? `${who}, ${ranged ? period : "all recorded tours"}: ${lines.join(" ")}` : `${who} played in no tours in any league${ranged ? ` (${period})` : ""}. Leagues searched: ${slugs.map(leagueName).join(", ")}.`;

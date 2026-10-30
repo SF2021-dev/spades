@@ -140,3 +140,5 @@ body.gm #ds-chatbox .mb-rich .mb-tawrap textarea,body.gm #ds-chatbox .mb-rich #m
 .gm-ct .gm-menu .gm-del{color:#ff6b6b;background:transparent}.gm-ct .gm-menu .gm-blk{background:transparent}
 .gm-ct.asking .gm-addg,.gm-ct.asking .gm-newg,.gm-ct.asking .gm-remg{display:none}
 .gm-ct .gm-sure button{display:inline;background:#444!important}
+
+#dsv,#dsva{display:none!important}

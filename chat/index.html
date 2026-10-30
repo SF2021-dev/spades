@@ -30,7 +30,7 @@ button:hover{background:#2a1608}
 #buzzBanner{position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:9999;background:#2a1405;color:#f3bf56;border:3px solid #f3bf56;border-radius:12px;padding:12px 24px;font:bold 24px 'Comic Sans MS','Comic Sans',cursive;transition:top .3s;box-shadow:0 6px 24px #000}
 #buzzBanner.on{top:16px}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
-</style><link rel="stylesheet" href="/gm-chat.css?v=21"></head><body>
+</style><link rel="stylesheet" href="/gm-chat.css?v=20261030clock"></head><body>
 <div class="card">
   <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span></div>
 
@@ -200,7 +200,7 @@ function tick(){
 }
 
 function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
-  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=78"; document.body.appendChild(sc); return true; }
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=20261030clock"; document.body.appendChild(sc); return true; }
 function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "\u00a0"),
   get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
     .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
@@ -256,8 +256,14 @@ document.addEventListener("click", function once(){ document.removeEventListener
 start();
 })();
 </script>
-<div id="gmClock" style="position:fixed;top:6px;right:10px;font:11px/1.2 ui-monospace,monospace;color:#888;opacity:.75;z-index:9999;pointer-events:none"></div>
-<script>(function(){var e=document.getElementById('gmClock');function f(z){return new Date().toLocaleTimeString('en-US',Object.assign({hour:'numeric',minute:'2-digit'},z?{timeZone:z}:{}))}function u(){e.textContent=f()+' ('+f('America/New_York')+' EST)'}u();setInterval(u,15000)})();</script>
+<div id="gmClock" style="position:fixed;top:6px;right:10px;font:600 12px/1.25 ui-monospace,monospace;color:#c8c8c8;opacity:.95;z-index:9999;pointer-events:none;text-align:right;text-shadow:0 1px 2px #000"><div id="gmClockT"></div><div id="gmNext" style="font-size:11px;color:#aaa;font-weight:500"></div></div>
+<script>(function(){var e=document.getElementById('gmClockT'),nx=document.getElementById('gmNext'),T=[];function f(z){return new Date().toLocaleTimeString('en-US',Object.assign({hour:'numeric',minute:'2-digit'},z?{timeZone:z}:{}))}function p(n){return(n<10?'0':'')+n}
+function et(){return new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}))}
+function u(){e.textContent=f()+' ('+f('America/New_York')+' EST)';var n=et(),td=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate()),b=null;
+T.forEach(function(t){var d=t.dt||td;var s=new Date(d+'T'+p(t.h)+':'+p(t.m==null?15:t.m)+':00');if(s>n&&(!b||s<b.s))b={s:s,g:t.game}});
+if(b){var m=Math.floor((b.s-n)/60000);nx.textContent='next '+b.g+' in '+p(Math.floor(m/60))+':'+p(m%60)}else nx.textContent=''}
+function L(){fetch('/api/live',{credentials:'same-origin',cache:'no-store'}).then(function(r){return r.json()}).then(function(d){if(d&&d.tours){T=d.tours;u()}}).catch(function(){})}
+u();L();setInterval(u,60000-0);setInterval(L,300000)})();</script>
 <button id="dsgear" title="Options" aria-label="Options" style="position:fixed;top:6px;left:8px;z-index:9999;background:none;border:0;font-size:16px;opacity:.55;cursor:pointer;padding:2px">&#9881;</button>
 <div id="dsopts" style="display:none;position:fixed;top:30px;left:8px;z-index:9999;background:#fff;color:#222;border:1px solid #ccc;border-radius:8px;padding:10px 12px;font:14px system-ui;box-shadow:0 4px 14px rgba(0,0,0,.15)">
 <label style="cursor:pointer"><input type="checkbox" id="dsenter"> Enter sends message</label>
@@ -286,7 +292,7 @@ document.addEventListener("click",function(e){var sd=document.getElementById("gm
 setInterval(function(){if(!t0)return;if(ready()||Date.now()-t0>15000)dsLoad(false);},150);})();</script>
 <script>(function(){var bg=document.getElementById("emptyBg"),c=document.getElementById("chat");function u(){var sd=document.getElementById("gm-side");var l=0;if(sd&&innerWidth>700){l=sd.getBoundingClientRect().right;}bg.style.left=l+"px";bg.style.display=(c&&!c.classList.contains("hide"))?"none":"block";}if(c)new MutationObserver(u).observe(c,{attributes:true,attributeFilter:["class"]});addEventListener("resize",u);setInterval(u,1000);u();})();</script>
 <style>body>.card,#gm-side{position:relative;z-index:1}#gm-side{z-index:3}</style>
-<script src="/gm-chat.js?v=19"></script>
-<script src="/dmvoice.js?v=2"></script>
-<script src="/voice.js?v=3"></script>
+<script src="/gm-chat.js?v=20261030clock"></script>
+<script src="/dmvoice.js?v=20261030clock"></script>
+<script src="/voice.js?v=20261030clock"></script>
 </body></html>

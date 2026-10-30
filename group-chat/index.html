@@ -99,7 +99,7 @@ function loadRooms(){
 }
 function afterLogin(){
   var g = new URLSearchParams(location.search).get("g");
-  if (g) openGroup(g); else { show($("pick"), true); loadRooms(); setInterval(loadRooms, 15000); }
+  if (g) openGroup(g); else { show($("pick"), true); loadRooms(); setInterval(function(){ if (!document.hidden) loadRooms(); }, 30000); }
 }
 $("gnew").onclick = function(){
   var t = $("gtitle").value.trim(); $("perr").textContent = "";
@@ -136,19 +136,20 @@ function openGroup(gid){
   }).catch(function(e){ fail(e.message); });
 }
 function go(){
-  tick(); poll = setInterval(tick, 2000);
+  tick(); poll = setInterval(function(){ if (!document.hidden) tick(); }, 30000);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) tick(); });
   loadMB(chatAdapter(function(){ return "action=list&gid=" + encodeURIComponent(GID); }, function(){ return {gid:GID}; }));
 }
 function tick(){
   api("action=list&gid=" + encodeURIComponent(GID) + "&since=" + since).then(function(j){
     show($("composer"), true); show($("waitmsg"), false);
     $("withLbl").textContent = j.members.filter(function(m){ return m.status === "ok"; }).length + " in chat";
-    j.messages.forEach(render);
+    j.messages.forEach(function(m){ if (m.t > since) since = m.t; });
   }).catch(function(e){ show($("composer"), false); show($("waitmsg"), true); $("waitmsg").textContent = e.message; });
 }
 
 function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
-  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=75"; document.body.appendChild(sc); return true; }
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=20261030fast"; document.body.appendChild(sc); return true; }
 function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Folder" : "Chat with " + WITH),
   get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
     .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
@@ -160,6 +161,5 @@ function render(){}
 start();
 })();
 </script>
-<script src="/gm-chat.js?v=20261030toolhide2"></script>
-<script src="/voice.js?v=3"></script>
+<script src="/gm-chat.js?v=20261030fast"></script>
 </body></html>

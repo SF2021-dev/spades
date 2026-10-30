@@ -741,7 +741,14 @@
     });
   }
   refresh();
-  setInterval(function(){ if (!document.hidden) refresh(); }, AD ? 2500 : 30000);
+  // Adaptive polling: fast while active, slower when idle, paused when hidden; instant refresh on return.
+  (function(){ var lastAct = Date.now(), lastRef = Date.now();
+    ["keydown","pointerdown","scroll","focus"].forEach(function(e){ addEventListener(e, function(){ lastAct = Date.now(); }, {passive:true, capture:true}); });
+    function now(){ lastAct = lastRef = Date.now(); refresh(); }
+    document.addEventListener("visibilitychange", function(){ if (!document.hidden && Date.now() - lastRef > 1500) now(); });
+    addEventListener("focus", function(){ if (Date.now() - lastRef > 1500) now(); });
+    setInterval(function(){ if (document.hidden) return; var idle = Date.now() - lastAct, gap = !AD ? 30000 : idle < 120000 ? 3000 : idle < 600000 ? 10000 : 30000;
+      if (Date.now() - lastRef >= gap - 50) { lastRef = Date.now(); refresh(); } }, 1000); })();
 
   form.addEventListener("submit", function(ev){
     ev.preventDefault();

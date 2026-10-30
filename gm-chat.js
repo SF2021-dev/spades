@@ -90,7 +90,7 @@
     hd.innerHTML = head();
     p.then(function(h){ if (list.querySelector('.gm-ct.asking, .gm-ct.open')) return; list.innerHTML = h; avatars(); }).catch(function(){});
   }
-  load(); setInterval(load, 15000);
+  load(); setInterval(function(){ if (!document.hidden) load(); }, 30000); document.addEventListener("visibilitychange", function(){ if (!document.hidden) load(); });
   if (GROUP && location.hash === "#new") setTimeout(function(){ var t = document.getElementById("gtitle"); if (t) t.focus(); }, 800);
   // once msgbox.js has built the box: put the tool icons and a send button inside the compose pill
   var iv = setInterval(function(){

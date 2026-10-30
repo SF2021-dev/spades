@@ -117,7 +117,7 @@ function loadPartners(){
   }).catch(function(){});
 }
 function afterLogin(){
-  loadPending(); loadPartners(); setInterval(loadPending, 15000); setInterval(checkBuzz, 2000); checkBuzz(); addBuzzBtn();
+  loadPending(); loadPartners(); setInterval(function(){ if (!document.hidden) loadPending(); }, 30000); setInterval(checkBuzz, 2000); checkBuzz(); addBuzzBtn();
   if (/[?&]buzzed=1/.test(location.search)) setTimeout(function(){ buzzFx(new URLSearchParams(location.search).get("to")); }, 600);
   var to = new URLSearchParams(location.search).get("to");
   $("rname").value = "";
@@ -172,8 +172,10 @@ function openChat(name, status){
   $("withLbl").innerHTML = "";$("withLbl").append("with ",Object.assign(document.createElement("b"),{className:"wName",textContent:name}));
   history.replaceState(null, "", "/chat?to=" + encodeURIComponent(name));
   setStatus(status);
-  poll = setInterval(tick, 2000);
+  tick(); poll = setInterval(function(){ if (document.hidden) return; if (Date.now() - lastTick >= (lastStatus === "ok" ? 30000 : 8000)) tick(); }, 2000);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden && Date.now() - lastTick > 5000) tick(); });
 }
+var lastTick = 0, lastStatus = "";
 function askAllow(on){   // first message from someone new: Allow? Y / N (N blocks them)
   var a = $("allowAsk");
   if (!on) { if (a) a.remove(); return; }
@@ -192,15 +194,16 @@ function setStatus(s){
     "Waiting for " + WITH + " to allow chatting with you. They'll be asked the next time they log in.";
 }
 function tick(){
+  lastTick = Date.now();
   api("action=status&with=" + encodeURIComponent(WITH)).then(function(s){
-    setStatus(s.status); askAllow(!!s.incoming); if (s.status !== "ok") return;
+    if (s.status !== lastStatus) setStatus(s.status); lastStatus = s.status; askAllow(!!s.incoming); if (s.status !== "ok") return;
     loadMB(chatAdapter(function(){ return "action=list&with=" + encodeURIComponent(WITH); }, function(){ return {to:WITH}; })); return;
     return api("action=list&with=" + encodeURIComponent(WITH) + "&since=" + since).then(function(j){ j.messages.forEach(render); });
   }).catch(function(){});
 }
 
 function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
-  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=20261030nextcolon"; document.body.appendChild(sc); return true; }
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=20261030fast"; document.body.appendChild(sc); return true; }
 function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "\u00a0"),
   get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
     .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
@@ -292,7 +295,5 @@ document.addEventListener("click",function(e){var sd=document.getElementById("gm
 setInterval(function(){if(!t0)return;if(ready()||Date.now()-t0>15000)dsLoad(false);},150);})();</script>
 <script>(function(){var bg=document.getElementById("emptyBg"),c=document.getElementById("chat");function u(){var sd=document.getElementById("gm-side");var l=0;if(sd&&innerWidth>700){l=sd.getBoundingClientRect().right;}bg.style.left=l+"px";bg.style.display=(c&&!c.classList.contains("hide"))?"none":"block";}if(c)new MutationObserver(u).observe(c,{attributes:true,attributeFilter:["class"]});addEventListener("resize",u);setInterval(u,1000);u();})();</script>
 <style>body>.card,#gm-side{position:relative;z-index:1}#gm-side{z-index:3}</style>
-<script src="/gm-chat.js?v=20261030toolhide2"></script>
-<script src="/dmvoice.js?v=20261030nextcolon"></script>
-<script src="/voice.js?v=20261030nextcolon"></script>
+<script src="/gm-chat.js?v=20261030fast"></script>
 </body></html>

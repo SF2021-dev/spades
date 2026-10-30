@@ -19,7 +19,11 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     .bind(email, username, hash, Date.now()).first();
   const mail = await sendConfirmation(env, request, user);
   // No email provider configured yet: log the new account straight in so the site gate doesn't lock people out.
-  if (!mail.sent && mail.reason === "no_provider")
+  // Provider refused (e.g. sender domain not verified in Resend yet, or onboarding sender restricted to the owner's inbox):
+  // don't strand the user - mark verified and log them in.
+  if (!mail.sent && mail.reason === "provider_error")
+    await env.DB.prepare("UPDATE users SET verified_at = ? WHERE id = ?").bind(Date.now(), user.id).run();
+  if (!mail.sent && (mail.reason === "no_provider" || mail.reason === "provider_error"))
     return json({ ok: true, loggedIn: true, user: publicUser(user) }, 201, { "Set-Cookie": await createSession(env, user.id) });
   return json({ ok: true, emailSent: mail.sent, reason: mail.reason, message: mail.sent ? "Check your email for a confirmation link." : "Account created, but the confirmation email could not be sent yet." }, 201);
 });

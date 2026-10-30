@@ -292,7 +292,8 @@
       d.className = "mb-msg";
       d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span></div>';
       d.querySelector(".mb-who").textContent = m.name;
-      if (AD && m.t) { var tm = document.createElement("span"); tm.className = "mb-time"; tm.style.cssText = "font-size:12px;color:#5c4210;margin-right:6px;-webkit-text-stroke:0;white-space:nowrap"; tm.textContent = new Date(m.t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); var ln = d.querySelector(".mb-line"); ln.insertBefore(tm, ln.firstChild); }
+      if (AD) { d.querySelector(".mb-who").style.display = "none"; d.querySelector(".mb-colon").style.display = "none"; }
+      if (false && AD && m.t) { var tm = document.createElement("span"); tm.className = "mb-time"; tm.style.cssText = "font-size:12px;color:#5c4210;margin-right:6px;-webkit-text-stroke:0;white-space:nowrap"; tm.textContent = new Date(m.t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); var ln = d.querySelector(".mb-line"); ln.insertBefore(tm, ln.firstChild); }
       var pm = /^\[img:([A-Za-z0-9_-]{6,40})\]$/.exec(m.message);
       if (pm) {
         var src = "/api/img/" + pm[1], im = oldPics[src];

@@ -4,7 +4,9 @@
   document.body.classList.add("gm", GROUP ? "gm-gc" : "gm-dm");
   var card = document.querySelector(".card"); if (!card) return;
   var side = document.createElement("aside"); side.id = "gm-side"; card.insertBefore(side, card.firstChild);
-  side.innerHTML = '<div id="gm-head"></div><div id="gm-tools"></div><div id="gm-list"></div>';
+  side.innerHTML = '<div id="gm-head"></div><div id="gm-tools"></div><div id="gm-list"></div><nav id="gm-foot"><a class="gm-fl" href="/group-chat">FOLDERS</a><div id="gm-aud"><a class="gm-fl" id="gm-audl" href="#">Diamond Spaders Live Audio</a></div><a class="gm-fl" href="/">HOME</a></nav>';
+  (function(){ var aud = side.querySelector("#gm-aud"); var t = setInterval(function(){ var v = document.getElementById("dsv"); if (!v) return; clearInterval(t); aud.insertBefore(v, aud.firstChild); }, 200);
+    side.querySelector("#gm-audl").onclick = function(e){ e.preventDefault(); var a = document.getElementById("dsva"); if (a) a.click(); }; })();
   var hd = side.querySelector("#gm-head"), tools = side.querySelector("#gm-tools"), list = side.querySelector("#gm-list");
   if (!GROUP) { // start-chat request box + incoming requests live at the top of the left sidebar
     var cmp = document.querySelector("#pick .compose");
@@ -35,7 +37,7 @@
       var im = new Image(); im.alt = ""; im.onload = function(){ s.textContent = ""; s.appendChild(im); }; im.src = "/" + encodeURIComponent(n) + "-ava.png"; });
   }
   function head(){
-    return '<div class="gm-brand"><span>' + (GROUP ? "Folders" : "Messages") + '</span><a href="' + (GROUP ? "/chat" : "/group-chat") + '">' + (GROUP ? "Private chat" : "Folders") + ' &raquo;</a></div>' +
+    return '<div class="gm-brand"><span>' + (GROUP ? "Folders" : "Messages") + '</span>' + (GROUP ? '<a href="/chat">Private chat &raquo;</a>' : '') + '</div>' +
       (GROUP ? '<a class="gm-start" href="/group-chat#new">&#128172; Create folder</a>' : '');
   }
   function load(){

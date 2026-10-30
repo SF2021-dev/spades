@@ -1,6 +1,6 @@
 import { HttpError } from "./auth.js";
-const MAX_IMG = 400 * 1024, MAX_GIF = 1536 * 1024, GIF_MSG = "GIFs must be under 1.5 MB.";
-// Pasted web GIF: fetch the original by URL (https only, public hosts, <= 1.5 MB, must really be a GIF).
+const MAX_IMG = 400 * 1024, MAX_GIF = 5 * 1024 * 1024, GIF_MSG = "GIFs must be under 5 MB.";
+// Pasted web GIF: fetch the original by URL (https only, public hosts, <= 5 MB, must really be a GIF).
 export async function fetchGif(u) {
   let url; try { url = new URL(String(u || "")); } catch { throw new HttpError(400, "Bad picture link."); }
   const h = url.hostname.toLowerCase();
@@ -18,6 +18,15 @@ export async function fetchGif(u) {
   const sig = String.fromCharCode(...b.slice(0, 6));
   if (sig !== "GIF87a" && sig !== "GIF89a") throw new HttpError(415, "NOTGIF");
   return { mime: "image/gif", data: b };
+}
+
+// D1 rows top out near 2 MB, so big images are split: first CHUNK bytes in msg_images.data, the rest in msg_image_chunks (id, seq).
+const CHUNK = 1024 * 1024;
+export function imageInserts(env, id, name, mime, data, now, orIgnore) {
+  const st = [env.DB.prepare(`INSERT ${orIgnore ? "OR IGNORE " : ""}INTO msg_images (id, name, mime, bytes, data, t) VALUES (?, ?, ?, ?, ?, ?)`).bind(id, name, mime, data.length, data.length > CHUNK ? data.slice(0, CHUNK) : data, now)];
+  for (let o = CHUNK, i = 1; o < data.length; o += CHUNK, i++)
+    st.push(env.DB.prepare(`INSERT ${orIgnore ? "OR IGNORE " : ""}INTO msg_image_chunks (id, seq, data) VALUES (?, ?, ?)`).bind(id, i, data.slice(o, o + CHUNK)));
+  return st;
 }
 
 export function decodeImage(v) {
@@ -46,6 +55,6 @@ export async function storeChatImage(env, name, b, now) {
   const hour = await env.DB.prepare("SELECT COUNT(*) AS n FROM msg_images WHERE name = ? COLLATE NOCASE AND t > ?").bind(name, now - 3600e3).first();
   if (hour && hour.n >= 20) throw new HttpError(429, "You can post 20 pictures an hour. Please try again later.");
   const id = "c" + now.toString(36) + crypto.randomUUID().replace(/-/g, "").slice(0, 10);
-  await env.DB.prepare("INSERT INTO msg_images (id, name, mime, bytes, data, t) VALUES (?, ?, ?, ?, ?, ?)").bind(id, name, img.mime, img.data.length, img.data, now).run();
+  await env.DB.batch(imageInserts(env, id, name, img.mime, img.data, now));
   return "[img:" + id + "]";
 }

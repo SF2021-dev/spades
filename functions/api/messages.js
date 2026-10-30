@@ -4,20 +4,21 @@
 //   or, without a pin, the browser's remember-me cookie (ds_pin_token) must be valid for that name;
 //   401 wrong PIN, 428 name has no PIN yet, 429 locked after too many wrong PINs.
 // Writes are atomic inserts (no read-modify-write), so concurrent posts can't overwrite each other.
-// Images: POST may carry image:"data:image/(jpeg|webp|png|gif);base64,..." (<= 400 KB decoded; GIFs <= 1.5 MB; checked by magic bytes; stored as a BLOB). It is stored
+// Images: POST may carry image:"data:image/(jpeg|webp|png|gif);base64,..." (<= 400 KB decoded; GIFs <= 5 MB; checked by magic bytes; stored as a BLOB). It is stored
 //   in D1 msg_images and the message text becomes "[img:<id>]" (rendered by msgbox.js, served by /api/img/<id>).
 //   PIN-gated like text; rate limits: IMG_PER_HOUR per name, IMG_PER_DAY site-wide.
 // Delete an image: also DELETE FROM msg_images WHERE id='...'
 // Delete a message: wr d1 execute diamondspaders-auth --remote --command "DELETE FROM messages WHERE id='...'"
+import { imageInserts } from "../_shared/msgimg.js";
 import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
 import { checkPin, pinRow, tokenName } from "../_shared/pins.js";
 
 const SHOW = 200, MAX_NAME = 40, MAX_MSG = 1000;
-const MAX_IMG = 400 * 1024, MAX_GIF = 1536 * 1024, GIF_MSG = "GIFs must be under 1.5 MB.", IMG_PER_HOUR = 10, IMG_PER_DAY = 300;
+const MAX_IMG = 400 * 1024, MAX_GIF = 5 * 1024 * 1024, GIF_MSG = "GIFs must be under 5 MB.", IMG_PER_HOUR = 10, IMG_PER_DAY = 300;
 const IMG_TAG = /\[img:/i;
 
 const MIN_IMG_CLIENT = 55;   // msgbox.js version that sends GIFs unflattened; older (cached) pages are told to reload
-// Pasted web GIF: fetch the original by URL (https only, public hosts, <= 1.5 MB, must really be a GIF).
+// Pasted web GIF: fetch the original by URL (https only, public hosts, <= 5 MB, must really be a GIF).
 async function fetchGif(u) {
   let url; try { url = new URL(String(u || "")); } catch { throw new HttpError(400, "Bad picture link."); }
   const h = url.hostname.toLowerCase();
@@ -102,7 +103,7 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     const imgId = m.id.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40).padEnd(6, "0");
     m.message = "[img:" + imgId + "]";
     await env.DB.batch([
-      env.DB.prepare("INSERT OR IGNORE INTO msg_images (id, name, mime, bytes, data, t) VALUES (?, ?, ?, ?, ?, ?)").bind(imgId, m.name, img.mime, img.data.length, img.data, now),
+      ...imageInserts(env, imgId, m.name, img.mime, img.data, now, true),
       env.DB.prepare("INSERT OR IGNORE INTO messages (id, name, message, t) VALUES (?, ?, ?, ?)").bind(m.id, m.name, m.message, m.t),
     ]);
     return json({ ok: true, ids: [m.id], messages: await list(env) }, 201);

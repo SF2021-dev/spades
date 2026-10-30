@@ -25,13 +25,15 @@
       '<span class="gm-tx"><div class="gm-nm">' + esc(name) + '</div>' + (snip ? '<div class="gm-sn">' + esc(snip) + '</div>' : '') + '</span>' + (time ? '<span class="gm-tm">' + esc(time) + '</span>' : '') + '</a>';
   }
   function reqRow(name, html){ return '<div class="gm-req">' + html + '<button type="button" class="gm-x" title="Delete request" aria-label="Delete request" data-cancel="' + esc(name) + '">&times;</button></div>'; }
-  function ctRow(n, fav, html){ return '<div class="gm-ct" data-n="' + esc(n) + '">' + html + '<div class="gm-menu"><label><input type="checkbox" class="gm-fav"' + (fav ? ' checked' : '') + '> favorite</label><button type="button" class="gm-del">delete</button>' +
+  function ctRow(n, fav, html){ return '<div class="gm-ct" data-n="' + esc(n) + '">' + html + '<div class="gm-menu"><label><input type="checkbox" class="gm-fav"' + (fav ? ' checked' : '') + '> favorite</label><button type="button" class="gm-del">delete</button><button type="button" class="gm-blk">block</button>' +
     '<span class="gm-sure">Are you sure? <button type="button" class="gm-y">Y</button> <button type="button" class="gm-n">N</button></span></div></div>'; }
   function post(o){ return fetch("/api/chat", {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"}, body: JSON.stringify(o)}).then(function(r){ if (!r.ok) throw 0; }); }
   side.addEventListener("change", function(e){ var c = e.target; if (!c.classList || !c.classList.contains("gm-fav")) return;
     var n = c.closest(".gm-ct").getAttribute("data-n"); post({action:"fav", with:n, on:c.checked}).then(load).catch(function(){ alert("Couldn't save favorite."); }); });
   side.addEventListener("click", function(e){
     var t = e.target, ct = t.closest && t.closest(".gm-ct"); if (!ct || !t.closest(".gm-menu")) return;
+    if (t.classList.contains("gm-blk")) { e.preventDefault(); var bn = ct.getAttribute("data-n"); if (!confirm("Block " + bn + "? They won't be able to message you.")) return;
+      post({action:"block", with:bn}).then(function(){ ct.remove(); if (bn.toLowerCase() === selTo) location.href = "/chat"; else load(); }).catch(function(){ alert("Couldn't block that player."); }); return; }
     if (t.classList.contains("gm-del")) { e.preventDefault(); ct.classList.add("asking"); }
     else if (t.classList.contains("gm-n")) { e.preventDefault(); ct.classList.remove("asking"); }
     else if (t.classList.contains("gm-y")) { e.preventDefault(); var n = ct.getAttribute("data-n");

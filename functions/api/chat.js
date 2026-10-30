@@ -24,18 +24,20 @@ async function me(env, request) {
   if (!n) throw new HttpError(401, "Please log in to chat.");
   return n;
 }
+// chat_perms row (from=X, to=Y): Y's answer about X.  ok = Y allows X, pending = X messaged Y and Y hasn't answered, no = Y blocked X.
+// Anyone may message anyone; the recipient is asked Allow? Y/N on the first message; N (or Block) blocks.
 async function perm(env, a, b) {
   const out = await env.DB.prepare("SELECT status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(a, b).first();
   const inc = await env.DB.prepare("SELECT status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(b, a).first();
-  if ((out && out.status === "ok") || (inc && inc.status === "ok")) return { status: "ok", incoming: false };
-  if (inc && inc.status === "pending") return { status: "pending", incoming: true };
-  return { status: out ? out.status : "none", incoming: false };
+  if (inc && inc.status === "no") return { status: "no", blockedByMe: true, incoming: false };
+  if (out && out.status === "no") return { status: "no", blockedByThem: true, incoming: false };
+  return { status: "ok", incoming: !!(inc && inc.status === "pending") };
 }
-async function approveBoth(env, a, b) {   // mutual: once one side asked and the other reaches out, open both directions
+async function approveBoth(env, a, b) {
   const now = Date.now(), sql = "INSERT INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'ok', ?) ON CONFLICT(from_name, to_name) DO UPDATE SET status='ok', t=excluded.t";
   await env.DB.batch([env.DB.prepare(sql).bind(a, b, now), env.DB.prepare(sql).bind(b, a, now)]);
 }
-async function needOk(env, a, b) { const p = await perm(env, a, b); if (p.status === "pending" && p.incoming) { await approveBoth(env, a, b); return; } if (p.status !== "ok") throw new HttpError(403, "They haven't approved chatting with you yet."); }
+async function needOk(env, a, b) { const p = await perm(env, a, b); if (p.status === "no") throw new HttpError(403, p.blockedByMe ? "You blocked this player." : "This player isn't accepting messages from you."); }
 const mid = (now) => now.toString(36) + "-" + crypto.randomUUID().slice(0, 8);
 
 export const onRequestGet = wrap(async ({ request, env }) => {
@@ -66,12 +68,14 @@ export const onRequestGet = wrap(async ({ request, env }) => {
     const C = await canonFn(); return json({ requests: (r.results || []).map((x) => ({ ...x, from: C(x.from) })) });
   }
   if (a === "partners") {
-    const r = await env.DB.prepare("SELECT CASE WHEN from_name = ? COLLATE NOCASE THEN to_name ELSE from_name END AS name, MAX(t) AS t FROM chat_perms " +
-      "WHERE status = 'ok' AND (from_name = ? COLLATE NOCASE OR to_name = ? COLLATE NOCASE) GROUP BY lower(name) ORDER BY name COLLATE NOCASE").bind(my, my, my).all();
-    const o = await env.DB.prepare("SELECT to_name AS name, status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND status IN ('pending','no') ORDER BY t DESC").bind(my).all();
+    const r = await env.DB.prepare("SELECT from_name, to_name, status, t FROM chat_perms WHERE from_name = ? COLLATE NOCASE OR to_name = ? COLLATE NOCASE").bind(my, my).all();
+    const st = {}, ml = my.toLowerCase();
+    for (const x of r.results || []) { const n = x.from_name.toLowerCase() === ml ? x.to_name : x.from_name, k = n.toLowerCase();
+      st[k] = st[k] || { name: n, blocked: false }; if (x.status === "no") st[k].blocked = true; }
     let favs = [];
     try { favs = ((await env.DB.prepare("SELECT name FROM chat_favs WHERE owner = ? COLLATE NOCASE").bind(my).all()).results || []).map((x) => x.name); } catch {}
-    const C = await canonFn(); return json({ partners: (r.results || []).map((x) => C(x.name)), outgoing: (o.results || []).map((x) => ({ ...x, name: C(x.name) })), favorites: favs.map(C) });
+    const C = await canonFn(), ps = Object.values(st).filter((x) => !x.blocked && x.name.toLowerCase() !== ml).map((x) => C(x.name)).sort((p, q) => p.toLowerCase().localeCompare(q.toLowerCase()));
+    return json({ partners: ps, outgoing: [], favorites: favs.map(C) });
   }
   if (a === "buzzes") {
     const now = Date.now();
@@ -122,6 +126,12 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     else await env.DB.prepare("DELETE FROM chat_favs WHERE owner = ? COLLATE NOCASE AND name = ? COLLATE NOCASE").bind(my, w).run();
     return json({ ok: true });
   }
+  if (b.action === "block") {   // block anytime: they can't message me and drop off both lists
+    const w = normName(b.with); if (!w) throw new HttpError(400, "Who?");
+    await env.DB.prepare("INSERT INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'no', ?) ON CONFLICT(from_name, to_name) DO UPDATE SET status='no', t=excluded.t").bind(w, my, now).run();
+    try { await env.DB.prepare("DELETE FROM chat_favs WHERE owner = ? COLLATE NOCASE AND name = ? COLLATE NOCASE").bind(my, w).run(); } catch {}
+    return json({ ok: true });
+  }
   if (b.action === "remove") {   // take someone off my private-chat list (they must ask again)
     const w = normName(b.with); if (!w) throw new HttpError(400, "Who?");
     await env.DB.prepare("DELETE FROM chat_perms WHERE (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE) OR (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE)").bind(my, w, w, my).run();
@@ -142,16 +152,11 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   if (to) to = (await canonFn())(to);
   if (!to) throw new HttpError(404, "No player by that name.");
   if (to.toLowerCase() === my.toLowerCase()) throw new HttpError(400, "You can't chat with yourself.");
-  if (b.action === "request") {
-    const p = await perm(env, my, to);
-    if (p.status === "ok") return json({ ok: true, status: "ok" });
-    if (p.incoming) {   // they already asked me: asking back = approving (both directions)
-      await approveBoth(env, my, to);
-      return json({ ok: true, status: "ok" });
-    }
-    await env.DB.prepare("INSERT INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'pending', ?) " +
-      "ON CONFLICT(from_name, to_name) DO UPDATE SET status = CASE WHEN status='no' THEN 'no' ELSE 'pending' END, t = excluded.t").bind(my, to, now).run();
-    return json({ ok: true, status: (await perm(env, my, to)).status });
+  if (b.action === "request") {   // no approval step any more: reaching out means I allow them (unblocks if I had blocked)
+    const out = await env.DB.prepare("SELECT status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(my, to).first();
+    if (out && out.status === "no") return json({ ok: true, status: "no" });
+    await env.DB.prepare("INSERT INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'ok', ?) ON CONFLICT(from_name, to_name) DO UPDATE SET status='ok', t=excluded.t").bind(to, my, now).run();
+    return json({ ok: true, status: "ok" });
   }
   await needOk(env, my, to);
   if (b.action === "unsend") return unsendMsg(env, my, b.id, "to_name = ? COLLATE NOCASE", [to]);
@@ -163,6 +168,7 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     if (!body || body.length > MAX_TXT) throw new HttpError(400, "Message must be 1-" + MAX_TXT + " characters.");
     const id = mid(now);
     await env.DB.prepare("INSERT INTO chat_msgs (id, from_name, to_name, kind, body, t) VALUES (?, ?, ?, ?, ?, ?)").bind(id, my, to, kind, body, now).run();
+    await env.DB.prepare("INSERT OR IGNORE INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'pending', ?)").bind(my, to, now).run();   // first message: they get Allow? Y/N
     return json({ ok: true, id }, 201);
   }
   if (b.action === "buzz") {

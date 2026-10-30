@@ -121,3 +121,5 @@ body.gm-dm #pick{display:none!important}
 #ds-chatbox .mb-mirror{position:absolute !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;margin:0 !important;white-space:pre-wrap !important;overflow:hidden !important;pointer-events:none !important;box-sizing:border-box !important}
 #ds-chatbox .mb-tawrap textarea{display:block !important;width:100% !important;box-sizing:border-box !important;margin:0 !important;position:relative !important}
 body.gm #ds-chatbox .mb-rich .mb-tawrap textarea,body.gm #ds-chatbox .mb-rich #mb-text{color:transparent !important;caret-color:#e3e3e3 !important}
+.gm-ct .gm-blk{background:#5f6368;color:#fff;border:0}
+.gm-ct.asking .gm-blk{display:none}

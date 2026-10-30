@@ -30,7 +30,7 @@ button:hover{background:#2a1608}
 #buzzBanner{position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:9999;background:#2a1405;color:#f3bf56;border:3px solid #f3bf56;border-radius:12px;padding:12px 24px;font:bold 24px 'Comic Sans MS','Comic Sans',cursive;transition:top .3s;box-shadow:0 6px 24px #000}
 #buzzBanner.on{top:16px}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
-</style><link rel="stylesheet" href="/gm-chat.css?v=8"></head><body>
+</style><link rel="stylesheet" href="/gm-chat.css?v=9"></head><body>
 <div class="card">
   <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
 
@@ -91,14 +91,14 @@ function loadPending(){
   return api("action=pending").then(function(j){
     var b = $("pending"); b.innerHTML = "";
     show(b, j.requests.length > 0);
-    if (j.requests.length) b.insertAdjacentHTML("beforeend", "<b>Chat requests</b>");
+    if (j.requests.length) b.insertAdjacentHTML("beforeend", "<b>New messages</b>");
     j.requests.forEach(function(r){
       var d = document.createElement("div"); d.className = "req";
-      d.innerHTML = "<span><b>" + esc(r.from) + "</b> wants to chat privately with you.</span>";
-      [["Allow", true], ["Deny", false]].forEach(function(o){
+      d.innerHTML = "<span><b>" + esc(r.from) + "</b> messaged you. Allow?</span>";
+      [["Y", true], ["N (block)", false]].forEach(function(o){
         var bt = document.createElement("button"); bt.textContent = o[0];
         bt.onclick = function(){ api(null, {action:"answer", from:r.from, ok:o[1]}).then(function(){
-          if (o[1]) location.href = "/chat?to=" + encodeURIComponent(r.from); else { loadPending(); loadPartners(); } }); };
+          if (o[1]) location.href = "/chat?to=" + encodeURIComponent(r.from); else if (WITH && WITH.toLowerCase() === String(r.from).toLowerCase()) location.href = "/chat"; else { loadPending(); loadPartners(); } }); };
         d.appendChild(bt);
       });
       b.appendChild(d);
@@ -173,15 +173,26 @@ function openChat(name, status){
   setStatus(status);
   poll = setInterval(tick, 2000);
 }
+function askAllow(on){   // first message from someone new: Allow? Y / N (N blocks them)
+  var a = $("allowAsk");
+  if (!on) { if (a) a.remove(); return; }
+  if (a) return;
+  a = document.createElement("div"); a.id = "allowAsk"; a.className = "panel"; a.style.cssText = "display:flex;gap:10px;align-items:center;margin:6px 0;flex-wrap:wrap";
+  a.innerHTML = "<span><b>" + esc(WITH) + "</b> messaged you. Allow?</span>";
+  [["Y", true], ["N (block)", false]].forEach(function(o){ var bt = document.createElement("button"); bt.textContent = o[0];
+    bt.onclick = function(){ api(null, {action:"answer", from:WITH, ok:o[1]}).then(function(){ if (o[1]) { a.remove(); loadPending(); } else location.href = "/chat"; }); };
+    a.appendChild(bt); });
+  $("chat").insertBefore(a, $("chat").firstChild);
+}
 function setStatus(s){
   var ok = s === "ok"; window.DS_DM_WITH = ok ? WITH : "";
   show($("composer"), ok); show($("waitmsg"), !ok);
-  $("waitmsg").textContent = s === "no" ? WITH + " declined your chat request." :
+  $("waitmsg").textContent = s === "no" ? "You can't chat with " + WITH + " (blocked)." :
     "Waiting for " + WITH + " to allow chatting with you. They'll be asked the next time they log in.";
 }
 function tick(){
   api("action=status&with=" + encodeURIComponent(WITH)).then(function(s){
-    setStatus(s.status); if (s.status !== "ok") return;
+    setStatus(s.status); askAllow(!!s.incoming); if (s.status !== "ok") return;
     loadMB(chatAdapter(function(){ return "action=list&with=" + encodeURIComponent(WITH); }, function(){ return {to:WITH}; })); return;
     return api("action=list&with=" + encodeURIComponent(WITH) + "&since=" + since).then(function(j){ j.messages.forEach(render); });
   }).catch(function(){});
@@ -244,7 +255,7 @@ document.addEventListener("click", function once(){ document.removeEventListener
 start();
 })();
 </script>
-<script src="/gm-chat.js?v=11"></script>
+<script src="/gm-chat.js?v=12"></script>
 <script src="/dmvoice.js?v=1"></script>
 <script src="/voice.js?v=3"></script>
 </body></html>

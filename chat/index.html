@@ -196,7 +196,8 @@ function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, titl
 function render(){}
 
 // ---- buzz ----
-var buzzSnd = new Audio("/buzz.wav?v=1"); buzzSnd.preload = "auto";
+var buzzSnd = new Audio("/buzz.wav?v=2"); buzzSnd.preload = "auto";
+var buzzClip = new Audio("/buzz-clip.mp3?v=2"); buzzClip.preload = "auto"; var buzzLast = 0;
 function addBuzzBtn(){
   var iv = setInterval(function(){
     var t = $("mb-tools"); if (!t || $("buzzBtn")) return; clearInterval(iv);
@@ -216,7 +217,12 @@ function checkBuzz(){
   }).catch(function(){});
 }
 function playBuzz(){
-  try { buzzSnd.currentTime = 0; var p = buzzSnd.play(); if (p && p.catch) p.catch(beep); } catch(e){ beep(); }
+  var now = Date.now(); if (now - buzzLast < 800) return; buzzLast = now;
+  try { buzzSnd.onended = null; buzzSnd.pause(); buzzSnd.currentTime = 0; buzzClip.pause(); buzzClip.currentTime = 0; } catch(e){}
+  var done = false;
+  function clip(){ if (done) return; done = true; buzzSnd.onended = null; try { buzzClip.currentTime = 0; var q = buzzClip.play(); if (q && q.catch) q.catch(function(){}); } catch(e){} }
+  buzzSnd.onended = clip;
+  try { var p = buzzSnd.play(); if (p && p.catch) p.catch(function(){ beep(); setTimeout(clip, 700); }); } catch(e){ beep(); setTimeout(clip, 700); }
 }
 function beep(){ try { var C = window.AudioContext || window.webkitAudioContext, c = new C();
   [880,1320,880,1320].forEach(function(f,i){ var o = c.createOscillator(), g = c.createGain(); o.type = "square"; o.frequency.value = f; g.gain.value = .08; o.connect(g); g.connect(c.destination); o.start(c.currentTime + i*.16); o.stop(c.currentTime + i*.16 + .12); }); } catch(e){} }

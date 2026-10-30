@@ -51,7 +51,7 @@
       var im = new Image(); im.alt = ""; im.onload = function(){ s.textContent = ""; s.appendChild(im); }; im.src = "/" + encodeURIComponent(f) + "-ava.png"; }); });
   }
   function head(){
-    return '<div class="gm-brand"><span>' + (GROUP ? "Folders" : "Messages") + '</span>' + (GROUP ? '<a href="/chat">Private chat &raquo;</a>' : '') + '</div>' +
+    return (GROUP ? '<div class="gm-brand"><span>Folders</span><a href="/chat">Private chat &raquo;</a></div>' : '') +
       (GROUP ? '<a class="gm-start" href="/group-chat#new">&#128172; Create folder</a>' : '');
   }
   function load(){

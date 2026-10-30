@@ -30,7 +30,7 @@ button:hover{background:#2a1608}
 #buzzBanner{position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:9999;background:#2a1405;color:#f3bf56;border:3px solid #f3bf56;border-radius:12px;padding:12px 24px;font:bold 24px 'Comic Sans MS','Comic Sans',cursive;transition:top .3s;box-shadow:0 6px 24px #000}
 #buzzBanner.on{top:16px}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
-</style><link rel="stylesheet" href="/gm-chat.css?v=14"></head><body>
+</style><link rel="stylesheet" href="/gm-chat.css?v=15"></head><body>
 <div class="card">
   <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
 
@@ -166,6 +166,7 @@ $("nfretry").onclick = function(){ show($("notfound"), false); $("rname").value 
 
 // ---- chat ----
 function openChat(name, status){
+  if (window.dsLoad) dsLoad(true);
   if (window.__dmClosed && window.__mbLoaded) { location.href = "/chat?to=" + encodeURIComponent(name); return; }
   WITH = name; show($("pick"), false); show($("chat"), true);
   $("withLbl").textContent = "with " + name;
@@ -276,9 +277,16 @@ c.onchange=function(){try{localStorage.setItem("ds-enter-sends",c.checked?"1":"0
 g.onclick=function(e){e.stopPropagation();o.style.display=o.style.display==="none"?"block":"none"};
 document.addEventListener("click",function(e){if(!o.contains(e.target)&&e.target!==g)o.style.display="none"});})();</script>
 <div id="emptyBg" style="position:fixed;top:44px;right:0;bottom:0;left:0;z-index:2;pointer-events:none;overflow:hidden;display:none"><div style="position:absolute;inset:0;background:url('/chat/empty-bg.svg?v=4') 0 0/240px 240px repeat;filter:grayscale(1)"></div><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:700 160px Georgia,serif;color:rgba(255,255,255,.08)">&#9824;</div></div>
+<div id="dsLoad" style="position:fixed;top:50%;left:60%;transform:translate(-50%,-50%);z-index:50;display:none;pointer-events:none"><div style="width:28px;height:28px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:dsSpin .8s linear infinite"></div></div><style>@keyframes dsSpin{to{transform:rotate(360deg)}}</style>
+<script>(function(){var L=document.getElementById("dsLoad"),t0=0;
+function ready(){var w=document.getElementById("waitmsg"),b=document.getElementById("ds-chatbox");return (b&&b.offsetParent)||(w&&w.offsetParent&&w.textContent);}
+window.dsLoad=function(on){L.style.display=on?"block":"none";t0=on?Date.now():0;};
+if(/[?&]to=/.test(location.search))dsLoad(true);
+document.addEventListener("click",function(e){var sd=document.getElementById("gm-side");if(sd&&sd.contains(e.target)&&!e.target.closest("button,[class*=dots],[class*=menu]")&&e.target.closest("a,li,[data-n],[data-name],div"))dsLoad(true);},true);
+setInterval(function(){if(!t0)return;if(ready()||Date.now()-t0>15000)dsLoad(false);},150);})();</script>
 <script>(function(){var bg=document.getElementById("emptyBg"),c=document.getElementById("chat");function u(){var sd=document.getElementById("gm-side");var l=0;if(sd&&innerWidth>700){l=sd.getBoundingClientRect().right;}bg.style.left=l+"px";bg.style.display=(c&&!c.classList.contains("hide"))?"none":"block";}if(c)new MutationObserver(u).observe(c,{attributes:true,attributeFilter:["class"]});addEventListener("resize",u);setInterval(u,1000);u();})();</script>
 <style>body>.card,#gm-side{position:relative;z-index:1}#gm-side{z-index:3}</style>
-<script src="/gm-chat.js?v=17"></script>
+<script src="/gm-chat.js?v=18"></script>
 <script src="/dmvoice.js?v=1"></script>
 <script src="/voice.js?v=3"></script>
 </body></html>

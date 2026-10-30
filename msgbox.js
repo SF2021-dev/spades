@@ -265,9 +265,9 @@
     document.body.appendChild(v);
   }
   function addUnsend(d, m){   // red X on my latest message: hover (or tap the message on touch) to show, click to remove for everyone
-    d.classList.add("mb-mine"); d.tabIndex = 0;
+    d.classList.add("mb-delx"); d.tabIndex = 0;
     var x = document.createElement("button"); x.type = "button"; x.className = "mb-unsend"; x.textContent = "\u2715";
-    x.title = "Delete this message"; x.setAttribute("aria-label", "Delete your last message");
+    x.title = "Delete this message"; x.setAttribute("aria-label", "Delete this message");
     x.addEventListener("click", function(ev){
       ev.stopPropagation(); if (x.disabled) return; x.disabled = true;
       AD.del(m.id).then(function(){
@@ -278,9 +278,9 @@
     d.appendChild(x);
   }
   (function(){ var s = document.createElement("style"); s.textContent =
-    ".mb-msg.mb-mine{position:relative;padding-right:34px}" +
+    ".mb-msg.mb-delx{position:relative;padding-right:34px}" +
     ".mb-unsend{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:0;background:#d11;color:#fff;font:700 15px/28px Arial,sans-serif;padding:0;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .12s;box-shadow:0 1px 3px rgba(0,0,0,.4)}" +
-    ".mb-msg.mb-mine:hover .mb-unsend,.mb-msg.mb-mine:focus-within .mb-unsend,.mb-msg.mb-mine.mb-tap .mb-unsend{opacity:1;pointer-events:auto}" +
+    ".mb-msg.mb-delx:hover .mb-unsend,.mb-msg.mb-delx:focus-within .mb-unsend,.mb-msg.mb-delx.mb-tap .mb-unsend{opacity:1;pointer-events:auto}" +
     ".mb-unsend:hover{background:#f22}.mb-unsend:disabled{opacity:.5!important}";
     document.head.appendChild(s); })();
   function render(list){
@@ -308,7 +308,8 @@
           im.src = src; im.addEventListener("click", function(){ viewImg(im.src); }); }
         d.querySelector(".mb-body").appendChild(im);
       } else fillRich(d.querySelector(".mb-body"), m.message);
-      if (AD && AD.del && m.id && savedName && String(m.name).toLowerCase() === String(savedName).toLowerCase()) lastMine = {el: d, m: m};
+      if (AD && AD.del && AD.delAny && m.id) addUnsend(d, m);   // private chat: every entry (mine or theirs) gets a hover X
+      else if (AD && AD.del && m.id && savedName && String(m.name).toLowerCase() === String(savedName).toLowerCase()) lastMine = {el: d, m: m};
       el.appendChild(d);
     });
     if (lastMine) addUnsend(lastMine.el, lastMine.m);

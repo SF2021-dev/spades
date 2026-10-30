@@ -31,7 +31,11 @@ async function perm(env, a, b) {
   if (inc && inc.status === "pending") return { status: "pending", incoming: true };
   return { status: out ? out.status : "none", incoming: false };
 }
-async function needOk(env, a, b) { if ((await perm(env, a, b)).status !== "ok") throw new HttpError(403, "They haven't approved chatting with you yet."); }
+async function approveBoth(env, a, b) {   // mutual: once one side asked and the other reaches out, open both directions
+  const now = Date.now(), sql = "INSERT INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'ok', ?) ON CONFLICT(from_name, to_name) DO UPDATE SET status='ok', t=excluded.t";
+  await env.DB.batch([env.DB.prepare(sql).bind(a, b, now), env.DB.prepare(sql).bind(b, a, now)]);
+}
+async function needOk(env, a, b) { const p = await perm(env, a, b); if (p.status === "pending" && p.incoming) { await approveBoth(env, a, b); return; } if (p.status !== "ok") throw new HttpError(403, "They haven't approved chatting with you yet."); }
 const mid = (now) => now.toString(36) + "-" + crypto.randomUUID().slice(0, 8);
 
 export const onRequestGet = wrap(async ({ request, env }) => {
@@ -93,8 +97,9 @@ export const onRequestGet = wrap(async ({ request, env }) => {
 
 async function unsendMsg(env, my, id, where, binds) {   // delete my own message (latest only is offered in the UI); also its stored picture
   id = String(id || "").slice(0, 80);
-  const row = await env.DB.prepare("SELECT id, body FROM chat_msgs WHERE id = ? AND from_name = ? COLLATE NOCASE AND " + where).bind(id, my, ...binds).first();
-  if (!row) throw new HttpError(404, "Message not found (only your own messages can be removed).");
+  // private chat: either person in the pair may delete any entry (theirs or mine), for both sides
+  const row = await env.DB.prepare("SELECT id, body FROM chat_msgs WHERE id = ? AND ((from_name = ? COLLATE NOCASE AND " + where + ") OR (to_name = ? COLLATE NOCASE AND from_name = ? COLLATE NOCASE))").bind(id, my, ...binds, my, ...binds).first();
+  if (!row) throw new HttpError(404, "Message not found.");
   const st = [env.DB.prepare("DELETE FROM chat_msgs WHERE id = ?").bind(id)];
   const pm = /^\[img:([A-Za-z0-9_-]{6,40})\]$/.exec(row.body || "");
   if (pm) st.push(env.DB.prepare("DELETE FROM msg_images WHERE id = ?").bind(pm[1]), env.DB.prepare("DELETE FROM msg_image_chunks WHERE id = ?").bind(pm[1]));
@@ -140,8 +145,8 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   if (b.action === "request") {
     const p = await perm(env, my, to);
     if (p.status === "ok") return json({ ok: true, status: "ok" });
-    if (p.incoming) {   // they already asked me: asking back = approving
-      await env.DB.prepare("UPDATE chat_perms SET status='ok', t=? WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(now, to, my).run();
+    if (p.incoming) {   // they already asked me: asking back = approving (both directions)
+      await approveBoth(env, my, to);
       return json({ ok: true, status: "ok" });
     }
     await env.DB.prepare("INSERT INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'pending', ?) " +

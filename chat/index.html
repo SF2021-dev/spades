@@ -30,7 +30,7 @@ button:hover{background:#2a1608}
 #buzzBanner{position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:9999;background:#2a1405;color:#f3bf56;border:3px solid #f3bf56;border-radius:12px;padding:12px 24px;font:bold 24px 'Comic Sans MS','Comic Sans',cursive;transition:top .3s;box-shadow:0 6px 24px #000}
 #buzzBanner.on{top:16px}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
-</style><link rel="stylesheet" href="/gm-chat.css?v=7"></head><body>
+</style><link rel="stylesheet" href="/gm-chat.css?v=8"></head><body>
 <div class="card">
   <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
 
@@ -188,12 +188,12 @@ function tick(){
 }
 
 function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
-  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=72"; document.body.appendChild(sc); return true; }
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=73"; document.body.appendChild(sc); return true; }
 function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "\u00a0"),
   get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
     .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
   post:function(t, img, imgUrl){ var b = sendBody(); b.action = "send"; b.kind = "text"; b.body = t; if (img) b.image = img; if (imgUrl) b.imageUrl = imgUrl; return api(null, b); },
-  del:function(id){ var b = sendBody(); b.action = "unsend"; b.id = id; return api(null, b); } }; }
+  delAny:true, del:function(id){ var b = sendBody(); b.action = "unsend"; b.id = id; return api(null, b); } }; }
 function render(){}
 
 // ---- buzz ----

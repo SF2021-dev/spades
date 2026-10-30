@@ -54,8 +54,10 @@ body.gm-dm #ds-chatbox .mb-from{display:none}
 #ds-chatbox .mb-pic{max-width:100%;max-height:min(300px,45vh);border-radius:12px;display:block;cursor:zoom-in}
 #ds-chatbox .mb-line:has(.mb-pic){background:transparent !important;padding:0 !important}
 #ds-chatbox .mb-link{color:inherit;text-decoration:underline}
-#ds-chatbox .mb-unsend{position:absolute;left:-26px;top:50%;transform:translateY(-50%);background:transparent !important;color:#9aa0a6 !important;border:0 !important;padding:2px 6px !important;cursor:pointer;font-size:14px}
-#ds-chatbox .mb-unsend:hover{color:#f28b82 !important}
+#ds-chatbox .mb-msg.mb-delx{padding-right:0}
+#ds-chatbox .mb-unsend{position:absolute;left:-30px;right:auto;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;background:#d11 !important;color:#fff !important;border:0 !important;padding:0 !important;cursor:pointer;font:700 14px/26px Arial,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+#ds-chatbox .mb-msg.mb-in .mb-unsend{left:auto;right:-30px}
+#ds-chatbox .mb-unsend:hover{background:#f22 !important}
 /* compose pill */
 #ds-chatbox .mb-compose{flex:none;display:flex !important;align-items:center;gap:6px;background:#2a2a2a;border-radius:28px;margin:8px 0 0;padding:6px 8px 6px 10px !important;border:0 !important;font-size:15px !important;-webkit-text-stroke:0 !important;cursor:text;color:#e3e3e3;flex-wrap:nowrap !important}
 #ds-chatbox .mb-compose .mb-who,#ds-chatbox .mb-compose .mb-colon{display:none !important}

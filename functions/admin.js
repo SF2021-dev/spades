@@ -3,7 +3,7 @@ import { verifyPassword } from "./_shared/auth.js";
 const ADMIN_HASH = "pbkdf2$100000$bmOCsF8MSR4FjjUNevHRYw==$xzzxT8thmC4dzzn9+bEl8xpk58bDpcD2KHlaiaXvWGs=";
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt = (ms) => ms ? new Date(Number(ms)).toLocaleString("en-US", { timeZone: "America/New_York" }) + " ET" : "";
-const page = (body) => new Response(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>DS Admin</title><style>body{font-family:sans-serif;background:#111;color:#eee;padding:20px}table{border-collapse:collapse}td,th{border:1px solid #444;padding:6px 10px;text-align:left}input,button{font-size:16px;padding:6px}</style></head><body><h1>Diamond Spaders Admin</h1>${body}</body></html>`,
+const page = (body) => new Response(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>DS Admin</title><style>body{font-family:sans-serif;background:#111;color:#eee;padding:20px}table{border-collapse:collapse}td,th{border:1px solid #444;padding:6px 10px;text-align:left}input,button{font-size:16px;padding:6px}</style></head><body><h1>Diamond Spaders Online</h1>${body}</body></html>`,
   { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex" } });
 const form = (msg = "") => page(`${msg ? `<p style="color:#f66">${msg}</p>` : ""}<form method="POST"><input type="password" name="password" placeholder="Admin password" autofocus required> <button>Enter</button></form>`);
 

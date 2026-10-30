@@ -7,15 +7,35 @@
 // POST {action:"create", names:[...]} -> {gid}
 // POST {action:"answer", gid, ok}
 // POST {action:"send", gid, kind:text|tts, body} / {action:"audio", gid, kind:clip|live, audio}
-import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
+import { storeChatImage } from "../_shared/msgimg.js";
+import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
 import { normName, tokenName } from "../_shared/pins.js";
 import { known } from "../_shared/chatnames.js";
 const MAX_AUDIO = 1024 * 1024, MAX_TXT = 1000, MAX_MEMBERS = 12;
-async function me(env, request) { const n = await tokenName(env, request); if (!n) throw new HttpError(401, "Please log in with your name and PIN."); return n; }
+async function me(env, request) { let n = await tokenName(env, request);
+  if (!n) { try { const u = await currentUser(request, env); if (u && u.username) n = (await known(env, u.username)) || u.username; } catch {} } if (!n) throw new HttpError(401, "Please log in to chat."); return n; }
 async function members(env, gid) { return (await env.DB.prepare("SELECT name, status FROM chat_group_members WHERE gid = ? ORDER BY t").bind(gid).all()).results || []; }
+let migrated = false;
+async function migrate(env) { if (migrated) return; migrated = true; for (const c of ["title TEXT", "inv INTEGER", "pw TEXT"]) { try { await env.DB.prepare("ALTER TABLE chat_groups ADD COLUMN " + c).run(); } catch {} } }
+async function hashPw(gid, pw) { const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("dsgc:" + gid + ":" + pw)); return [...new Uint8Array(d)].map((x) => x.toString(16).padStart(2, "0")).join(""); }
+async function access(env, gid, my) {
+  const g = await env.DB.prepare("SELECT gid, owner, title, inv, pw FROM chat_groups WHERE gid = ?").bind(String(gid)).first();
+  if (!g) throw new HttpError(404, "That group chat was deleted or doesn't exist.");
+  const r = await env.DB.prepare("SELECT status FROM chat_group_members WHERE gid = ? AND name = ? COLLATE NOCASE").bind(String(gid), my).first();
+  const st = r && r.status === "ok" ? "member" : (r && r.status === "pending") ? "invited" : g.inv ? "denied" : "open";
+  return { g, st };
+}
+// Rooms may be invitation-only and/or password-protected. Non-members must POST {action:"join", gid, password}.
 async function needMember(env, gid, my) {
-  const r = await env.DB.prepare("SELECT status FROM chat_group_members WHERE gid = ? AND name = ?").bind(String(gid), my).first();
-  if (!r || r.status !== "ok") throw new HttpError(403, "You're not in that group chat.");
+  const { g, st } = await access(env, gid, my);
+  if (st === "member") return;
+  if (st === "denied") throw new HttpError(403, "This group chat is invitation only.");
+  if (g.pw) throw new HttpError(403, "This group chat needs a password.");
+  await join(env, gid, my);
+}
+async function join(env, gid, my) {
+  await env.DB.prepare("INSERT OR IGNORE INTO chat_group_members (gid, name, status, t) VALUES (?, ?, 'ok', ?)").bind(String(gid), my, Date.now()).run();
+  await env.DB.prepare("UPDATE chat_group_members SET status='ok' WHERE gid = ? AND name = ? COLLATE NOCASE").bind(String(gid), my).run();
 }
 async function check(env, names) {
   const found = [], missing = [];
@@ -27,10 +47,18 @@ const mid = (now) => now.toString(36) + "-" + crypto.randomUUID().slice(0, 8);
 export const onRequestGet = wrap(async ({ request, env }) => {
   const q = new URL(request.url).searchParams, a = q.get("action");
   if (a === "check") return json(await check(env, String(q.get("names") || "").split(",").slice(0, MAX_MEMBERS)));
-  const my = await me(env, request);
+  const my = await me(env, request); await migrate(env);
+  if (a === "rooms") {
+    const rows = (await env.DB.prepare("SELECT g.gid, g.owner, g.title, g.t, g.inv, (g.pw IS NOT NULL AND g.pw != '') AS haspw, (SELECT status FROM chat_group_members WHERE gid = g.gid AND name = ?1 COLLATE NOCASE) AS mst, (SELECT MAX(t) FROM chat_msgs WHERE to_name = 'g:' || g.gid) AS last, (SELECT COUNT(*) FROM chat_group_members WHERE gid = g.gid AND status = 'ok') AS n FROM chat_groups g ORDER BY COALESCE(last, g.t) DESC LIMIT 100").bind(my).all()).results || [];
+    return json({ me: my, rooms: rows.filter((r) => !r.inv || (r.mst && r.mst !== "no")).map((r) => ({ inviteOnly: !!r.inv, hasPassword: !!r.haspw, invited: r.mst === "pending", gid: r.gid, owner: r.owner, title: r.title || ("Group chat by " + r.owner), t: r.t, last: r.last, count: r.n })) });
+  }
+  if (a === "info") {
+    const { g, st } = await access(env, String(q.get("gid") || ""), my);
+    return json({ gid: g.gid, owner: g.owner, status: st, inviteOnly: !!g.inv, hasPassword: !!g.pw, title: g.title || ("Group chat by " + g.owner), isOwner: g.owner.toLowerCase() === my.toLowerCase() });
+  }
   if (a === "me") return json({ name: my });
   if (a === "mine" || a === "pending") {
-    const rows = (await env.DB.prepare("SELECT g.gid, g.owner, m.status FROM chat_group_members m JOIN chat_groups g ON g.gid = m.gid WHERE m.name = ? AND m.status " + (a === "pending" ? "= 'pending'" : "!= 'no'") + " ORDER BY g.t DESC LIMIT 50").bind(my).all()).results || [];
+    const rows = (await env.DB.prepare("SELECT g.gid, g.owner, m.status FROM chat_group_members m JOIN chat_groups g ON g.gid = m.gid WHERE m.name = ? COLLATE NOCASE AND m.status " + (a === "pending" ? "= 'pending'" : "!= 'no'") + " ORDER BY g.t DESC LIMIT 50").bind(my).all()).results || [];
     const out = []; for (const r of rows) out.push({ gid: r.gid, owner: r.owner, myStatus: r.status, members: await members(env, r.gid) });
     return json(a === "pending" ? { invites: out } : { groups: out });
   }
@@ -44,7 +72,46 @@ export const onRequestGet = wrap(async ({ request, env }) => {
 });
 
 export const onRequestPost = wrap(async ({ request, env }) => {
-  const my = await me(env, request), b = await readJson(request) || {}, now = Date.now();
+  const my = await me(env, request), b = await readJson(request) || {}, now = Date.now(); await migrate(env);
+  if (b.action === "room") {
+    const title = String(b.title || "").replace(/\s+/g, " ").trim().slice(0, 60);
+    if (!title) throw new HttpError(400, "Give the group chat a title.");
+    const inv = !!b.inviteOnly, pwRaw = String(b.password || "");
+    if (pwRaw.length > 60) throw new HttpError(400, "Password is too long.");
+    let others = [];
+    if (inv) {
+      const { found, missing } = await check(env, (Array.isArray(b.names) ? b.names : []).slice(0, MAX_MEMBERS));
+      if (missing.length) throw new HttpError(404, "Not found: " + missing.join(", "));
+      others = found.filter((n) => n.toLowerCase() !== my.toLowerCase());
+      if (!others.length) throw new HttpError(400, "Invite at least one other player.");
+    }
+    const gid = crypto.randomUUID().replace(/-/g, "").slice(0, 16), pw = pwRaw ? await hashPw(gid, pwRaw) : null;
+    await env.DB.batch([
+      env.DB.prepare("INSERT INTO chat_groups (gid, owner, t, title, inv, pw) VALUES (?, ?, ?, ?, ?, ?)").bind(gid, my, now, title, inv ? 1 : 0, pw),
+      env.DB.prepare("INSERT INTO chat_group_members (gid, name, status, t) VALUES (?, ?, 'ok', ?)").bind(gid, my, now),
+      ...others.map((n, i) => env.DB.prepare("INSERT OR IGNORE INTO chat_group_members (gid, name, status, t) VALUES (?, ?, 'pending', ?)").bind(gid, n, now + 1 + i)),
+    ]);
+    return json({ ok: true, gid }, 201);
+  }
+  if (b.action === "join") {
+    const gid = String(b.gid || ""), { g, st } = await access(env, gid, my);
+    if (st === "member") return json({ ok: true });
+    if (st === "denied") throw new HttpError(403, "This group chat is invitation only.");
+    if (g.pw && (await hashPw(gid, String(b.password || ""))) !== g.pw) throw new HttpError(403, "Wrong password.");
+    await join(env, gid, my); return json({ ok: true });
+  }
+  if (b.action === "delete") {
+    const gid = String(b.gid || "");
+    const g = await env.DB.prepare("SELECT owner FROM chat_groups WHERE gid = ?").bind(gid).first();
+    if (!g) throw new HttpError(404, "Already deleted.");
+    if (g.owner.toLowerCase() !== my.toLowerCase()) throw new HttpError(403, "Only the creator can delete this group chat.");
+    await env.DB.batch([
+      env.DB.prepare("DELETE FROM chat_msgs WHERE to_name = ?").bind("g:" + gid),
+      env.DB.prepare("DELETE FROM chat_group_members WHERE gid = ?").bind(gid),
+      env.DB.prepare("DELETE FROM chat_groups WHERE gid = ?").bind(gid),
+    ]);
+    return json({ ok: true });
+  }
   if (b.action === "create") {
     const { found, missing } = await check(env, (Array.isArray(b.names) ? b.names : []).slice(0, MAX_MEMBERS));
     if (missing.length) throw new HttpError(404, "Not found: " + missing.join(", "));
@@ -60,12 +127,15 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   }
   const gid = String(b.gid || "");
   if (b.action === "answer") {
-    await env.DB.prepare("UPDATE chat_group_members SET status = ? WHERE gid = ? AND name = ? AND status = 'pending'").bind(b.ok ? "ok" : "no", gid, my).run();
+    await env.DB.prepare("UPDATE chat_group_members SET status = ? WHERE gid = ? AND name = ? COLLATE NOCASE AND status = 'pending'").bind(b.ok ? "ok" : "no", gid, my).run();
     return json({ ok: true });
   }
   await needMember(env, gid, my);
   if (b.action === "send") {
-    const kind = b.kind === "tts" ? "tts" : "text", body = String(b.body ?? "").replace(/\r\n?/g, "\n").trim();
+    const kind = b.kind === "tts" ? "tts" : "text", isImg = !!(b.image || b.imageUrl);
+    let body = String(b.body ?? "").replace(/\r\n?/g, "\n").trim();
+    if (!isImg && /\[img:/i.test(body)) throw new HttpError(400, "Message can't contain [img: tags.");
+    if (isImg) body = await storeChatImage(env, my, b, now);
     if (!body || body.length > MAX_TXT) throw new HttpError(400, "Message must be 1-" + MAX_TXT + " characters.");
     await env.DB.prepare("INSERT INTO chat_msgs (id, from_name, to_name, kind, body, t) VALUES (?, ?, ?, ?, ?, ?)").bind(mid(now), my, "g:" + gid, kind, body, now).run();
     return json({ ok: true }, 201);

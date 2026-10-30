@@ -9,19 +9,21 @@
 // POST {action:"answer", from, ok}    -> approve/deny a request
 // POST {action:"send", to, kind:"text"|"tts", body}          (needs approved permission)
 // POST {action:"audio", to, kind:"clip"|"live", audio:"data:audio/...;base64,..."}  (<= 1 MB)
-import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
+import { storeChatImage } from "../_shared/msgimg.js";
+import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
 import { normName, tokenName } from "../_shared/pins.js";
-import { known } from "../_shared/chatnames.js";
+import { known, ROSTER } from "../_shared/chatnames.js";
 const MAX_AUDIO = 1024 * 1024, MAX_TXT = 1000;
 
 async function me(env, request) {
-  const n = await tokenName(env, request);
-  if (!n) throw new HttpError(401, "Please log in with your name and PIN.");
+  let n = await tokenName(env, request);
+  if (!n) { try { const u = await currentUser(request, env); if (u && u.username) n = (await known(env, u.username)) || u.username; } catch {} }
+  if (!n) throw new HttpError(401, "Please log in to chat.");
   return n;
 }
 async function perm(env, a, b) {
-  const out = await env.DB.prepare("SELECT status FROM chat_perms WHERE from_name = ? AND to_name = ?").bind(a, b).first();
-  const inc = await env.DB.prepare("SELECT status FROM chat_perms WHERE from_name = ? AND to_name = ?").bind(b, a).first();
+  const out = await env.DB.prepare("SELECT status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(a, b).first();
+  const inc = await env.DB.prepare("SELECT status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(b, a).first();
   if ((out && out.status === "ok") || (inc && inc.status === "ok")) return { status: "ok", incoming: false };
   if (inc && inc.status === "pending") return { status: "pending", incoming: true };
   return { status: out ? out.status : "none", incoming: false };
@@ -31,6 +33,20 @@ const mid = (now) => now.toString(36) + "-" + crypto.randomUUID().slice(0, 8);
 
 export const onRequestGet = wrap(async ({ request, env }) => {
   const q = new URL(request.url).searchParams, a = q.get("action");
+  if (a === "suggest") {
+    const qq = String(q.get("q") || "").trim().slice(0, 40); if (!qq) return json({ names: [] });
+    const like = qq.replace(/[%_\\]/g, (c) => "\\" + c) + "%";
+    const seen = new Set(), out = [];
+    const add = (n, src) => { if (n && !seen.has(n.toLowerCase()) && out.length < 10) { seen.add(n.toLowerCase()); out.push({ name: n, src }); } };
+    const run = async (sql) => { try { return (await env.DB.prepare(sql).bind(like).all()).results || []; } catch { return []; } };
+    (await run("SELECT username AS n FROM users WHERE verified_at IS NOT NULL AND username LIKE ? ESCAPE '\\' ORDER BY username COLLATE NOCASE LIMIT 10")).forEach((r) => add(r.n, "member"));
+    (await run("SELECT name AS n FROM msg_pins WHERE name LIKE ? ESCAPE '\\' LIMIT 10")).forEach((r) => add(r.n, "player"));
+    (await run("SELECT DISTINCT name AS n FROM messages WHERE name LIKE ? ESCAPE '\\' LIMIT 10")).forEach((r) => add(r.n, "player"));
+    const ql = qq.toLowerCase();
+    ROSTER.filter((n) => n.toLowerCase().startsWith(ql)).forEach((n) => add(n, "player"));
+    if (out.length < 10) ROSTER.filter((n) => n.toLowerCase().includes(ql)).forEach((n) => add(n, "player"));
+    return json({ names: out });
+  }
   if (a === "check") {
     const n = normName(q.get("name"));
     if (!n || n.length > 40) throw new HttpError(400, "Name is required.");
@@ -39,8 +55,14 @@ export const onRequestGet = wrap(async ({ request, env }) => {
   const my = await me(env, request);
   if (a === "me") return json({ name: my });
   if (a === "pending") {
-    const r = await env.DB.prepare("SELECT from_name AS \"from\", t FROM chat_perms WHERE to_name = ? AND status = 'pending' ORDER BY t").bind(my).all();
+    const r = await env.DB.prepare("SELECT from_name AS \"from\", t FROM chat_perms WHERE to_name = ? COLLATE NOCASE AND status = 'pending' ORDER BY t").bind(my).all();
     return json({ requests: r.results || [] });
+  }
+  if (a === "partners") {
+    const r = await env.DB.prepare("SELECT CASE WHEN from_name = ? COLLATE NOCASE THEN to_name ELSE from_name END AS name, MAX(t) AS t FROM chat_perms " +
+      "WHERE status = 'ok' AND (from_name = ? COLLATE NOCASE OR to_name = ? COLLATE NOCASE) GROUP BY lower(name) ORDER BY name COLLATE NOCASE").bind(my, my, my).all();
+    const o = await env.DB.prepare("SELECT to_name AS name, status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND status IN ('pending','no') ORDER BY t DESC").bind(my).all();
+    return json({ partners: (r.results || []).map((x) => x.name), outgoing: o.results || [] });
   }
   const w = normName(q.get("with"));
   if (!w) throw new HttpError(400, "Who are you chatting with?");
@@ -50,7 +72,7 @@ export const onRequestGet = wrap(async ({ request, env }) => {
     const since = Number(q.get("since")) || 0;
     const r = await env.DB.prepare(
       "SELECT id, from_name AS \"from\", to_name AS \"to\", kind, body, (audio IS NOT NULL) AS hasAudio, t FROM chat_msgs " +
-      "WHERE ((from_name = ? AND to_name = ?) OR (from_name = ? AND to_name = ?)) AND t > ? ORDER BY t DESC LIMIT 100"
+      "WHERE ((from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE) OR (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE)) AND t > ? ORDER BY t DESC LIMIT 100"
     ).bind(my, w, w, my, since).all();
     return json({ messages: (r.results || []).reverse() });
   }
@@ -61,7 +83,12 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   const my = await me(env, request), b = await readJson(request) || {}, now = Date.now();
   if (b.action === "answer") {
     const f = normName(b.from);
-    await env.DB.prepare("UPDATE chat_perms SET status = ?, t = ? WHERE from_name = ? AND to_name = ?").bind(b.ok ? "ok" : "no", now, f, my).run();
+    await env.DB.prepare("UPDATE chat_perms SET status = ?, t = ? WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(b.ok ? "ok" : "no", now, f, my).run();
+    return json({ ok: true });
+  }
+  if (b.action === "remove") {   // take someone off my private-chat list (they must ask again)
+    const w = normName(b.with); if (!w) throw new HttpError(400, "Who?");
+    await env.DB.prepare("DELETE FROM chat_perms WHERE (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE) OR (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE)").bind(my, w, w, my).run();
     return json({ ok: true });
   }
   const to = await known(env, normName(b.to));
@@ -71,7 +98,7 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     const p = await perm(env, my, to);
     if (p.status === "ok") return json({ ok: true, status: "ok" });
     if (p.incoming) {   // they already asked me: asking back = approving
-      await env.DB.prepare("UPDATE chat_perms SET status='ok', t=? WHERE from_name=? AND to_name=?").bind(now, to, my).run();
+      await env.DB.prepare("UPDATE chat_perms SET status='ok', t=? WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(now, to, my).run();
       return json({ ok: true, status: "ok" });
     }
     await env.DB.prepare("INSERT INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'pending', ?) " +
@@ -80,7 +107,10 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   }
   await needOk(env, my, to);
   if (b.action === "send") {
-    const kind = b.kind === "tts" ? "tts" : "text", body = String(b.body ?? "").replace(/\r\n?/g, "\n").trim();
+    const kind = b.kind === "tts" ? "tts" : "text", isImg = !!(b.image || b.imageUrl);
+    let body = String(b.body ?? "").replace(/\r\n?/g, "\n").trim();
+    if (!isImg && /\[img:/i.test(body)) throw new HttpError(400, "Message can't contain [img: tags.");
+    if (isImg) body = await storeChatImage(env, my, b, now);
     if (!body || body.length > MAX_TXT) throw new HttpError(400, "Message must be 1-" + MAX_TXT + " characters.");
     const id = mid(now);
     await env.DB.prepare("INSERT INTO chat_msgs (id, from_name, to_name, kind, body, t) VALUES (?, ?, ?, ?, ?, ?)").bind(id, my, to, kind, body, now).run();

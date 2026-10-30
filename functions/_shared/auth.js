@@ -59,10 +59,15 @@ export const validEmail = (s) => s.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export const validUsername = (s) => /^[A-Za-z0-9_.-](?:[A-Za-z0-9_. -]{1,22})[A-Za-z0-9_.-]$/.test(s);
 
 export function cookie(value, maxAge) {
-  return `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+  return `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax` + (maxAge === null ? "" : `; Max-Age=${maxAge}`);
 }
-export async function createSession(env, userId) {
+export async function createSession(env, userId, remember = true) {
   const id = randomToken(32), now = Date.now();
+  if (!remember) {
+    await env.DB.prepare("INSERT INTO sessions (id, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)")
+      .bind(await sha256(id), userId, now + 864e5, now).run();
+    return cookie(id, null);
+  }
   await env.DB.prepare("INSERT INTO sessions (id, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)")
     .bind(await sha256(id), userId, now + SESSION_DAYS * 864e5, now).run();
   return cookie(id, SESSION_DAYS * 86400);

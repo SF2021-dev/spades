@@ -1,1413 +1,1419 @@
 {
-"aliases": {
-"Jays26": "Jays_26",
-"Lookslikeapickel": "Looks__",
-"MEL1c1ous_1": "Melicious_1",
-"im_already_gone": "Im_Already_Gone",
-"lewisrulz": "Lewisrulz55",
-"peakoh": "PeaKoh"
-},
-"auto_teams": {
-"11951449": "Mar and Photo",
-"11953540": "we wanna win",
-"11953543": "Good Times",
-"11953545": "10bags",
-"11953644": "Roll With It",
-"11953646": "gooneyNp 123",
-"11953649": "Sponsored ad",
-"11953651": "ROLL WITH IT",
-"11953677": "SPADES TIME",
-"11953679": "ROLL WITH IT",
-"11953687": "LETS PLAY",
-"11953690": "Okie Dokie",
-"11953691": "X",
-"11953694": "Good Times",
-"11953770": "Otter Nonsense",
-"11953771": "Pass 2 Plz",
-"11953772": "BIRTHDAY COUNTDOWN",
-"11953774": "ROLL WITH IT",
-"11953830": "I Got the L",
-"11953949": "CLaSSiKSPaEllisandre",
-"11954162": "X",
-"11954163": "ROLL WITH IT",
-"11954166": "ZigsWho",
-"11954352": "ROLL WITH IT",
-"11954619": "Okie Dokie",
-"11954621": "TheresWorkToBeDone",
-"11954624": "It happens",
-"11954626": "ROLL WITH IT",
-"11954661": "ROAD RAGE",
-"11955096": "Wild and Wonderful",
-"11955097": "Old pw",
-"11955110": "Nighters",
-"11955132": "Lets win",
-"11955134": "Nighters",
-"11955137": "Okie Dokie",
-"11955140": "Old pw",
-"11955496": "Nighters",
-"11955499": "Wild and Wonderful",
-"11955564": "Ace In BlackBirthday",
-"11955566": "Okie Dokie",
-"11955673": "Kandy Korn Plz",
-"11955697": "HotEgammer",
-"11955733": "Slao the Table",
-"11955744": "Okie Dokie",
-"11955946": "Okie Dokie",
-"11955947": "Okie Dokie",
-"11955949": "Tony and company",
-"11956057": "Old Pw",
-"11956059": "Northern Exposure",
-"11956061": "ROLL WITH IT",
-"11956064": "Need a New Dea",
-"11956066": "HotandEgammer",
-"11956069": "Nighters",
-"11956596": "Egammer",
-"11956668": "Ready yo win"
-},
-"avatar_overrides": {
-"3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png"
-},
-"avatars": {
-"0utland3r": "https://diamondspaders.online/0UTLAND3R-ava.png",
-"1jimbeam": "https://diamondspaders.online/1jimbeam-ava.png",
-"3bid3bags": "https://diamondspaders.online/3Bid3Bags-ava.png",
-"aceinblack": "https://diamondspaders.online/aceinblack-ava.png",
-"aceylynn": "https://diamondspaders.online/AceyLynn-ava.png",
-"angeljoyxo": "https://diamondspaders.online/AngelJoyXO-ava.png",
-"apearl_521": "https://diamondspaders.online/apearl_521-ava.png",
-"bigdaddykool68": "https://diamondspaders.online/BigDaddyKool68-ava.png",
-"bluangel1950": "https://diamondspaders.online/bluangel1950-ava.png",
-"bluangel1953": "https://diamondspaders.online/bluangel1953-ava.png",
-"bob2112": "https://diamondspaders.online/bob2112-ava.png",
-"bonebidder": "https://diamondspaders.online/bonebidder-ava.png",
-"booradly": "https://diamondspaders.online/booradly-ava.png",
-"bustingthatnil": "https://diamondspaders.online/bustingthatnil-ava.png",
-"chameleon3388": "https://diamondspaders.online/chameleon3388-ava.png",
-"chanz": "https://diamondspaders.online/Chanz-ava.png",
-"classicspadesplar": "https://diamondspaders.online/ClassicSpadesPlaR-ava.png",
-"classikspadzplar": "https://diamondspaders.online/CLaSSiKSPaDZPLaR-ava.png",
-"coastalkat": "https://diamondspaders.online/COASTALKAT-ava.png",
-"dahwrookie": "https://diamondspaders.online/DaHwRoOkIe-ava.png",
-"deaddly": "https://diamondspaders.online/deaddly-ava.png",
-"dementedwench": "https://diamondspaders.online/DementedWench-ava.png",
-"detroitlionsrule": "https://diamondspaders.online/DetroitLionsRule-ava.png",
-"devilsnitebaby": "https://diamondspaders.online/DevilsNiteBaby-ava.png",
-"diamondslgirl": "https://diamondspaders.online/diamondslgirl-ava.png",
-"duke413": "https://diamondspaders.online/Duke413-ava.png",
-"eager_1": "https://diamondspaders.online/Eager_1-ava.png",
-"easyone23": "https://diamondspaders.online/EasyOne23-ava.png",
-"egammer": "https://diamondspaders.online/EgammeR-ava.png",
-"ellisandrew80": "https://diamondspaders.online/Ellisandrew80-ava.png",
-"fetch_it_up": "https://diamondspaders.online/fetch_it_up-ava.png",
-"flipflopgirlsc": "https://diamondspaders.online/flipflopgirlsc-ava.png",
-"flowerbill2": "https://diamondspaders.online/flowerbill2-ava.png",
-"foreverblessed": "https://diamondspaders.online/ForeverBlessed-ava.png",
-"gift_shopper": "https://diamondspaders.online/Gift_Shopper-ava.png",
-"gizimo": "https://diamondspaders.online/Gizimo-ava.png",
-"gman88": "https://diamondspaders.online/Gman88-ava.png",
-"goldengirl2026": "https://diamondspaders.online/goldengirl2026-ava.png",
-"gooneybird": "https://diamondspaders.online/gooneybird-ava.png",
-"gryzzlybear": "https://diamondspaders.online/Gryzzlybear-ava.png",
-"hardwuudmamia": "https://diamondspaders.online/Hardwuudmamia-ava.png",
-"hardwuudmania": "https://diamondspaders.online/Hardwuudmania-ava.png",
-"hotandspicey69": "https://diamondspaders.online/Hotandspicey69-ava.png",
-"houdini": "https://diamondspaders.online/houdini-ava.png",
-"huskernut50265": "https://diamondspaders.online/huskernut50265-ava.png",
-"illbid13": "https://diamondspaders.online/illbid13-ava.png",
-"im_already_gone": "https://diamondspaders.online/Im_already_gone-ava.png",
-"jaws33": "https://diamondspaders.online/JAWS33-ava.png",
-"jays_26": "https://diamondspaders.online/Jays_26-ava.png",
-"jbaby1": "https://diamondspaders.online/JBaby1-ava.png",
-"jbmusket42": "https://diamondspaders.online/jbmusket42-ava.png",
-"jopisme": "https://diamondspaders.online/jopisme-ava.png",
-"justanothergirl": "https://diamondspaders.online/JustAnotherGirl-ava.png",
-"k3ssy": "https://diamondspaders.online/k3ssy-ava.png",
-"keepduckinthem": "https://diamondspaders.online/KeEpDuCkInThEm-ava.png",
-"lewisrulz55": "https://diamondspaders.online/Lewisrulz55-ava.png",
-"lil_shopper": "https://diamondspaders.online/Lil_shopper-ava.png",
-"loffe_dawg": "https://diamondspaders.online/Loffe_Dawg-ava.png",
-"loneranger11452": "https://diamondspaders.online/loneranger11452-ava.png",
-"looks__": "https://diamondspaders.online/Looks__-ava.png",
-"lunatic20ca": "https://diamondspaders.online/Lunatic20ca-ava.png",
-"madrat": "https://diamondspaders.online/madrat-ava.png",
-"maggie_may": "https://diamondspaders.online/maggie_may-ava.png",
-"makinpa": "https://diamondspaders.online/makinpa-ava.png",
-"manicdepressive1": "https://diamondspaders.online/manicdepressive1-ava.png",
-"margomoo": "https://diamondspaders.online/MargoMoo-ava.png",
-"me6052": "https://diamondspaders.online/Me6052-ava.png",
-"mel1c1ous_1": "https://diamondspaders.online/MEL1c1ous_1-ava.png",
-"melicious_1": "https://diamondspaders.online/MEL1c1ous_1-ava.png",
-"mszigs": "https://diamondspaders.online/MsZigs-ava.png",
-"muziklvr": "https://diamondspaders.online/muziklvr-ava.png",
-"mybagsrgucci": "https://diamondspaders.online/MyBagsRGucci-ava.png",
-"o_siris": "https://diamondspaders.online/o_siris-ava.png",
-"ochwiay": "https://diamondspaders.online/ochwiay-ava.png",
-"ooolauraooo": "https://diamondspaders.online/oooLAURAooo-ava.png",
-"peakoh": "https://diamondspaders.online/PeaKoh-ava.png",
-"phoenix_on_fire": "https://diamondspaders.online/phoenix_on_fire-ava.png",
-"photobratboy09": "https://diamondspaders.online/photobratboy09-ava.png",
-"player88141": "https://diamondspaders.online/Player88141-ava.png",
-"potsayhitokettle": "https://diamondspaders.online/PotSayHiToKettle-ava.png",
-"purplehaven16": "https://diamondspaders.online/PurpleHaven16-ava.png",
-"really_why": "https://diamondspaders.online/REALLY_WHY-ava.png",
-"rookie_bagger": "https://diamondspaders.online/rookie_bagger-ava.png",
-"sadiee": "https://diamondspaders.online/sadiee-ava.png",
-"silkrollz": "https://diamondspaders.online/SILK%20ROLLZ-ava.png",
-"skippyjjones": "https://diamondspaders.online/SkippyJJones-ava.png",
-"slovell_too": "https://diamondspaders.online/slovell_too-ava.png",
-"soloryder": "https://diamondspaders.online/soloryder-ava.png",
-"sumpin2du": "https://diamondspaders.online/Sumpin2du-ava.png",
-"sunshinegal63": "https://diamondspaders.online/SunshineGal63-ava.png",
-"tatsujin": "https://diamondspaders.online/TATSUJIN-ava.png",
-"treco521": "https://diamondspaders.online/Treco521-ava.png",
-"trifolium": "https://diamondspaders.online/trifolium-ava.png",
-"tykesbratt": "https://diamondspaders.online/Tykesbratt-ava.png",
-"untouchable_one": "https://diamondspaders.online/Untouchable_One-ava.png",
-"va_country_guy": "https://diamondspaders.online/va_country_guy-ava.png",
-"viciousnature": "https://diamondspaders.online/ViCiOuSNaTuRe-ava.png",
-"waskelwabbit": "https://diamondspaders.online/waskelwabbit-ava.png",
-"waverunnerfx": "https://diamondspaders.online/WaverunnerFX-ava.png",
-"wezee": "https://diamondspaders.online/Wezee-ava.png",
-"whiskey_and_gold": "https://diamondspaders.online/Whiskey_and_Gold-ava.png",
-"whocantplay": "https://diamondspaders.online/whocantplay-ava.png",
-"xsuicide_blondex": "https://diamondspaders.online/xsuicide_blondex-ava.png",
-"zappycow": "https://diamondspaders.online/ZappyCow-ava.png"
-},
-"bottom": [],
-"extra_tours": [
-{
-"date": "2026-10-21",
-"id": "manual-20261021-1315",
-"label": "CUT",
-"time": "13:15",
-"winners": [
-"BluAngel1950"
-]
-},
-{
-"date": "2026-10-21",
-"id": "manual-20261021-1415",
-"label": "CUT MIRRORS",
-"time": "14:15",
-"winners": [
-"TATSUJIN"
-]
-},
-{
-"date": "2026-10-21",
-"id": "manual-20261021-1015",
-"label": "CUT",
-"time": "10:15",
-"winners": [
-"MaKinpa"
-]
-},
-{
-"date": "2026-10-21",
-"id": "manual-20261021-1115",
-"label": "CUT",
-"time": "11:15",
-"winners": [
-"Ochwiay"
-]
-}
-],
-"fonts": {
-"10:15 AM|apearl_521": 20,
-"10:15 AM|coastalkat": 20,
-"10:15 AM|diamondslgirl": 18,
-"10:15 AM|ellisandrew80": 18,
-"10:15 AM|flipflopgirlsc": 18,
-"10:15 AM|foreverblessed": 18,
-"10:15 AM|huskernut50265": 18,
-"10:15 AM|loffe_dawg": 20,
-"10:15 AM|looks__": 22,
-"10:15 AM|lunatic20ca": 20,
-"10:15 AM|makinpa": 22,
-"10:15 AM|o_siris": 22,
-"10:15 AM|ochwiay": 22,
-"10:15 AM|potsayhitokettle": 16,
-"10:15 AM|soloryder": 22,
-"10:15 AM|tatsujin": 22,
-"10:15 AM|trifolium": 22,
-"10:15 PM|aceinblack": 20,
-"10:15 PM|artistandwriter": 18,
-"10:15 PM|bluangel1950": 20,
-"10:15 PM|diamondslgirl": 18,
-"10:15 PM|im_already_gone": 18,
-"10:15 PM|lunatic20ca": 20,
-"10:15 PM|melicious_1": 20,
-"10:15 PM|muziklvr": 22,
-"10:15 PM|ochwiay": 22,
-"10:15 PM|really_why": 20,
-"10:15 PM|sadiee": 22,
-"10:15 PM|silkrollz": 22,
-"10:15 PM|skippyjjones": 20,
-"10:15 PM|treco521": 22,
-"10:15 PM|untouchable_one": 18,
-"10:15 PM|va_country_guy": 18,
-"11:15 AM|aceinblack": 20,
-"11:15 AM|bluangel1950": 20,
-"11:15 AM|gizimo": 22,
-"11:15 AM|gryzzlybear": 20,
-"11:15 AM|lil_shopper": 20,
-"11:15 AM|looks__": 22,
-"11:15 AM|lunatic20ca": 20,
-"11:15 AM|ochwiay": 22,
-"11:15 AM|soloryder": 22,
-"11:15 AM|sumpin2du": 22,
-"11:15 AM|tatsujin": 22,
-"11:15 AM|treco521": 22,
-"11:15 AM|trifolium": 22,
-"11:15 AM|untouchable_one": 18,
-"11:15 AM|waskelwabbit": 20,
-"11:15 AM|whocantplay": 20,
-"11:15 PM|bluangel1950": 20,
-"11:15 PM|easyone23": 22,
-"11:15 PM|fetch_it_up": 20,
-"11:15 PM|huskernut50265": 18,
-"11:15 PM|jays_26": 22,
-"11:15 PM|lunatic20ca": 20,
-"11:15 PM|makinpa": 22,
-"11:15 PM|melicious_1": 20,
-"11:15 PM|ochwiay": 22,
-"11:15 PM|really_why": 20,
-"11:15 PM|silkrollz": 22,
-"11:15 PM|untouchable_one": 18,
-"12:15 PM|bluangel1950": 20,
-"12:15 PM|flipflopgirlsc": 18,
-"12:15 PM|hotandspicey69": 18,
-"12:15 PM|keepduckinthem": 18,
-"12:15 PM|lunatic20ca": 20,
-"12:15 PM|mybagsrgucci": 20,
-"12:15 PM|ochwiay": 22,
-"12:15 PM|whocantplay": 20,
-"12:30 PM|muziklvr": 22,
-"1:15 PM|aceinblack": 20,
-"1:15 PM|bluangel1950": 20,
-"1:15 PM|easyone23": 22,
-"1:15 PM|ellisandrew80": 18,
-"1:15 PM|lunatic20ca": 20,
-"1:15 PM|makinpa": 22,
-"1:15 PM|mybagsrgucci": 20,
-"1:15 PM|o_siris": 22,
-"1:15 PM|ochwiay": 22,
-"1:15 PM|peakoh": 22,
-"1:15 PM|potsayhitokettle": 16,
-"1:15 PM|silkrollz": 22,
-"1:15 PM|soloryder": 22,
-"1:15 PM|treco521": 22,
-"1:15 PM|trifolium": 22,
-"1:15 PM|untouchable_one": 18,
-"1:15 PM|whocantplay": 20,
-"2:15 PM|bigdaddykool68": 18,
-"2:15 PM|bluangel1950": 20,
-"2:15 PM|ellisandrew80": 18,
-"2:15 PM|huskernut50265": 18,
-"2:15 PM|lewisrulz55": 20,
-"2:15 PM|makinpa": 22,
-"2:15 PM|mybagsrgucci": 20,
-"2:15 PM|ochwiay": 22,
-"2:15 PM|purplehaven16": 18,
-"2:15 PM|tatsujin": 22,
-"2:15 PM|tykesbratt": 20,
-"2:15 PM|untouchable_one": 18,
-"3:15 PM|1jimbeam": 22,
-"3:15 PM|bob2112": 22,
-"3:15 PM|dahwrookie": 20,
-"3:15 PM|diamondslgirl": 18,
-"3:15 PM|easyone23": 22,
-"3:15 PM|egammer": 22,
-"3:15 PM|fetch_it_up": 20,
-"3:15 PM|flipflopgirlsc": 18,
-"3:15 PM|lewisrulz55": 20,
-"3:15 PM|loffe_dawg": 20,
-"3:15 PM|looks__": 22,
-"3:15 PM|madrat": 22,
-"3:15 PM|makinpa": 22,
-"3:15 PM|ochwiay": 22,
-"3:15 PM|really_why": 20,
-"3:15 PM|soloryder": 22,
-"4:30 PM|im_already_gone": 18,
-"6:15 PM|aceinblack": 20,
-"6:15 PM|bigdaddykool68": 18,
-"6:15 PM|dahwrookie": 20,
-"6:15 PM|easyone23": 22,
-"6:15 PM|flowerbill2": 20,
-"6:15 PM|huskernut50265": 18,
-"6:15 PM|jays_26": 22,
-"6:15 PM|madrat": 22,
-"6:15 PM|muziklvr": 22,
-"6:15 PM|ochwiay": 22,
-"6:15 PM|sadiee": 22,
-"6:15 PM|soloryder": 22,
-"6:15 PM|tatsujin": 22,
-"6:15 PM|waskelwabbit": 20,
-"7:15 AM|aceinblack": 20,
-"8:15 AM|aceinblack": 20,
-"8:15 AM|dahwrookie": 20,
-"8:15 AM|jbaby1": 22,
-"8:15 AM|looks__": 22,
-"8:15 AM|makinpa": 22,
-"8:15 AM|o_siris": 22,
-"8:15 AM|ochwiay": 22,
-"8:15 AM|soloryder": 22,
-"8:15 AM|tatsujin": 22,
-"8:15 AM|treco521": 22,
-"8:15 AM|trifolium": 22,
-"8:15 PM|bluangel1950": 20,
-"8:15 PM|easyone23": 22,
-"8:15 PM|gryzzlybear": 20,
-"8:15 PM|huskernut50265": 18,
-"8:15 PM|jays_26": 22,
-"8:15 PM|ochwiay": 22,
-"8:15 PM|really_why": 20,
-"8:15 PM|sadiee": 22,
-"8:15 PM|soloryder": 22,
-"8:15 PM|sumpin2du": 22,
-"8:15 PM|sunshinegal63": 18,
-"8:30 AM|makinpa": 22,
-"9:15 AM|aceinblack": 20,
-"9:15 AM|apearl_521": 20,
-"9:15 AM|bob2112": 22,
-"9:15 AM|deaddly": 22,
-"9:15 AM|gryzzlybear": 20,
-"9:15 AM|im_already_gone": 18,
-"9:15 AM|lewisrulz55": 20,
-"9:15 AM|looks__": 22,
-"9:15 AM|o_siris": 22,
-"9:15 AM|ochwiay": 22,
-"9:15 AM|soloryder": 22,
-"9:15 AM|trifolium": 22,
-"9:15 AM|untouchable_one": 18,
-"9:15 AM|waskelwabbit": 20
-},
-"hidden": [
-"11953885",
-"11954479",
-"11955079"
-],
-"labels": {
-"by_id": {
-"11923667": "SUI PASS 2",
-"11936156": "SUI PASS 2 RANDOM",
-"11941969": "SUI PASS 2",
-"11950679": "LOSER WINS",
-"11951331": "SUI PASS 2 PAB",
-"11952440": "CUT",
-"11952499": "REG PARTNERS",
-"11952725": "SUI PASS 2 RANDOM",
-"11952811": "REG SPADES RANDOM",
-"11952814": "CUT MIRRORS",
-"11952876": "REG SPADES RANDOM",
-"11952901": "REG PARTNERS",
-"11952946": "REG PARTNERS",
-"11952956": "SUI PASS 2",
-"11952958": "REG PARTNERS",
-"11952964": "SINGLES",
-"11953266": "LOSER WINS",
-"11953267": "CUT",
-"11953279": "SUI PASS 2",
-"11953321": "REG PARTNERS",
-"11953539": "SUI PASS 2 RANDOM",
-"11953543": "SUI PASS 2",
-"11953546": "LOSER WINS",
-"11953634": "SUI PASS 2 PAB",
-"11953679": "SUI PASS 2",
-"11953692": "SETTER'S CHOICE SINGLES",
-"11953891": "LOSER WINS",
-"11954156": "SUI PASS 2 PAB",
-"_11923667": "2026-10-10: feed text just '500/50 pass 2' (2 per team); was shown as SUI PASS 2 in TOURS, keep it so in winners",
-"_11953266": "User 2026-10-10: Sat Oct 10 10:15 PM ET (feed 'LW SINGLES') is Loser Wins",
-"_11953267": "User 2026-10-10: Sat Oct 10 11:15 PM ET (BluAngel1950) -> CUT",
-"_11953321": "2026-10-10: Sat Oct 10 9:15 PM ET Ellisandrew80 feed was just 500/100 (2 per team) => REG PARTNERS",
-"_11953546": "2026-10-12: AceyLynn 22:15 ET feed '1 vs 1' / CHOICE SINGLES => SINGLES (was stuck as PARDS)",
-"_11953891": "2026-10-16: user set 22:15 ET LW Singles => LOSER WINS",
-"_11954156": "2026-10-16: user set 14:15 ET => SUI PASS 2 PAB"
-},
-"by_slot": {
-"AceyLynn|22:15|1 VS 1": "LOSER WINS"
-},
-"official": [
-"REG PARTNERS",
-"REG SPADES RANDOM",
-"SUI PASS 2",
-"SUI PASS 2 RANDOM",
-"CUT",
-"SINGLES",
-"CUT MIRRORS",
-"REG SPADES PAB",
-"SUI PASS 2 PAB",
-"LOSER WINS",
-"SETTER'S CHOICE SINGLES"
-],
-"raw_rules": [
-{
-"_comment": "Evaluated on the RAW feed text BEFORE score targets are stripped. A -1000 (loser-wins) target such as '1000/100' or '-1000' in a 1-player-per-team game => LOSER WINS. Other targets (300/50, 400/100, 500/50) are ignored.",
-"label": "LOSER WINS",
-"match": "LOS\\w*R? ?WIN|(?<![\\d/])-?1000(?!\\d)",
-"perteam": 1
-}
-],
-"rules": [
-{
-"_comment": "Score-only / bare Spades with 2 per team => REG PARTNERS (e.g. feed '500/100').",
-"label": "REG PARTNERS",
-"match": "^(SPADES)?$",
-"perteam": 2
-},
-{
-"_comment": "User 2026-10-10: bare Spades / score-only target with 1 per team => CUT (e.g. '400/100'). Not for 2-player partners.",
-"label": "CUT",
-"match": "^(SPADES)?$",
-"perteam": 1
-},
-{
-"_comment": "Also catches the feed typo \"Loser Wim\" (2026-10-08).",
-"label": "LOSER WINS",
-"match": "LOS[E]?R ?WI[NM]S?"
-},
-{
-"label": "CUT MIRRORS",
-"match": "MIRROR"
-},
-{
-"_comment": "User 2026-10-08: any 1 vs 1 vs 1 (three-way / cutthroat) tour is always labeled CUT.",
-"label": "CUT",
-"match": "\\b1 ?(VS?\\.?|V|X) ?1 ?(VS?\\.?|V|X) ?1\\b|\\b3 ?-?WAY\\b|CUT ?THROAT",
-"not": "MIRROR"
-},
-{
-"_comment": "Bare 1 vs 1 (e.g. CHOICE SINGLES) with 1 per team => SINGLES. Three-way 1 vs 1 vs 1 is handled above as CUT.",
-"label": "SINGLES",
-"match": "^1 ?(VS?\\.?|V|X) ?1$",
-"perteam": 1
-},
-{
-"label": "REG SPADES PAB",
-"match": "PARD ?A ?BOT|PARTNER ?A ?BOT|\\bPAB\\b",
-"not": "SUI"
-},
-{
-"label": "SUI PASS 2 PAB",
-"match": "PARD ?A ?BOT|PARTNER ?A ?BOT|\\bPAB\\b",
-"match2": "SUI"
-},
-{
-"_comment": "User 2026-10-08: SUI + Random Partners",
-"label": "SUI PASS 2 RANDOM",
-"match": "SUI.*RANDOM|RANDOM.*SUI(?:CIDE)?"
-},
-{
-"_comment": " User 2026-10-08: always show as SUICIDE PASS 2 (was SUI PASS 2 PARTNERS).",
-"label": "SUI PASS 2",
-"match": "SUI",
-"perteam": 2
-},
-{
-"label": "CUT",
-"match": "\\bCUT\\b",
-"perteam": 1
-},
-{
-"_comment": "User 2026-10-10: SINGLES tours are always labeled just SINGLES (no 300/50 score suffix; norm_feed strips targets).",
-"label": "SINGLES",
-"match": "SINGLES",
-"not": "SUI",
-"perteam": 1
-},
-{
-"_comment": "User 2026-10-08: standardize TD wording — any Random Partners tour (with or without 500/100) is RANDOM PARTNERS 500/100.",
-"label": "REG SPADES RANDOM",
-"match": "RANDOM\\s*PARTNERS?"
-},
-{
-"label": "REG PARTNERS",
-"match": "PARD|PARTNER|\\d ?VS ?\\d|REG",
-"not": "SUI|CUT|SINGLES",
-"perteam": 2
-}
-]
-},
-"labels_by_id": {
-"11919012": "SINGLES",
-"11923667": "SUI PASS 2",
-"11929712": "SINGLES",
-"11936156": "SUI PASS 2 RANDOM",
-"11936160": "SUI PASS 2 RANDOM",
-"11936848": "CUT",
-"11941969": "SUI PASS 2",
-"11944126": "CUT",
-"11947497": "SINGLES",
-"11947498": "CUT",
-"11947500": "CUT MIRRORS",
-"11948294": "CUT",
-"11948325": "LOSER WINS",
-"11949365": "SINGLES",
-"11949889": "SINGLES",
-"11949956": "SINGLES",
-"11949964": "CUT",
-"11949970": "CUT",
-"11950199": "CUT",
-"11950378": "CUT",
-"11950421": "CUT",
-"11950443": "LOSER WINS",
-"11950448": "LOSER WINS",
-"11950575": "SINGLES",
-"11950592": "CUT",
-"11950604": "CUT",
-"11950772": "CUT",
-"11950822": "CUT",
-"11950908": "CUT",
-"11950909": "SUI PASS 2 PAB",
-"11950910": "CUT",
-"11950911": "LOSER WINS",
-"11950928": "CUT",
-"11951050": "SINGLES",
-"11951059": "CUT",
-"11951061": "CUT MIRRORS",
-"11951062": "SINGLES",
-"11951063": "REG PARTNERS",
-"11951201": "CUT",
-"11951250": "CUT",
-"11951251": "CUT",
-"11951276": "SINGLES",
-"11951285": "SUI PASS 2 PAB",
-"11951286": "CUT",
-"11951291": "CUT",
-"11951295": "CUT",
-"11951297": "CUT",
-"11951304": "SUI PASS 2",
-"11951305": "REG PARTNERS",
-"11951321": "REG PARTNERS",
-"11951322": "CUT",
-"11951327": "CUT",
-"11951329": "SUI PASS 2",
-"11951331": "SUI PASS 2 PAB",
-"11951429": "SUI PASS 2",
-"11951430": "CUT",
-"11951431": "REG PARTNERS",
-"11951435": "CUT",
-"11951447": "SUI PASS 2",
-"11951448": "SINGLES",
-"11951449": "REG PARTNERS",
-"11951450": "SUI PASS 2",
-"11951451": "SINGLES",
-"11951452": "REG PARTNERS",
-"11951453": "CUT",
-"11951549": "SUI PASS 2 PAB",
-"11951579": "REG PARTNERS",
-"11951582": "REG PARTNERS",
-"11951589": "REG PARTNERS",
-"11951596": "CUT",
-"11951599": "CUT",
-"11951600": "CUT",
-"11951610": "CUT",
-"11951611": "CUT",
-"11951656": "CUT",
-"11951672": "SINGLES",
-"11951689": "CUT",
-"11951690": "CUT",
-"11951691": "SUI PASS 2",
-"11951693": "SUI PASS 2",
-"11951694": "SUI PASS 2",
-"11951695": "SINGLES",
-"11951703": "SUI PASS 2 RANDOM",
-"11951708": "CUT",
-"11951710": "CUT",
-"11951711": "CUT",
-"11951741": "CUT",
-"11951743": "SINGLES",
-"11951800": "REG PARTNERS",
-"11951801": "CUT",
-"11951802": "CUT",
-"11951803": "SUI PASS 2",
-"11951888": "CUT",
-"11951897": "SINGLES",
-"11951898": "CUT",
-"11951899": "CUT",
-"11951901": "REG PARTNERS",
-"11951902": "SUI PASS 2 RANDOM",
-"11951905": "REG PARTNERS",
-"11951906": "CUT",
-"11951907": "CUT",
-"11951914": "CUT",
-"11951915": "CUT",
-"11951916": "CUT",
-"11951928": "CUT",
-"11951929": "SUI PASS 2",
-"11951931": "REG PARTNERS",
-"11952201": "CUT",
-"11952202": "SINGLES",
-"11952204": "REG PARTNERS",
-"11952231": "CUT",
-"11952262": "REG SPADES PAB",
-"11952264": "REG PARTNERS",
-"11952279": "CUT",
-"11952284": "SINGLES",
-"11952289": "SUI PASS 2 PAB",
-"11952299": "CUT",
-"11952300": "SUI PASS 2",
-"11952340": "REG PARTNERS",
-"11952377": "CUT",
-"11952440": "CUT",
-"11952441": "CUT MIRRORS",
-"11952446": "CUT",
-"11952466": "CUT",
-"11952478": "CUT",
-"11952484": "CUT",
-"11952499": "REG PARTNERS",
-"11952519": "SUI PASS 2",
-"11952524": "CUT",
-"11952700": "CUT",
-"11952725": "SUI PASS 2 RANDOM",
-"11952792": "CUT",
-"11952811": "REG SPADES RANDOM",
-"11952812": "CUT",
-"11952813": "CUT",
-"11952814": "CUT MIRRORS",
-"11952823": "SINGLES",
-"11952842": "CUT",
-"11952876": "REG SPADES RANDOM",
-"11952897": "CUT",
-"11952901": "REG PARTNERS",
-"11952903": "CUT",
-"11952904": "CUT",
-"11952911": "SUI PASS 2",
-"11952937": "CUT",
-"11952946": "REG PARTNERS",
-"11952956": "SUI PASS 2",
-"11952957": "CUT",
-"11952958": "REG PARTNERS",
-"11952964": "SINGLES",
-"11952973": "CUT",
-"11952996": "SINGLES",
-"11952997": "CUT",
-"11952998": "CUT",
-"11953049": "CUT",
-"11953050": "CUT",
-"11953051": "CUT",
-"11953116": "REG PARTNERS",
-"11953241": "SINGLES",
-"11953242": "CUT",
-"11953243": "SUI PASS 2",
-"11953244": "REG PARTNERS",
-"11953265": "CUT",
-"11953266": "LOSER WINS",
-"11953267": "CUT",
-"11953268": "CUT",
-"11953269": "REG PARTNERS",
-"11953271": "CUT",
-"11953272": "CUT",
-"11953279": "SUI PASS 2",
-"11953321": "REG PARTNERS",
-"11953388": "CUT",
-"11953390": "CUT",
-"11953393": "CUT",
-"11953394": "CUT",
-"11953395": "REG PARTNERS",
-"11953396": "CUT",
-"11953397": "CUT",
-"11953446": "SUI PASS 2",
-"11953457": "SUI PASS 2",
-"11953458": "LOSER WINS",
-"11953459": "CUT",
-"11953539": "SUI PASS 2 RANDOM",
-"11953540": "REG PARTNERS",
-"11953541": "CUT",
-"11953543": "SUI PASS 2",
-"11953544": "CUT",
-"11953545": "REG PARTNERS",
-"11953546": "LOSER WINS",
-"11953547": "CUT",
-"11953576": "CUT",
-"11953593": "CUT",
-"11953596": "CUT",
-"11953597": "CUT",
-"11953605": "CUT MIRRORS",
-"11953628": "CUT",
-"11953634": "SUI PASS 2 PAB",
-"11953637": "CUT",
-"11953638": "CUT MIRRORS",
-"11953644": "SUI PASS 2",
-"11953645": "SINGLES",
-"11953646": "REG PARTNERS",
-"11953647": "LOSER WINS",
-"11953648": "CUT",
-"11953649": "SUI PASS 2",
-"11953650": "SINGLES",
-"11953651": "REG PARTNERS",
-"11953654": "SINGLES",
-"11953655": "SINGLES",
-"11953667": "SUI PASS 2 PAB",
-"11953677": "REG PARTNERS",
-"11953678": "CUT",
-"11953679": "SUI PASS 2",
-"11953680": "CUT",
-"11953685": "CUT",
-"11953686": "SINGLES",
-"11953687": "REG PARTNERS",
-"11953688": "CUT",
-"11953689": "CUT",
-"11953690": "REG PARTNERS",
-"11953691": "REG PARTNERS",
-"11953692": "SETTER'S CHOICE SINGLES",
-"11953693": "CUT",
-"11953694": "REG PARTNERS",
-"11953700": "CUT",
-"11953722": "SUI PASS 2 PAB",
-"11953749": "CUT",
-"11953751": "CUT",
-"11953768": "CUT",
-"11953769": "CUT",
-"11953770": "REG PARTNERS",
-"11953771": "SUI PASS 2",
-"11953772": "REG PARTNERS",
-"11953773": "CUT",
-"11953774": "SUI PASS 2",
-"11953775": "SUI PASS 2 PAB",
-"11953777": "CUT",
-"11953778": "CUT",
-"11953781": "CUT",
-"11953782": "CUT",
-"11953783": "CUT",
-"11953784": "CUT",
-"11953786": "SINGLES",
-"11953787": "CUT",
-"11953788": "SUI PASS 2",
-"11953789": "CUT",
-"11953790": "CUT",
-"11953791": "SUI PASS 2 PAB",
-"11953792": "CUT",
-"11953808": "CUT",
-"11953828": "CUT",
-"11953829": "SINGLES",
-"11953830": "REG PARTNERS",
-"11953838": "CUT",
-"11953845": "SUI PASS 2 RANDOM",
-"11953849": "CUT",
-"11953851": "CUT",
-"11953881": "CUT",
-"11953884": "CUT",
-"11953887": "CUT",
-"11953891": "LOSER WINS",
-"11953893": "CUT",
-"11953894": "CUT",
-"11953895": "CUT",
-"11953898": "SUI PASS 2 RANDOM",
-"11953904": "SUI PASS 2 RANDOM",
-"11953906": "CUT",
-"11953908": "CUT",
-"11953910": "CUT",
-"11953912": "SUI PASS 2 RANDOM",
-"11953949": "REG PARTNERS",
-"11953950": "SINGLES",
-"11953951": "CUT",
-"11954054": "SUI PASS 2 PAB",
-"11954067": "CUT MIRRORS",
-"11954069": "SUI PASS 2 RANDOM",
-"11954070": "CUT",
-"11954071": "CUT",
-"11954154": "CUT",
-"11954156": "SUI PASS 2 PAB",
-"11954162": "REG PARTNERS",
-"11954163": "PASS 2",
-"11954166": "REG PARTNERS",
-"11954351": "PASS 2",
-"11954352": "REG PARTNERS",
-"11954355": "SINGLES",
-"11954618": "CUT",
-"11954619": "SUI PASS 2",
-"11954620": "CUT",
-"11954621": "REG PARTNERS",
-"11954622": "LOSER WINS",
-"11954623": "CUT",
-"11954624": "REG PARTNERS",
-"11954625": "CUT",
-"11954626": "SUI PASS 2",
-"11954627": "CUT",
-"11954659": "CUT",
-"11954661": "SUI PASS 2",
-"11954662": "SINGLES",
-"11954663": "REG PARTNERS",
-"11954664": "LOSER WINS",
-"11954665": "CUT",
-"11954851": "CUT",
-"11954890": "CUT",
-"11954931": "CUT",
-"11954936": "CUT",
-"11954937": "PASS 2",
-"11955027": "CUT",
-"11955073": "CUT",
-"11955080": "CUT",
-"11955093": "SINGLES",
-"11955094": "CUT",
-"11955095": "SINGLES",
-"11955096": "REG PARTNERS",
-"11955097": "REG PARTNERS",
-"11955101": "SINGLES",
-"11955107": "CUT",
-"11955108": "CUT",
-"11955109": "CUT",
-"11955110": "REG PARTNERS",
-"11955112": "SUI PASS 2 PAB",
-"11955118": "CUT",
-"11955120": "SUI PASS 2 PAB",
-"11955126": "CUT",
-"11955128": "CUT",
-"11955131": "SUI PASS 2 RANDOM",
-"11955132": "SUI PASS 2",
-"11955133": "SINGLES",
-"11955134": "REG PARTNERS",
-"11955137": "REG PARTNERS",
-"11955138": "LOSER WINS",
-"11955139": "CUT",
-"11955140": "SUI PASS 2",
-"11955141": "SINGLES",
-"11955142": "REG PARTNERS",
-"11955143": "LOSER WINS",
-"11955144": "CUT",
-"11955145": "CUT",
-"11955151": "SUI PASS 2 RANDOM",
-"11955204": "CUT",
-"11955205": "CUT",
-"11955206": "SINGLES",
-"11955207": "CUT",
-"11955208": "CUT",
-"11955209": "CUT",
-"11955222": "SINGLES",
-"11955269": "SUI PASS 2 PAB",
-"11955353": "SUI PASS 2 RANDOM",
-"11955354": "CUT",
-"11955355": "CUT",
-"11955357": "CUT",
-"11955360": "SUI PASS 2 RANDOM",
-"11955362": "CUT",
-"11955365": "CUT",
-"11955394": "CUT",
-"11955453": "CUT",
-"11955481": "SINGLES",
-"11955482": "CUT",
-"11955483": "CUT",
-"11955494": "CUT",
-"11955496": "REG PARTNERS",
-"11955497": "CUT",
-"11955499": "REG PARTNERS",
-"11955501": "CUT",
-"11955509": "SUI PASS 2",
-"11955520": "SUI PASS 2",
-"11955564": "REG PARTNERS",
-"11955566": "SUI PASS 2",
-"11955626": "CUT",
-"11955627": "CUT",
-"11955657": "CUT",
-"11955663": "CUT",
-"11955673": "REG PARTNERS",
-"11955684": "SINGLES",
-"11955687": "CUT",
-"11955694": "REG PARTNERS",
-"11955697": "SUI PASS 2",
-"11955699": "CUT",
-"11955733": "REG PARTNERS",
-"11955744": "REG PARTNERS",
-"11955798": "CUT",
-"11955826": "SUI",
-"11955945": "CUT",
-"11955946": "REG PARTNERS",
-"11955947": "REG PARTNERS",
-"11955949": "SUI PASS 2",
-"11955955": "CUT",
-"11955959": "SINGLES",
-"11955963": "SUI PASS 2 RANDOM",
-"11955965": "CUT",
-"11955967": "SINGLES",
-"11955970": "CUT",
-"11955972": "CUT",
-"11955979": "SUI PASS 2 PAB",
-"11956008": "CUT",
-"11956010": "CUT",
-"11956057": "REG PARTNERS",
-"11956058": "CUT",
-"11956059": "SUI PASS 2",
-"11956060": "CUT",
-"11956061": "REG PARTNERS",
-"11956062": "LOSER WINS",
-"11956064": "REG PARTNERS",
-"11956065": "CUT",
-"11956066": "SUI PASS 2",
-"11956067": "CUT",
-"11956069": "REG PARTNERS",
-"11956148": "CUT",
-"11956155": "SUI PASS 2 RANDOM",
-"11956156": "CUT",
-"11956160": "SUI PASS 2 PAB",
-"11956161": "CUT",
-"11956169": "SUI PASS 2 RANDOM",
-"11956174": "CUT",
-"11956202": "CUT",
-"11956203": "PASS 2",
-"11956207": "SUI PASS 2 PAB",
-"11956371": "CUT",
-"11956382": "CUT",
-"11956383": "CUT",
-"11956384": "PASS 2",
-"11956513": "CUT",
-"11956596": "REG PARTNERS",
-"11956614": "CUT",
-"11956615": "CUT",
-"11956668": "SUI PASS 2",
-"11956782": "CUT",
-"manual-20261021-1015": "CUT",
-"manual-20261021-1115": "CUT",
-"manual-20261021-1315": "CUT",
-"manual-20261021-1415": "CUT MIRRORS"
-},
-"league": "diamondspaders",
-"manual_overrides": {
-"11953396": [
-"Ochwiay"
-],
-"11953788": [
-"Untouchable_One",
-"Lookslikeapickel"
-],
-"11955694": [
-"Ochwiay",
-"peakoh"
-]
-},
-"manual_teams": {
-"11935383": "Gryzzlybear & booradly",
-"11950314": "Our Turn To Win",
-"11950316": "Okie Dokie",
-"11950318": "PLAYIN ♠️Too",
-"11950670": "Looks__ & Melicious_1",
-"11950861": "10bags4opps",
-"11951063": "Our Turn To Win",
-"11951305": "Let's Play Spades",
-"11951321": "PLAYIN ♠️Too",
-"11951429": "Plead the 5th",
-"11951431": "TheresWorkToBeDone",
-"11951447": "13 13 13 13 13",
-"11951450": "Blonde",
-"11951579": "Otter Nonsense",
-"11951582": "demented",
-"11951691": "We Win",
-"11951694": "Big Jim and datwin",
-"11951803": "In2win",
-"11951905": "Cc and sam",
-"11951929": "Good Times",
-"11951931": "ROLL WITH IT",
-"11952204": "Andrew’s pw",
-"11952499": "TheresWorkToBeDone",
-"11952519": "Short Memory",
-"11952876": "My Mystery P",
-"11952911": "Spade Geeks",
-"11952946": "HAPPY SPADIN",
-"11952956": "Looks__",
-"11952958": "TheresWorkToBeDone",
-"11953116": "Northern Exposure",
-"11953244": "SPADES FOREVER",
-"11953279": "Okie Dokie",
-"11953321": "PLAYIN ♠️TooK3ssy",
-"11953395": "Okie Dokie",
-"11953457": "Demented13",
-"11953679": "ROLL WITH IT",
-"11954166": "ZigsWho",
-"11954351": "Too_fun",
-"11954352": "ROLL WITH IT",
-"11954663": "TheresWorkToBeDone",
-"11955509": "0UTLAND3RK3ssy",
-"11955694": "Plan9FromSantaMonica",
-"11955697": "HotEgammer",
-"11956057": "Old Pw",
-"11956059": "Northern Exposure"
-},
-"manual_winners": {
-"11923667": [
-"Ellisandrew80",
-"Ochwiay"
-],
-"11929712": [
-"Maggie_May"
-],
-"11941969": [
-"im_already_gone",
-"DiamondsLGirl"
-],
-"11950378": [
-"DaHwRoOkIe"
-],
-"11950575": [
-"Im_Already_Gone"
-],
-"11950604": [
-"Gizimo"
-],
-"11950794": [
-"Untouchable_One"
-],
-"11951059": [
-"COASTALKAT"
-],
-"11951291": [
-"Ochwiay"
-],
-"11951453": [
-"Ochwiay"
-],
-"11951599": [
-"REALLY_WHY"
-],
-"11951672": [
-"trifolium"
-],
-"11951689": [
-"Ochwiay"
-],
-"11951743": [
-"waskelwabbit"
-],
-"11951802": [
-"bob2112"
-],
-"11951856": [
-"makinpa"
-],
-"11951905": [
-"Lookslikeapickel",
-"deaddly"
-],
-"11951931": [
-"SILKROLLZ",
-"Huskernut50265"
-],
-"11952289": [
-"KeEpDuCkInThEm"
-],
-"11952937": [
-"SOLORYDER"
-],
-"11953116": [
-"Ochwiay",
-"Fetch_it_up"
-],
-"11953265": [
-"Ochwiay"
-],
-"11953272": [
-"Ochwiay"
-],
-"11953321": [
-"K3ssy",
-"slovell_too"
-],
-"11953396": [
-"Ochwiay"
-],
-"11953576": [
-"Untouchable_One"
-],
-"11953628": [
-"makinpa"
-],
-"11953634": [
-"Ochwiay"
-],
-"11953636": [
-"Ochwiay"
-],
-"11953654": [
-"Ochwiay"
-],
-"11953693": [
-"Fetch_it_up"
-],
-"11953851": [
-"Fetch_it_up"
-],
-"11953891": [
-"Ochwiay"
-],
-"11953950": [
-"MEL1c1ous_1"
-],
-"11954071": [
-"Gryzzlybear"
-],
-"11954623": [
-"MEL1c1ous_1"
-],
-"11954662": [
-"REALLY_WHY"
-],
-"11955073": [
-"DaHwRoOkIe"
-],
-"11955093": [
-"AceInBlack"
-],
-"11955095": [
-"Ochwiay"
-],
-"11955097": [
-"Lookslikeapickel",
-"illbid13"
-],
-"11955108": [
-"Ellisandrew80"
-],
-"11955118": [
-"Lookslikeapickel"
-],
-"11955128": [
-"trifolium"
-],
-"11955137": [
-"DevilsNiteBaby",
-"OuT1AnDeR"
-],
-"11955138": [
-"BluAngel1950"
-],
-"11955139": [
-"Ochwiay"
-],
-"11955140": [
-"Lookslikeapickel",
-"Ellisandrew80"
-],
-"11955141": [
-"Ochwiay"
-],
-"11955204": [
-"Treco521"
-],
-"11955205": [
-"EasyOne23"
-],
-"11955206": [
-"va_country_guy"
-],
-"11955207": [
-"Untouchable_One"
-],
-"11955209": [
-"Sumpin2du"
-],
-"11955353": [
-"chameleon3388",
-"MsZigs"
-],
-"11955354": [
-"TATSUJIN"
-],
-"11955355": [
-"SoloRyder"
-],
-"11955357": [
-"EasyOne23"
-],
-"11955360": [
-"CLaSSiKSPaDZPLaR",
-"Ellisandrew80"
-],
-"11955362": [
-"flowerbill2"
-],
-"11955365": [
-"SunshineGal63"
-],
-"11955481": [
-"AceInBlack"
-],
-"11955494": [
-"PotSayHiToKettle"
-],
-"11955497": [
-"Sumpin2du"
-],
-"11955663": [
-"Ochwiay"
-],
-"11955687": [
-"Ochwiay"
-],
-"11955694": [
-"Ochwiay",
-"peakoh"
-],
-"11955697": [
-"Hotandspicey69",
-"EgammeR"
-],
-"11955733": [
-"BigDaddyKool68",
-"photobratboy09"
-],
-"11955744": [
-"MyBagsRGucci",
-"ViCiOuSNaTuRe"
-],
-"11955798": [
-"makinpa"
-],
-"11955826": [
-"muziklvr"
-],
-"11955945": [
-"Untouchable_One"
-],
-"11955946": [
-"MyBagsRGucci",
-"WaverunnerFX"
-],
-"11955947": [
-"MyBagsRGucci",
-"ViCiOuSNaTuRe"
-],
-"11955949": [
-"Lookslikeapickel",
-"0UTLAND3R"
-],
-"11955955": [
-"JAWS33"
-],
-"11955959": [
-"MEL1c1ous_1"
-],
-"11955963": [
-"chameleon3388",
-"EgammeR"
-],
-"11955965": [
-"EgammeR"
-],
-"11955967": [
-"BluAngel1950"
-],
-"11955970": [
-"MEL1c1ous_1"
-],
-"11955972": [
-"MEL1c1ous_1"
-],
-"11955979": [
-"MEL1c1ous_1"
-],
-"11956008": [
-"SILKROLLZ"
-],
-"11956010": [
-"MyBagsRGucci"
-],
-"11956057": [
-"Lookslikeapickel",
-"Ellisandrew80"
-],
-"11956058": [
-"Jays26"
-],
-"11956059": [
-"Ochwiay",
-"MsZigs"
-],
-"11956060": [
-"SoloRyder"
-],
-"11956061": [
-"SILKROLLZ",
-"MsZigs"
-],
-"11956062": [
-"DiamondsLGirl"
-],
-"11956064": [
-"BigDaddyKool68",
-"AceyLynn"
-],
-"11956065": [
-"muziklvr"
-],
-"11956066": [
-"Hotandspicey69",
-"EgammeR"
-],
-"11956067": [
-"EasyOne23"
-],
-"11956069": [
-"Ellisandrew80",
-"MEL1c1ous_1"
-],
-"11956148": [
-"MEL1c1ous_1"
-],
-"11956155": [
-"TATSUJIN",
-"DevilsNiteBaby"
-],
-"11956156": [
-"DevilsNiteBaby"
-],
-"11956160": [
-"slovell_too"
-],
-"11956161": [
-"Lookslikeapickel"
-],
-"11956169": [
-"illbid13",
-"Lookslikeapickel"
-],
-"11956174": [
-"flipflopgirlsc"
-],
-"11956202": [
-"Lookslikeapickel"
-],
-"11956203": [
-"DetroitLionsRule",
-"whocantplay"
-],
-"11956207": [
-"Ochwiay"
-],
-"11956371": [
-"Ochwiay"
-],
-"11956382": [
-"Untouchable_One"
-],
-"11956383": [
-"Huskernut50265"
-],
-"11956384": [
-"MyBagsRGucci"
-],
-"11956513": [
-"SoloRyder"
-],
-"11956596": [
-"EgammeR",
-"MEL1c1ous_1"
-],
-"11956614": [
-"Ellisandrew80"
-],
-"11956615": [
-"Ellisandrew80"
-],
-"11956668": [
-"0UTLAND3R",
-"MEL1c1ous_1"
-],
-"11956782": [
-"Sumpin2du"
-]
-},
-"subtitles": {
-"11953446": "TOURNAMENT OF CHAMPIONS"
-},
-"tour_url": "https://www.myleague.com/diamondspaders/tournament/%s/"
+  "aliases": {
+    "Jays26": "Jays_26",
+    "Lookslikeapickel": "Looks__",
+    "MEL1c1ous_1": "Melicious_1",
+    "im_already_gone": "Im_Already_Gone",
+    "lewisrulz": "Lewisrulz55",
+    "peakoh": "PeaKoh"
+  },
+  "auto_teams": {
+    "11951449": "Mar and Photo",
+    "11953540": "we wanna win",
+    "11953543": "Good Times",
+    "11953545": "10bags",
+    "11953644": "Roll With It",
+    "11953646": "gooneyNp 123",
+    "11953649": "Sponsored ad",
+    "11953651": "ROLL WITH IT",
+    "11953677": "SPADES TIME",
+    "11953679": "ROLL WITH IT",
+    "11953687": "LETS PLAY",
+    "11953690": "Okie Dokie",
+    "11953691": "X",
+    "11953694": "Good Times",
+    "11953770": "Otter Nonsense",
+    "11953771": "Pass 2 Plz",
+    "11953772": "BIRTHDAY COUNTDOWN",
+    "11953774": "ROLL WITH IT",
+    "11953830": "I Got the L",
+    "11953949": "CLaSSiKSPaEllisandre",
+    "11954162": "X",
+    "11954163": "ROLL WITH IT",
+    "11954166": "ZigsWho",
+    "11954352": "ROLL WITH IT",
+    "11954619": "Okie Dokie",
+    "11954621": "TheresWorkToBeDone",
+    "11954624": "It happens",
+    "11954626": "ROLL WITH IT",
+    "11954661": "ROAD RAGE",
+    "11955096": "Wild and Wonderful",
+    "11955097": "Old pw",
+    "11955110": "Nighters",
+    "11955132": "Lets win",
+    "11955134": "Nighters",
+    "11955137": "Okie Dokie",
+    "11955140": "Old pw",
+    "11955496": "Nighters",
+    "11955499": "Wild and Wonderful",
+    "11955564": "Ace In BlackBirthday",
+    "11955566": "Okie Dokie",
+    "11955673": "Kandy Korn Plz",
+    "11955697": "HotEgammer",
+    "11955733": "Slao the Table",
+    "11955744": "Okie Dokie",
+    "11955946": "Okie Dokie",
+    "11955947": "Okie Dokie",
+    "11955949": "Tony and company",
+    "11956057": "Old Pw",
+    "11956059": "Northern Exposure",
+    "11956061": "ROLL WITH IT",
+    "11956064": "Need a New Dea",
+    "11956066": "HotandEgammer",
+    "11956069": "Nighters",
+    "11956596": "Egammer",
+    "11956668": "Ready yo win"
+  },
+  "avatar_overrides": {
+    "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png"
+  },
+  "avatars": {
+    "0utland3r": "https://diamondspaders.online/0UTLAND3R-ava.png",
+    "1jimbeam": "https://diamondspaders.online/1jimbeam-ava.png",
+    "3bid3bags": "https://diamondspaders.online/3Bid3Bags-ava.png",
+    "aceinblack": "https://diamondspaders.online/aceinblack-ava.png",
+    "aceylynn": "https://diamondspaders.online/AceyLynn-ava.png",
+    "angeljoyxo": "https://diamondspaders.online/AngelJoyXO-ava.png",
+    "apearl_521": "https://diamondspaders.online/apearl_521-ava.png",
+    "bigdaddykool68": "https://diamondspaders.online/BigDaddyKool68-ava.png",
+    "bluangel1950": "https://diamondspaders.online/bluangel1950-ava.png",
+    "bluangel1953": "https://diamondspaders.online/bluangel1953-ava.png",
+    "bob2112": "https://diamondspaders.online/bob2112-ava.png",
+    "bonebidder": "https://diamondspaders.online/bonebidder-ava.png",
+    "booradly": "https://diamondspaders.online/booradly-ava.png",
+    "bustingthatnil": "https://diamondspaders.online/bustingthatnil-ava.png",
+    "chameleon3388": "https://diamondspaders.online/chameleon3388-ava.png",
+    "chanz": "https://diamondspaders.online/Chanz-ava.png",
+    "classicspadesplar": "https://diamondspaders.online/ClassicSpadesPlaR-ava.png",
+    "classikspadzplar": "https://diamondspaders.online/CLaSSiKSPaDZPLaR-ava.png",
+    "coastalkat": "https://diamondspaders.online/COASTALKAT-ava.png",
+    "dahwrookie": "https://diamondspaders.online/DaHwRoOkIe-ava.png",
+    "deaddly": "https://diamondspaders.online/deaddly-ava.png",
+    "dementedwench": "https://diamondspaders.online/DementedWench-ava.png",
+    "detroitlionsrule": "https://diamondspaders.online/DetroitLionsRule-ava.png",
+    "devilsnitebaby": "https://diamondspaders.online/DevilsNiteBaby-ava.png",
+    "diamondslgirl": "https://diamondspaders.online/diamondslgirl-ava.png",
+    "duke413": "https://diamondspaders.online/Duke413-ava.png",
+    "eager_1": "https://diamondspaders.online/Eager_1-ava.png",
+    "easyone23": "https://diamondspaders.online/EasyOne23-ava.png",
+    "egammer": "https://diamondspaders.online/EgammeR-ava.png",
+    "ellisandrew80": "https://diamondspaders.online/Ellisandrew80-ava.png",
+    "fetch_it_up": "https://diamondspaders.online/fetch_it_up-ava.png",
+    "flipflopgirlsc": "https://diamondspaders.online/flipflopgirlsc-ava.png",
+    "flowerbill2": "https://diamondspaders.online/flowerbill2-ava.png",
+    "foreverblessed": "https://diamondspaders.online/ForeverBlessed-ava.png",
+    "gift_shopper": "https://diamondspaders.online/Gift_Shopper-ava.png",
+    "gizimo": "https://diamondspaders.online/Gizimo-ava.png",
+    "gman88": "https://diamondspaders.online/Gman88-ava.png",
+    "goldengirl2026": "https://diamondspaders.online/goldengirl2026-ava.png",
+    "gooneybird": "https://diamondspaders.online/gooneybird-ava.png",
+    "gryzzlybear": "https://diamondspaders.online/Gryzzlybear-ava.png",
+    "hardwuudmamia": "https://diamondspaders.online/Hardwuudmamia-ava.png",
+    "hardwuudmania": "https://diamondspaders.online/Hardwuudmania-ava.png",
+    "hotandspicey69": "https://diamondspaders.online/Hotandspicey69-ava.png",
+    "houdini": "https://diamondspaders.online/houdini-ava.png",
+    "huskernut50265": "https://diamondspaders.online/huskernut50265-ava.png",
+    "illbid13": "https://diamondspaders.online/illbid13-ava.png",
+    "im_already_gone": "https://diamondspaders.online/Im_already_gone-ava.png",
+    "jaws33": "https://diamondspaders.online/JAWS33-ava.png",
+    "jays_26": "https://diamondspaders.online/Jays_26-ava.png",
+    "jbaby1": "https://diamondspaders.online/JBaby1-ava.png",
+    "jbmusket42": "https://diamondspaders.online/jbmusket42-ava.png",
+    "jopisme": "https://diamondspaders.online/jopisme-ava.png",
+    "justanothergirl": "https://diamondspaders.online/JustAnotherGirl-ava.png",
+    "k3ssy": "https://diamondspaders.online/k3ssy-ava.png",
+    "keepduckinthem": "https://diamondspaders.online/KeEpDuCkInThEm-ava.png",
+    "lewisrulz55": "https://diamondspaders.online/Lewisrulz55-ava.png",
+    "lil_shopper": "https://diamondspaders.online/Lil_shopper-ava.png",
+    "loffe_dawg": "https://diamondspaders.online/Loffe_Dawg-ava.png",
+    "loneranger11452": "https://diamondspaders.online/loneranger11452-ava.png",
+    "looks__": "https://diamondspaders.online/Looks__-ava.png",
+    "lunatic20ca": "https://diamondspaders.online/Lunatic20ca-ava.png",
+    "madrat": "https://diamondspaders.online/madrat-ava.png",
+    "maggie_may": "https://diamondspaders.online/maggie_may-ava.png",
+    "makinpa": "https://diamondspaders.online/makinpa-ava.png",
+    "manicdepressive1": "https://diamondspaders.online/manicdepressive1-ava.png",
+    "margomoo": "https://diamondspaders.online/MargoMoo-ava.png",
+    "me6052": "https://diamondspaders.online/Me6052-ava.png",
+    "mel1c1ous_1": "https://diamondspaders.online/MEL1c1ous_1-ava.png",
+    "melicious_1": "https://diamondspaders.online/MEL1c1ous_1-ava.png",
+    "mszigs": "https://diamondspaders.online/MsZigs-ava.png",
+    "muziklvr": "https://diamondspaders.online/muziklvr-ava.png",
+    "mybagsrgucci": "https://diamondspaders.online/MyBagsRGucci-ava.png",
+    "o_siris": "https://diamondspaders.online/o_siris-ava.png",
+    "ochwiay": "https://diamondspaders.online/ochwiay-ava.png",
+    "ooolauraooo": "https://diamondspaders.online/oooLAURAooo-ava.png",
+    "peakoh": "https://diamondspaders.online/PeaKoh-ava.png",
+    "phoenix_on_fire": "https://diamondspaders.online/phoenix_on_fire-ava.png",
+    "photobratboy09": "https://diamondspaders.online/photobratboy09-ava.png",
+    "player88141": "https://diamondspaders.online/Player88141-ava.png",
+    "potsayhitokettle": "https://diamondspaders.online/PotSayHiToKettle-ava.png",
+    "purplehaven16": "https://diamondspaders.online/PurpleHaven16-ava.png",
+    "really_why": "https://diamondspaders.online/REALLY_WHY-ava.png",
+    "rookie_bagger": "https://diamondspaders.online/rookie_bagger-ava.png",
+    "sadiee": "https://diamondspaders.online/sadiee-ava.png",
+    "silkrollz": "https://diamondspaders.online/SILK%20ROLLZ-ava.png",
+    "skippyjjones": "https://diamondspaders.online/SkippyJJones-ava.png",
+    "slovell_too": "https://diamondspaders.online/slovell_too-ava.png",
+    "soloryder": "https://diamondspaders.online/soloryder-ava.png",
+    "sumpin2du": "https://diamondspaders.online/Sumpin2du-ava.png",
+    "sunshinegal63": "https://diamondspaders.online/SunshineGal63-ava.png",
+    "tatsujin": "https://diamondspaders.online/TATSUJIN-ava.png",
+    "treco521": "https://diamondspaders.online/Treco521-ava.png",
+    "trifolium": "https://diamondspaders.online/trifolium-ava.png",
+    "tykesbratt": "https://diamondspaders.online/Tykesbratt-ava.png",
+    "untouchable_one": "https://diamondspaders.online/Untouchable_One-ava.png",
+    "va_country_guy": "https://diamondspaders.online/va_country_guy-ava.png",
+    "viciousnature": "https://diamondspaders.online/ViCiOuSNaTuRe-ava.png",
+    "waskelwabbit": "https://diamondspaders.online/waskelwabbit-ava.png",
+    "waverunnerfx": "https://diamondspaders.online/WaverunnerFX-ava.png",
+    "wezee": "https://diamondspaders.online/Wezee-ava.png",
+    "whiskey_and_gold": "https://diamondspaders.online/Whiskey_and_Gold-ava.png",
+    "whocantplay": "https://diamondspaders.online/whocantplay-ava.png",
+    "xsuicide_blondex": "https://diamondspaders.online/xsuicide_blondex-ava.png",
+    "zappycow": "https://diamondspaders.online/ZappyCow-ava.png",
+    "poppsv": "https://diamondspaders.online/poppsv-ava.png"
+  },
+  "bottom": [],
+  "extra_tours": [
+    {
+      "date": "2026-10-21",
+      "id": "manual-20261021-1315",
+      "label": "CUT",
+      "time": "13:15",
+      "winners": [
+        "BluAngel1950"
+      ]
+    },
+    {
+      "date": "2026-10-21",
+      "id": "manual-20261021-1415",
+      "label": "CUT MIRRORS",
+      "time": "14:15",
+      "winners": [
+        "TATSUJIN"
+      ]
+    },
+    {
+      "date": "2026-10-21",
+      "id": "manual-20261021-1015",
+      "label": "CUT",
+      "time": "10:15",
+      "winners": [
+        "MaKinpa"
+      ]
+    },
+    {
+      "date": "2026-10-21",
+      "id": "manual-20261021-1115",
+      "label": "CUT",
+      "time": "11:15",
+      "winners": [
+        "Ochwiay"
+      ]
+    }
+  ],
+  "fonts": {
+    "10:15 AM|apearl_521": 20,
+    "10:15 AM|coastalkat": 20,
+    "10:15 AM|diamondslgirl": 18,
+    "10:15 AM|ellisandrew80": 18,
+    "10:15 AM|flipflopgirlsc": 18,
+    "10:15 AM|foreverblessed": 18,
+    "10:15 AM|huskernut50265": 18,
+    "10:15 AM|loffe_dawg": 20,
+    "10:15 AM|looks__": 22,
+    "10:15 AM|lunatic20ca": 20,
+    "10:15 AM|makinpa": 22,
+    "10:15 AM|o_siris": 22,
+    "10:15 AM|ochwiay": 22,
+    "10:15 AM|potsayhitokettle": 16,
+    "10:15 AM|soloryder": 22,
+    "10:15 AM|tatsujin": 22,
+    "10:15 AM|trifolium": 22,
+    "10:15 PM|aceinblack": 20,
+    "10:15 PM|artistandwriter": 18,
+    "10:15 PM|bluangel1950": 20,
+    "10:15 PM|diamondslgirl": 18,
+    "10:15 PM|im_already_gone": 18,
+    "10:15 PM|lunatic20ca": 20,
+    "10:15 PM|melicious_1": 20,
+    "10:15 PM|muziklvr": 22,
+    "10:15 PM|ochwiay": 22,
+    "10:15 PM|really_why": 20,
+    "10:15 PM|sadiee": 22,
+    "10:15 PM|silkrollz": 22,
+    "10:15 PM|skippyjjones": 20,
+    "10:15 PM|treco521": 22,
+    "10:15 PM|untouchable_one": 18,
+    "10:15 PM|va_country_guy": 18,
+    "11:15 AM|aceinblack": 20,
+    "11:15 AM|bluangel1950": 20,
+    "11:15 AM|gizimo": 22,
+    "11:15 AM|gryzzlybear": 20,
+    "11:15 AM|lil_shopper": 20,
+    "11:15 AM|looks__": 22,
+    "11:15 AM|lunatic20ca": 20,
+    "11:15 AM|ochwiay": 22,
+    "11:15 AM|soloryder": 22,
+    "11:15 AM|sumpin2du": 22,
+    "11:15 AM|tatsujin": 22,
+    "11:15 AM|treco521": 22,
+    "11:15 AM|trifolium": 22,
+    "11:15 AM|untouchable_one": 18,
+    "11:15 AM|waskelwabbit": 20,
+    "11:15 AM|whocantplay": 20,
+    "11:15 PM|bluangel1950": 20,
+    "11:15 PM|easyone23": 22,
+    "11:15 PM|fetch_it_up": 20,
+    "11:15 PM|huskernut50265": 18,
+    "11:15 PM|jays_26": 22,
+    "11:15 PM|lunatic20ca": 20,
+    "11:15 PM|makinpa": 22,
+    "11:15 PM|melicious_1": 20,
+    "11:15 PM|ochwiay": 22,
+    "11:15 PM|really_why": 20,
+    "11:15 PM|silkrollz": 22,
+    "11:15 PM|untouchable_one": 18,
+    "12:15 PM|bluangel1950": 20,
+    "12:15 PM|flipflopgirlsc": 18,
+    "12:15 PM|hotandspicey69": 18,
+    "12:15 PM|keepduckinthem": 18,
+    "12:15 PM|lunatic20ca": 20,
+    "12:15 PM|mybagsrgucci": 20,
+    "12:15 PM|ochwiay": 22,
+    "12:15 PM|whocantplay": 20,
+    "12:30 PM|muziklvr": 22,
+    "1:15 PM|aceinblack": 20,
+    "1:15 PM|bluangel1950": 20,
+    "1:15 PM|easyone23": 22,
+    "1:15 PM|ellisandrew80": 18,
+    "1:15 PM|lunatic20ca": 20,
+    "1:15 PM|makinpa": 22,
+    "1:15 PM|mybagsrgucci": 20,
+    "1:15 PM|o_siris": 22,
+    "1:15 PM|ochwiay": 22,
+    "1:15 PM|peakoh": 22,
+    "1:15 PM|potsayhitokettle": 16,
+    "1:15 PM|silkrollz": 22,
+    "1:15 PM|soloryder": 22,
+    "1:15 PM|treco521": 22,
+    "1:15 PM|trifolium": 22,
+    "1:15 PM|untouchable_one": 18,
+    "1:15 PM|whocantplay": 20,
+    "2:15 PM|bigdaddykool68": 18,
+    "2:15 PM|bluangel1950": 20,
+    "2:15 PM|ellisandrew80": 18,
+    "2:15 PM|huskernut50265": 18,
+    "2:15 PM|lewisrulz55": 20,
+    "2:15 PM|makinpa": 22,
+    "2:15 PM|mybagsrgucci": 20,
+    "2:15 PM|ochwiay": 22,
+    "2:15 PM|purplehaven16": 18,
+    "2:15 PM|tatsujin": 22,
+    "2:15 PM|tykesbratt": 20,
+    "2:15 PM|untouchable_one": 18,
+    "3:15 PM|1jimbeam": 22,
+    "3:15 PM|bob2112": 22,
+    "3:15 PM|dahwrookie": 20,
+    "3:15 PM|diamondslgirl": 18,
+    "3:15 PM|easyone23": 22,
+    "3:15 PM|egammer": 22,
+    "3:15 PM|fetch_it_up": 20,
+    "3:15 PM|flipflopgirlsc": 18,
+    "3:15 PM|lewisrulz55": 20,
+    "3:15 PM|loffe_dawg": 20,
+    "3:15 PM|looks__": 22,
+    "3:15 PM|madrat": 22,
+    "3:15 PM|makinpa": 22,
+    "3:15 PM|ochwiay": 22,
+    "3:15 PM|really_why": 20,
+    "3:15 PM|soloryder": 22,
+    "4:30 PM|im_already_gone": 18,
+    "6:15 PM|aceinblack": 20,
+    "6:15 PM|bigdaddykool68": 18,
+    "6:15 PM|dahwrookie": 20,
+    "6:15 PM|easyone23": 22,
+    "6:15 PM|flowerbill2": 20,
+    "6:15 PM|huskernut50265": 18,
+    "6:15 PM|jays_26": 22,
+    "6:15 PM|madrat": 22,
+    "6:15 PM|muziklvr": 22,
+    "6:15 PM|ochwiay": 22,
+    "6:15 PM|sadiee": 22,
+    "6:15 PM|soloryder": 22,
+    "6:15 PM|tatsujin": 22,
+    "6:15 PM|waskelwabbit": 20,
+    "7:15 AM|aceinblack": 20,
+    "8:15 AM|aceinblack": 20,
+    "8:15 AM|dahwrookie": 20,
+    "8:15 AM|jbaby1": 22,
+    "8:15 AM|looks__": 22,
+    "8:15 AM|makinpa": 22,
+    "8:15 AM|o_siris": 22,
+    "8:15 AM|ochwiay": 22,
+    "8:15 AM|soloryder": 22,
+    "8:15 AM|tatsujin": 22,
+    "8:15 AM|treco521": 22,
+    "8:15 AM|trifolium": 22,
+    "8:15 PM|bluangel1950": 20,
+    "8:15 PM|easyone23": 22,
+    "8:15 PM|gryzzlybear": 20,
+    "8:15 PM|huskernut50265": 18,
+    "8:15 PM|jays_26": 22,
+    "8:15 PM|ochwiay": 22,
+    "8:15 PM|really_why": 20,
+    "8:15 PM|sadiee": 22,
+    "8:15 PM|soloryder": 22,
+    "8:15 PM|sumpin2du": 22,
+    "8:15 PM|sunshinegal63": 18,
+    "8:30 AM|makinpa": 22,
+    "9:15 AM|aceinblack": 20,
+    "9:15 AM|apearl_521": 20,
+    "9:15 AM|bob2112": 22,
+    "9:15 AM|deaddly": 22,
+    "9:15 AM|gryzzlybear": 20,
+    "9:15 AM|im_already_gone": 18,
+    "9:15 AM|lewisrulz55": 20,
+    "9:15 AM|looks__": 22,
+    "9:15 AM|o_siris": 22,
+    "9:15 AM|ochwiay": 22,
+    "9:15 AM|soloryder": 22,
+    "9:15 AM|trifolium": 22,
+    "9:15 AM|untouchable_one": 18,
+    "9:15 AM|waskelwabbit": 20
+  },
+  "hidden": [
+    "11953885",
+    "11954479",
+    "11955079"
+  ],
+  "labels": {
+    "by_id": {
+      "11923667": "SUI PASS 2",
+      "11936156": "SUI PASS 2 RANDOM",
+      "11941969": "SUI PASS 2",
+      "11950679": "LOSER WINS",
+      "11951331": "SUI PASS 2 PAB",
+      "11952440": "CUT",
+      "11952499": "REG PARTNERS",
+      "11952725": "SUI PASS 2 RANDOM",
+      "11952811": "REG SPADES RANDOM",
+      "11952814": "CUT MIRRORS",
+      "11952876": "REG SPADES RANDOM",
+      "11952901": "REG PARTNERS",
+      "11952946": "REG PARTNERS",
+      "11952956": "SUI PASS 2",
+      "11952958": "REG PARTNERS",
+      "11952964": "SINGLES",
+      "11953266": "LOSER WINS",
+      "11953267": "CUT",
+      "11953279": "SUI PASS 2",
+      "11953321": "REG PARTNERS",
+      "11953539": "SUI PASS 2 RANDOM",
+      "11953543": "SUI PASS 2",
+      "11953546": "LOSER WINS",
+      "11953634": "SUI PASS 2 PAB",
+      "11953679": "SUI PASS 2",
+      "11953692": "SETTER'S CHOICE SINGLES",
+      "11953891": "LOSER WINS",
+      "11954156": "SUI PASS 2 PAB",
+      "_11923667": "2026-10-10: feed text just '500/50 pass 2' (2 per team); was shown as SUI PASS 2 in TOURS, keep it so in winners",
+      "_11953266": "User 2026-10-10: Sat Oct 10 10:15 PM ET (feed 'LW SINGLES') is Loser Wins",
+      "_11953267": "User 2026-10-10: Sat Oct 10 11:15 PM ET (BluAngel1950) -> CUT",
+      "_11953321": "2026-10-10: Sat Oct 10 9:15 PM ET Ellisandrew80 feed was just 500/100 (2 per team) => REG PARTNERS",
+      "_11953546": "2026-10-12: AceyLynn 22:15 ET feed '1 vs 1' / CHOICE SINGLES => SINGLES (was stuck as PARDS)",
+      "_11953891": "2026-10-16: user set 22:15 ET LW Singles => LOSER WINS",
+      "_11954156": "2026-10-16: user set 14:15 ET => SUI PASS 2 PAB"
+    },
+    "by_slot": {
+      "AceyLynn|22:15|1 VS 1": "LOSER WINS"
+    },
+    "official": [
+      "REG PARTNERS",
+      "REG SPADES RANDOM",
+      "SUI PASS 2",
+      "SUI PASS 2 RANDOM",
+      "CUT",
+      "SINGLES",
+      "CUT MIRRORS",
+      "REG SPADES PAB",
+      "SUI PASS 2 PAB",
+      "LOSER WINS",
+      "SETTER'S CHOICE SINGLES"
+    ],
+    "raw_rules": [
+      {
+        "_comment": "Evaluated on the RAW feed text BEFORE score targets are stripped. A -1000 (loser-wins) target such as '1000/100' or '-1000' in a 1-player-per-team game => LOSER WINS. Other targets (300/50, 400/100, 500/50) are ignored.",
+        "label": "LOSER WINS",
+        "match": "LOS\\w*R? ?WIN|(?<![\\d/])-?1000(?!\\d)",
+        "perteam": 1
+      }
+    ],
+    "rules": [
+      {
+        "_comment": "Score-only / bare Spades with 2 per team => REG PARTNERS (e.g. feed '500/100').",
+        "label": "REG PARTNERS",
+        "match": "^(SPADES)?$",
+        "perteam": 2
+      },
+      {
+        "_comment": "User 2026-10-10: bare Spades / score-only target with 1 per team => CUT (e.g. '400/100'). Not for 2-player partners.",
+        "label": "CUT",
+        "match": "^(SPADES)?$",
+        "perteam": 1
+      },
+      {
+        "_comment": "Also catches the feed typo \"Loser Wim\" (2026-10-08).",
+        "label": "LOSER WINS",
+        "match": "LOS[E]?R ?WI[NM]S?"
+      },
+      {
+        "label": "CUT MIRRORS",
+        "match": "MIRROR"
+      },
+      {
+        "_comment": "User 2026-10-08: any 1 vs 1 vs 1 (three-way / cutthroat) tour is always labeled CUT.",
+        "label": "CUT",
+        "match": "\\b1 ?(VS?\\.?|V|X) ?1 ?(VS?\\.?|V|X) ?1\\b|\\b3 ?-?WAY\\b|CUT ?THROAT",
+        "not": "MIRROR"
+      },
+      {
+        "_comment": "Bare 1 vs 1 (e.g. CHOICE SINGLES) with 1 per team => SINGLES. Three-way 1 vs 1 vs 1 is handled above as CUT.",
+        "label": "SINGLES",
+        "match": "^1 ?(VS?\\.?|V|X) ?1$",
+        "perteam": 1
+      },
+      {
+        "label": "REG SPADES PAB",
+        "match": "PARD ?A ?BOT|PARTNER ?A ?BOT|\\bPAB\\b",
+        "not": "SUI"
+      },
+      {
+        "label": "SUI PASS 2 PAB",
+        "match": "PARD ?A ?BOT|PARTNER ?A ?BOT|\\bPAB\\b",
+        "match2": "SUI"
+      },
+      {
+        "_comment": "User 2026-10-08: SUI + Random Partners",
+        "label": "SUI PASS 2 RANDOM",
+        "match": "SUI.*RANDOM|RANDOM.*SUI(?:CIDE)?"
+      },
+      {
+        "_comment": " User 2026-10-08: always show as SUICIDE PASS 2 (was SUI PASS 2 PARTNERS).",
+        "label": "SUI PASS 2",
+        "match": "SUI",
+        "perteam": 2
+      },
+      {
+        "label": "CUT",
+        "match": "\\bCUT\\b",
+        "perteam": 1
+      },
+      {
+        "_comment": "User 2026-10-10: SINGLES tours are always labeled just SINGLES (no 300/50 score suffix; norm_feed strips targets).",
+        "label": "SINGLES",
+        "match": "SINGLES",
+        "not": "SUI",
+        "perteam": 1
+      },
+      {
+        "_comment": "User 2026-10-08: standardize TD wording — any Random Partners tour (with or without 500/100) is RANDOM PARTNERS 500/100.",
+        "label": "REG SPADES RANDOM",
+        "match": "RANDOM\\s*PARTNERS?"
+      },
+      {
+        "label": "REG PARTNERS",
+        "match": "PARD|PARTNER|\\d ?VS ?\\d|REG",
+        "not": "SUI|CUT|SINGLES",
+        "perteam": 2
+      }
+    ]
+  },
+  "labels_by_id": {
+    "11919012": "SINGLES",
+    "11923667": "SUI PASS 2",
+    "11929712": "SINGLES",
+    "11936156": "SUI PASS 2 RANDOM",
+    "11936160": "SUI PASS 2 RANDOM",
+    "11936848": "CUT",
+    "11941969": "SUI PASS 2",
+    "11944126": "CUT",
+    "11947497": "SINGLES",
+    "11947498": "CUT",
+    "11947500": "CUT MIRRORS",
+    "11948294": "CUT",
+    "11948325": "LOSER WINS",
+    "11949365": "SINGLES",
+    "11949889": "SINGLES",
+    "11949956": "SINGLES",
+    "11949964": "CUT",
+    "11949970": "CUT",
+    "11950199": "CUT",
+    "11950378": "CUT",
+    "11950421": "CUT",
+    "11950443": "LOSER WINS",
+    "11950448": "LOSER WINS",
+    "11950575": "SINGLES",
+    "11950592": "CUT",
+    "11950604": "CUT",
+    "11950772": "CUT",
+    "11950822": "CUT",
+    "11950908": "CUT",
+    "11950909": "SUI PASS 2 PAB",
+    "11950910": "CUT",
+    "11950911": "LOSER WINS",
+    "11950928": "CUT",
+    "11951050": "SINGLES",
+    "11951059": "CUT",
+    "11951061": "CUT MIRRORS",
+    "11951062": "SINGLES",
+    "11951063": "REG PARTNERS",
+    "11951201": "CUT",
+    "11951250": "CUT",
+    "11951251": "CUT",
+    "11951276": "SINGLES",
+    "11951285": "SUI PASS 2 PAB",
+    "11951286": "CUT",
+    "11951291": "CUT",
+    "11951295": "CUT",
+    "11951297": "CUT",
+    "11951304": "SUI PASS 2",
+    "11951305": "REG PARTNERS",
+    "11951321": "REG PARTNERS",
+    "11951322": "CUT",
+    "11951327": "CUT",
+    "11951329": "SUI PASS 2",
+    "11951331": "SUI PASS 2 PAB",
+    "11951429": "SUI PASS 2",
+    "11951430": "CUT",
+    "11951431": "REG PARTNERS",
+    "11951435": "CUT",
+    "11951447": "SUI PASS 2",
+    "11951448": "SINGLES",
+    "11951449": "REG PARTNERS",
+    "11951450": "SUI PASS 2",
+    "11951451": "SINGLES",
+    "11951452": "REG PARTNERS",
+    "11951453": "CUT",
+    "11951549": "SUI PASS 2 PAB",
+    "11951579": "REG PARTNERS",
+    "11951582": "REG PARTNERS",
+    "11951589": "REG PARTNERS",
+    "11951596": "CUT",
+    "11951599": "CUT",
+    "11951600": "CUT",
+    "11951610": "CUT",
+    "11951611": "CUT",
+    "11951656": "CUT",
+    "11951672": "SINGLES",
+    "11951689": "CUT",
+    "11951690": "CUT",
+    "11951691": "SUI PASS 2",
+    "11951693": "SUI PASS 2",
+    "11951694": "SUI PASS 2",
+    "11951695": "SINGLES",
+    "11951703": "SUI PASS 2 RANDOM",
+    "11951708": "CUT",
+    "11951710": "CUT",
+    "11951711": "CUT",
+    "11951741": "CUT",
+    "11951743": "SINGLES",
+    "11951800": "REG PARTNERS",
+    "11951801": "CUT",
+    "11951802": "CUT",
+    "11951803": "SUI PASS 2",
+    "11951888": "CUT",
+    "11951897": "SINGLES",
+    "11951898": "CUT",
+    "11951899": "CUT",
+    "11951901": "REG PARTNERS",
+    "11951902": "SUI PASS 2 RANDOM",
+    "11951905": "REG PARTNERS",
+    "11951906": "CUT",
+    "11951907": "CUT",
+    "11951914": "CUT",
+    "11951915": "CUT",
+    "11951916": "CUT",
+    "11951928": "CUT",
+    "11951929": "SUI PASS 2",
+    "11951931": "REG PARTNERS",
+    "11952201": "CUT",
+    "11952202": "SINGLES",
+    "11952204": "REG PARTNERS",
+    "11952231": "CUT",
+    "11952262": "REG SPADES PAB",
+    "11952264": "REG PARTNERS",
+    "11952279": "CUT",
+    "11952284": "SINGLES",
+    "11952289": "SUI PASS 2 PAB",
+    "11952299": "CUT",
+    "11952300": "SUI PASS 2",
+    "11952340": "REG PARTNERS",
+    "11952377": "CUT",
+    "11952440": "CUT",
+    "11952441": "CUT MIRRORS",
+    "11952446": "CUT",
+    "11952466": "CUT",
+    "11952478": "CUT",
+    "11952484": "CUT",
+    "11952499": "REG PARTNERS",
+    "11952519": "SUI PASS 2",
+    "11952524": "CUT",
+    "11952700": "CUT",
+    "11952725": "SUI PASS 2 RANDOM",
+    "11952792": "CUT",
+    "11952811": "REG SPADES RANDOM",
+    "11952812": "CUT",
+    "11952813": "CUT",
+    "11952814": "CUT MIRRORS",
+    "11952823": "SINGLES",
+    "11952842": "CUT",
+    "11952876": "REG SPADES RANDOM",
+    "11952897": "CUT",
+    "11952901": "REG PARTNERS",
+    "11952903": "CUT",
+    "11952904": "CUT",
+    "11952911": "SUI PASS 2",
+    "11952937": "CUT",
+    "11952946": "REG PARTNERS",
+    "11952956": "SUI PASS 2",
+    "11952957": "CUT",
+    "11952958": "REG PARTNERS",
+    "11952964": "SINGLES",
+    "11952973": "CUT",
+    "11952996": "SINGLES",
+    "11952997": "CUT",
+    "11952998": "CUT",
+    "11953049": "CUT",
+    "11953050": "CUT",
+    "11953051": "CUT",
+    "11953116": "REG PARTNERS",
+    "11953241": "SINGLES",
+    "11953242": "CUT",
+    "11953243": "SUI PASS 2",
+    "11953244": "REG PARTNERS",
+    "11953265": "CUT",
+    "11953266": "LOSER WINS",
+    "11953267": "CUT",
+    "11953268": "CUT",
+    "11953269": "REG PARTNERS",
+    "11953271": "CUT",
+    "11953272": "CUT",
+    "11953279": "SUI PASS 2",
+    "11953321": "REG PARTNERS",
+    "11953388": "CUT",
+    "11953390": "CUT",
+    "11953393": "CUT",
+    "11953394": "CUT",
+    "11953395": "REG PARTNERS",
+    "11953396": "CUT",
+    "11953397": "CUT",
+    "11953446": "SUI PASS 2",
+    "11953457": "SUI PASS 2",
+    "11953458": "LOSER WINS",
+    "11953459": "CUT",
+    "11953539": "SUI PASS 2 RANDOM",
+    "11953540": "REG PARTNERS",
+    "11953541": "CUT",
+    "11953543": "SUI PASS 2",
+    "11953544": "CUT",
+    "11953545": "REG PARTNERS",
+    "11953546": "LOSER WINS",
+    "11953547": "CUT",
+    "11953576": "CUT",
+    "11953593": "CUT",
+    "11953596": "CUT",
+    "11953597": "CUT",
+    "11953605": "CUT MIRRORS",
+    "11953628": "CUT",
+    "11953634": "SUI PASS 2 PAB",
+    "11953637": "CUT",
+    "11953638": "CUT MIRRORS",
+    "11953644": "SUI PASS 2",
+    "11953645": "SINGLES",
+    "11953646": "REG PARTNERS",
+    "11953647": "LOSER WINS",
+    "11953648": "CUT",
+    "11953649": "SUI PASS 2",
+    "11953650": "SINGLES",
+    "11953651": "REG PARTNERS",
+    "11953654": "SINGLES",
+    "11953655": "SINGLES",
+    "11953667": "SUI PASS 2 PAB",
+    "11953677": "REG PARTNERS",
+    "11953678": "CUT",
+    "11953679": "SUI PASS 2",
+    "11953680": "CUT",
+    "11953685": "CUT",
+    "11953686": "SINGLES",
+    "11953687": "REG PARTNERS",
+    "11953688": "CUT",
+    "11953689": "CUT",
+    "11953690": "REG PARTNERS",
+    "11953691": "REG PARTNERS",
+    "11953692": "SETTER'S CHOICE SINGLES",
+    "11953693": "CUT",
+    "11953694": "REG PARTNERS",
+    "11953700": "CUT",
+    "11953722": "SUI PASS 2 PAB",
+    "11953749": "CUT",
+    "11953751": "CUT",
+    "11953768": "CUT",
+    "11953769": "CUT",
+    "11953770": "REG PARTNERS",
+    "11953771": "SUI PASS 2",
+    "11953772": "REG PARTNERS",
+    "11953773": "CUT",
+    "11953774": "SUI PASS 2",
+    "11953775": "SUI PASS 2 PAB",
+    "11953777": "CUT",
+    "11953778": "CUT",
+    "11953781": "CUT",
+    "11953782": "CUT",
+    "11953783": "CUT",
+    "11953784": "CUT",
+    "11953786": "SINGLES",
+    "11953787": "CUT",
+    "11953788": "SUI PASS 2",
+    "11953789": "CUT",
+    "11953790": "CUT",
+    "11953791": "SUI PASS 2 PAB",
+    "11953792": "CUT",
+    "11953808": "CUT",
+    "11953828": "CUT",
+    "11953829": "SINGLES",
+    "11953830": "REG PARTNERS",
+    "11953838": "CUT",
+    "11953845": "SUI PASS 2 RANDOM",
+    "11953849": "CUT",
+    "11953851": "CUT",
+    "11953881": "CUT",
+    "11953884": "CUT",
+    "11953887": "CUT",
+    "11953891": "LOSER WINS",
+    "11953893": "CUT",
+    "11953894": "CUT",
+    "11953895": "CUT",
+    "11953898": "SUI PASS 2 RANDOM",
+    "11953904": "SUI PASS 2 RANDOM",
+    "11953906": "CUT",
+    "11953908": "CUT",
+    "11953910": "CUT",
+    "11953912": "SUI PASS 2 RANDOM",
+    "11953949": "REG PARTNERS",
+    "11953950": "SINGLES",
+    "11953951": "CUT",
+    "11954054": "SUI PASS 2 PAB",
+    "11954067": "CUT MIRRORS",
+    "11954069": "SUI PASS 2 RANDOM",
+    "11954070": "CUT",
+    "11954071": "CUT",
+    "11954154": "CUT",
+    "11954156": "SUI PASS 2 PAB",
+    "11954162": "REG PARTNERS",
+    "11954163": "PASS 2",
+    "11954166": "REG PARTNERS",
+    "11954351": "PASS 2",
+    "11954352": "REG PARTNERS",
+    "11954355": "SINGLES",
+    "11954618": "CUT",
+    "11954619": "SUI PASS 2",
+    "11954620": "CUT",
+    "11954621": "REG PARTNERS",
+    "11954622": "LOSER WINS",
+    "11954623": "CUT",
+    "11954624": "REG PARTNERS",
+    "11954625": "CUT",
+    "11954626": "SUI PASS 2",
+    "11954627": "CUT",
+    "11954659": "CUT",
+    "11954661": "SUI PASS 2",
+    "11954662": "SINGLES",
+    "11954663": "REG PARTNERS",
+    "11954664": "LOSER WINS",
+    "11954665": "CUT",
+    "11954851": "CUT",
+    "11954890": "CUT",
+    "11954931": "CUT",
+    "11954936": "CUT",
+    "11954937": "PASS 2",
+    "11955027": "CUT",
+    "11955073": "CUT",
+    "11955080": "CUT",
+    "11955093": "SINGLES",
+    "11955094": "CUT",
+    "11955095": "SINGLES",
+    "11955096": "REG PARTNERS",
+    "11955097": "REG PARTNERS",
+    "11955101": "SINGLES",
+    "11955107": "CUT",
+    "11955108": "CUT",
+    "11955109": "CUT",
+    "11955110": "REG PARTNERS",
+    "11955112": "SUI PASS 2 PAB",
+    "11955118": "CUT",
+    "11955120": "SUI PASS 2 PAB",
+    "11955126": "CUT",
+    "11955128": "CUT",
+    "11955131": "SUI PASS 2 RANDOM",
+    "11955132": "SUI PASS 2",
+    "11955133": "SINGLES",
+    "11955134": "REG PARTNERS",
+    "11955137": "REG PARTNERS",
+    "11955138": "LOSER WINS",
+    "11955139": "CUT",
+    "11955140": "SUI PASS 2",
+    "11955141": "SINGLES",
+    "11955142": "REG PARTNERS",
+    "11955143": "LOSER WINS",
+    "11955144": "CUT",
+    "11955145": "CUT",
+    "11955151": "SUI PASS 2 RANDOM",
+    "11955204": "CUT",
+    "11955205": "CUT",
+    "11955206": "SINGLES",
+    "11955207": "CUT",
+    "11955208": "CUT",
+    "11955209": "CUT",
+    "11955222": "SINGLES",
+    "11955269": "SUI PASS 2 PAB",
+    "11955353": "SUI PASS 2 RANDOM",
+    "11955354": "CUT",
+    "11955355": "CUT",
+    "11955357": "CUT",
+    "11955360": "SUI PASS 2 RANDOM",
+    "11955362": "CUT",
+    "11955365": "CUT",
+    "11955394": "CUT",
+    "11955453": "CUT",
+    "11955481": "SINGLES",
+    "11955482": "CUT",
+    "11955483": "CUT",
+    "11955494": "CUT",
+    "11955496": "REG PARTNERS",
+    "11955497": "CUT",
+    "11955499": "REG PARTNERS",
+    "11955501": "CUT",
+    "11955509": "SUI PASS 2",
+    "11955520": "SUI PASS 2",
+    "11955564": "REG PARTNERS",
+    "11955566": "SUI PASS 2",
+    "11955626": "CUT",
+    "11955627": "CUT",
+    "11955657": "CUT",
+    "11955663": "CUT",
+    "11955673": "REG PARTNERS",
+    "11955684": "SINGLES",
+    "11955687": "CUT",
+    "11955694": "REG PARTNERS",
+    "11955697": "SUI PASS 2",
+    "11955699": "CUT",
+    "11955733": "REG PARTNERS",
+    "11955744": "REG PARTNERS",
+    "11955798": "CUT",
+    "11955826": "SUI",
+    "11955945": "CUT",
+    "11955946": "REG PARTNERS",
+    "11955947": "REG PARTNERS",
+    "11955949": "SUI PASS 2",
+    "11955955": "CUT",
+    "11955959": "SINGLES",
+    "11955963": "SUI PASS 2 RANDOM",
+    "11955965": "CUT",
+    "11955967": "SINGLES",
+    "11955970": "CUT",
+    "11955972": "CUT",
+    "11955979": "SUI PASS 2 PAB",
+    "11956008": "CUT",
+    "11956010": "CUT",
+    "11956057": "REG PARTNERS",
+    "11956058": "CUT",
+    "11956059": "SUI PASS 2",
+    "11956060": "CUT",
+    "11956061": "REG PARTNERS",
+    "11956062": "LOSER WINS",
+    "11956064": "REG PARTNERS",
+    "11956065": "CUT",
+    "11956066": "SUI PASS 2",
+    "11956067": "CUT",
+    "11956069": "REG PARTNERS",
+    "11956148": "CUT",
+    "11956155": "SUI PASS 2 RANDOM",
+    "11956156": "CUT",
+    "11956160": "SUI PASS 2 PAB",
+    "11956161": "CUT",
+    "11956169": "SUI PASS 2 RANDOM",
+    "11956174": "CUT",
+    "11956202": "CUT",
+    "11956203": "PASS 2",
+    "11956207": "SUI PASS 2 PAB",
+    "11956371": "CUT",
+    "11956382": "CUT",
+    "11956383": "CUT",
+    "11956384": "PASS 2",
+    "11956513": "CUT",
+    "11956596": "REG PARTNERS",
+    "11956614": "CUT",
+    "11956615": "CUT",
+    "11956668": "SUI PASS 2",
+    "11956782": "CUT",
+    "manual-20261021-1015": "CUT",
+    "manual-20261021-1115": "CUT",
+    "manual-20261021-1315": "CUT",
+    "manual-20261021-1415": "CUT MIRRORS"
+  },
+  "league": "diamondspaders",
+  "manual_overrides": {
+    "11953396": [
+      "Ochwiay"
+    ],
+    "11953788": [
+      "Untouchable_One",
+      "Lookslikeapickel"
+    ],
+    "11955694": [
+      "Ochwiay",
+      "peakoh"
+    ]
+  },
+  "manual_teams": {
+    "11935383": "Gryzzlybear & booradly",
+    "11950314": "Our Turn To Win",
+    "11950316": "Okie Dokie",
+    "11950318": "PLAYIN ♠️Too",
+    "11950670": "Looks__ & Melicious_1",
+    "11950861": "10bags4opps",
+    "11951063": "Our Turn To Win",
+    "11951305": "Let's Play Spades",
+    "11951321": "PLAYIN ♠️Too",
+    "11951429": "Plead the 5th",
+    "11951431": "TheresWorkToBeDone",
+    "11951447": "13 13 13 13 13",
+    "11951450": "Blonde",
+    "11951579": "Otter Nonsense",
+    "11951582": "demented",
+    "11951691": "We Win",
+    "11951694": "Big Jim and datwin",
+    "11951803": "In2win",
+    "11951905": "Cc and sam",
+    "11951929": "Good Times",
+    "11951931": "ROLL WITH IT",
+    "11952204": "Andrew’s pw",
+    "11952499": "TheresWorkToBeDone",
+    "11952519": "Short Memory",
+    "11952876": "My Mystery P",
+    "11952911": "Spade Geeks",
+    "11952946": "HAPPY SPADIN",
+    "11952956": "Looks__",
+    "11952958": "TheresWorkToBeDone",
+    "11953116": "Northern Exposure",
+    "11953244": "SPADES FOREVER",
+    "11953279": "Okie Dokie",
+    "11953321": "PLAYIN ♠️TooK3ssy",
+    "11953395": "Okie Dokie",
+    "11953457": "Demented13",
+    "11953679": "ROLL WITH IT",
+    "11954166": "ZigsWho",
+    "11954351": "Too_fun",
+    "11954352": "ROLL WITH IT",
+    "11954663": "TheresWorkToBeDone",
+    "11955509": "0UTLAND3RK3ssy",
+    "11955694": "Plan9FromSantaMonica",
+    "11955697": "HotEgammer",
+    "11956057": "Old Pw",
+    "11956059": "Northern Exposure",
+    "11955142": "HTTC"
+  },
+  "manual_winners": {
+    "11923667": [
+      "Ellisandrew80",
+      "Ochwiay"
+    ],
+    "11929712": [
+      "Maggie_May"
+    ],
+    "11941969": [
+      "im_already_gone",
+      "DiamondsLGirl"
+    ],
+    "11950378": [
+      "DaHwRoOkIe"
+    ],
+    "11950575": [
+      "Im_Already_Gone"
+    ],
+    "11950604": [
+      "Gizimo"
+    ],
+    "11950794": [
+      "Untouchable_One"
+    ],
+    "11951059": [
+      "COASTALKAT"
+    ],
+    "11951291": [
+      "Ochwiay"
+    ],
+    "11951453": [
+      "Ochwiay"
+    ],
+    "11951599": [
+      "REALLY_WHY"
+    ],
+    "11951672": [
+      "trifolium"
+    ],
+    "11951689": [
+      "Ochwiay"
+    ],
+    "11951743": [
+      "waskelwabbit"
+    ],
+    "11951802": [
+      "bob2112"
+    ],
+    "11951856": [
+      "makinpa"
+    ],
+    "11951905": [
+      "Lookslikeapickel",
+      "deaddly"
+    ],
+    "11951931": [
+      "SILKROLLZ",
+      "Huskernut50265"
+    ],
+    "11952289": [
+      "KeEpDuCkInThEm"
+    ],
+    "11952937": [
+      "SOLORYDER"
+    ],
+    "11953116": [
+      "Ochwiay",
+      "Fetch_it_up"
+    ],
+    "11953265": [
+      "Ochwiay"
+    ],
+    "11953272": [
+      "Ochwiay"
+    ],
+    "11953321": [
+      "K3ssy",
+      "slovell_too"
+    ],
+    "11953396": [
+      "Ochwiay"
+    ],
+    "11953576": [
+      "Untouchable_One"
+    ],
+    "11953628": [
+      "makinpa"
+    ],
+    "11953634": [
+      "Ochwiay"
+    ],
+    "11953636": [
+      "Ochwiay"
+    ],
+    "11953654": [
+      "Ochwiay"
+    ],
+    "11953693": [
+      "Fetch_it_up"
+    ],
+    "11953851": [
+      "Fetch_it_up"
+    ],
+    "11953891": [
+      "Ochwiay"
+    ],
+    "11953950": [
+      "MEL1c1ous_1"
+    ],
+    "11954071": [
+      "Gryzzlybear"
+    ],
+    "11954623": [
+      "MEL1c1ous_1"
+    ],
+    "11954662": [
+      "REALLY_WHY"
+    ],
+    "11955073": [
+      "DaHwRoOkIe"
+    ],
+    "11955093": [
+      "AceInBlack"
+    ],
+    "11955095": [
+      "Ochwiay"
+    ],
+    "11955097": [
+      "Lookslikeapickel",
+      "illbid13"
+    ],
+    "11955108": [
+      "Ellisandrew80"
+    ],
+    "11955118": [
+      "Lookslikeapickel"
+    ],
+    "11955128": [
+      "trifolium"
+    ],
+    "11955137": [
+      "DevilsNiteBaby",
+      "OuT1AnDeR"
+    ],
+    "11955138": [
+      "BluAngel1950"
+    ],
+    "11955139": [
+      "Ochwiay"
+    ],
+    "11955140": [
+      "Lookslikeapickel",
+      "Ellisandrew80"
+    ],
+    "11955141": [
+      "Ochwiay"
+    ],
+    "11955204": [
+      "Treco521"
+    ],
+    "11955205": [
+      "EasyOne23"
+    ],
+    "11955206": [
+      "va_country_guy"
+    ],
+    "11955207": [
+      "Untouchable_One"
+    ],
+    "11955209": [
+      "Sumpin2du"
+    ],
+    "11955353": [
+      "chameleon3388",
+      "MsZigs"
+    ],
+    "11955354": [
+      "TATSUJIN"
+    ],
+    "11955355": [
+      "SoloRyder"
+    ],
+    "11955357": [
+      "EasyOne23"
+    ],
+    "11955360": [
+      "CLaSSiKSPaDZPLaR",
+      "Ellisandrew80"
+    ],
+    "11955362": [
+      "flowerbill2"
+    ],
+    "11955365": [
+      "SunshineGal63"
+    ],
+    "11955481": [
+      "AceInBlack"
+    ],
+    "11955494": [
+      "PotSayHiToKettle"
+    ],
+    "11955497": [
+      "Sumpin2du"
+    ],
+    "11955663": [
+      "Ochwiay"
+    ],
+    "11955687": [
+      "Ochwiay"
+    ],
+    "11955694": [
+      "Ochwiay",
+      "peakoh"
+    ],
+    "11955697": [
+      "Hotandspicey69",
+      "EgammeR"
+    ],
+    "11955733": [
+      "BigDaddyKool68",
+      "photobratboy09"
+    ],
+    "11955744": [
+      "MyBagsRGucci",
+      "ViCiOuSNaTuRe"
+    ],
+    "11955798": [
+      "makinpa"
+    ],
+    "11955826": [
+      "muziklvr"
+    ],
+    "11955945": [
+      "Untouchable_One"
+    ],
+    "11955946": [
+      "MyBagsRGucci",
+      "WaverunnerFX"
+    ],
+    "11955947": [
+      "MyBagsRGucci",
+      "ViCiOuSNaTuRe"
+    ],
+    "11955949": [
+      "Lookslikeapickel",
+      "0UTLAND3R"
+    ],
+    "11955955": [
+      "JAWS33"
+    ],
+    "11955959": [
+      "MEL1c1ous_1"
+    ],
+    "11955963": [
+      "chameleon3388",
+      "EgammeR"
+    ],
+    "11955965": [
+      "EgammeR"
+    ],
+    "11955967": [
+      "BluAngel1950"
+    ],
+    "11955970": [
+      "MEL1c1ous_1"
+    ],
+    "11955972": [
+      "MEL1c1ous_1"
+    ],
+    "11955979": [
+      "MEL1c1ous_1"
+    ],
+    "11956008": [
+      "SILKROLLZ"
+    ],
+    "11956010": [
+      "MyBagsRGucci"
+    ],
+    "11956057": [
+      "Lookslikeapickel",
+      "Ellisandrew80"
+    ],
+    "11956058": [
+      "Jays26"
+    ],
+    "11956059": [
+      "Ochwiay",
+      "MsZigs"
+    ],
+    "11956060": [
+      "SoloRyder"
+    ],
+    "11956061": [
+      "SILKROLLZ",
+      "MsZigs"
+    ],
+    "11956062": [
+      "DiamondsLGirl"
+    ],
+    "11956064": [
+      "BigDaddyKool68",
+      "AceyLynn"
+    ],
+    "11956065": [
+      "muziklvr"
+    ],
+    "11956066": [
+      "Hotandspicey69",
+      "EgammeR"
+    ],
+    "11956067": [
+      "EasyOne23"
+    ],
+    "11956069": [
+      "Ellisandrew80",
+      "MEL1c1ous_1"
+    ],
+    "11956148": [
+      "MEL1c1ous_1"
+    ],
+    "11956155": [
+      "TATSUJIN",
+      "DevilsNiteBaby"
+    ],
+    "11956156": [
+      "DevilsNiteBaby"
+    ],
+    "11956160": [
+      "slovell_too"
+    ],
+    "11956161": [
+      "Lookslikeapickel"
+    ],
+    "11956169": [
+      "illbid13",
+      "Lookslikeapickel"
+    ],
+    "11956174": [
+      "flipflopgirlsc"
+    ],
+    "11956202": [
+      "Lookslikeapickel"
+    ],
+    "11956203": [
+      "DetroitLionsRule",
+      "whocantplay"
+    ],
+    "11956207": [
+      "Ochwiay"
+    ],
+    "11956371": [
+      "Ochwiay"
+    ],
+    "11956382": [
+      "Untouchable_One"
+    ],
+    "11956383": [
+      "Huskernut50265"
+    ],
+    "11956384": [
+      "MyBagsRGucci"
+    ],
+    "11956513": [
+      "SoloRyder"
+    ],
+    "11956596": [
+      "EgammeR",
+      "MEL1c1ous_1"
+    ],
+    "11956614": [
+      "Ellisandrew80"
+    ],
+    "11956615": [
+      "Ellisandrew80"
+    ],
+    "11956668": [
+      "0UTLAND3R",
+      "MEL1c1ous_1"
+    ],
+    "11956782": [
+      "Sumpin2du"
+    ],
+    "11955142": [
+      "booradly",
+      "poppsv"
+    ]
+  },
+  "subtitles": {
+    "11953446": "TOURNAMENT OF CHAMPIONS"
+  },
+  "tour_url": "https://www.myleague.com/diamondspaders/tournament/%s/"
 }

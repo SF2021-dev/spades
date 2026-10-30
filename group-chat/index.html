@@ -25,57 +25,35 @@ button:hover{background:#2a1608}
 .note{color:#fbe646;font-size:15px;margin:8px 0}
 .hide{display:none!important}
 .live{color:#ff5c5c;font-weight:700}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.room{display:flex;gap:10px;align-items:center;background:#f3bf56;color:#000;border:1px solid #cb972e;border-radius:10px;padding:10px;cursor:pointer;text-decoration:none}
+.room:hover{background:#fbe646}.room img{width:56px;height:56px;border-radius:8px;object-fit:cover;background:#000;flex:0 0 56px}
+.room .rt{font-weight:700;font-size:17px;overflow-wrap:anywhere}.room .ru{font-size:14px;color:#4a2a00}.room .rm{font-size:12px;color:#5c4210}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
 </style></head><body>
 <div class="card">
   <div class="title"><span>Diamond Spaders Group Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
 
-  <!-- step 1: log in (same name + 3-digit PIN as the message board) -->
+  <!-- step 1: log in with the site account (no PIN) -->
   <div id="login" class="hide">
-    <p class="note">Log in with your message-board name and 3-digit PIN.</p>
-    <div class="compose"><input id="lname" placeholder="your username" maxlength="40"><input id="lpin" placeholder="PIN" maxlength="3" inputmode="numeric" type="password" style="flex:0 0 90px"><button id="lgo">Log in</button></div>
+    <p class="note">Log in with your Diamond Spaders Online username (or email) and password.</p>
+    <div class="compose"><input id="lname" placeholder="your username" maxlength="40"><input id="lpin" placeholder="password" type="password" autocomplete="current-password" style="flex:0 0 140px"><button id="lgo">Log in</button></div>
     <p class="note" id="lerr"></p>
   </div>
 
-  <!-- chat requests waiting for me (shown at login) -->
-  <div id="pending" class="hide panel" style="flex-direction:column;align-items:flex-start"></div>
-
-  <!-- step 2: recipients -->
+  <!-- lobby: active group chats -->
   <div id="pick" class="hide">
-    <div id="mygroups"></div>
-    <p class="note">Start a new group chat: add each player's username (Enter adds), then press Start.</p>
-    <div class="compose"><input id="rname" placeholder="recipient's username" maxlength="40"><button id="radd">Add</button><button id="rgo">Start group chat</button></div>
-    <div id="chips" class="note"></div>
-    <div id="notfound" class="hide panel">
-      <span id="nfmsg"></span>
-      <button id="nfretry">Fix the names and try again</button>
-      <button onclick="location.href='/'">Return to Diamond Spaders Online</button>
-    </div>
+    <div class="compose" style="margin-bottom:6px"><input id="gtitle" placeholder="Title for a new group chat" maxlength="60"><button id="gnew">+ Create group chat</button></div>
+    <div class="compose" style="margin-bottom:10px;flex-wrap:wrap;align-items:center;gap:8px"><label style="white-space:nowrap"><input type="checkbox" id="ginv" style="flex:none;width:auto"> Invitation only</label><input id="gnames" class="hide" placeholder="Invite players (comma separated)" maxlength="400"><input id="gpw" type="password" autocomplete="new-password" placeholder="Password (optional)" maxlength="60" style="flex:0 0 190px"></div>
     <p class="note" id="perr"></p>
+    <div id="rooms" class="rooms"></div>
   </div>
 
   <!-- step 3: chat -->
   <div id="chat" class="hide">
-    <div class="msgs" id="msgs"></div>
     <p class="note hide" id="waitmsg"></p>
-    <div class="compose" id="composer">
-      <span class="who" id="me"></span>
-      <textarea id="txt" rows="1" placeholder="type here (enter to send)"></textarea>
-      <button class="spk" id="spk" title="Voice">&#128264;</button>
-      <div class="menu hide" id="menu">
-        <button data-v="mic">&#127908; Microphone (live)</button>
-        <button data-v="rec">&#9210; Record a clip</button>
-        <button data-v="tts">&#128483; Text to speech</button>
-      </div>
-    </div>
-    <div class="panel hide" id="pMic"><span id="micState">Live mic is off.</span><button id="micGo">Start talking</button><button id="micStop" class="hide">Stop</button><button class="close">Close</button>
-      <label style="font-size:14px"><input type="checkbox" id="hear" checked style="flex:none"> play their live audio</label></div>
-    <div class="panel hide" id="pRec"><span id="recState">Ready to record.</span>
-      <button id="recGo">&#9210; Record</button><button id="recStop" class="hide">&#9209; Stop</button>
-      <span id="recDone" class="hide"><button id="recReview">&#9654; Review</button> <button id="recSend">Send</button> <button id="recAgain">Start over</button></span>
-      <button class="close">Close</button><audio id="recAudio" class="hide"></audio></div>
-    <div class="panel hide" id="pTts"><input id="ttsTxt" placeholder="type, then press Enter - it will be spoken to them" maxlength="1000"><button class="close">Close</button></div>
-    <p class="note" style="font-size:13px"><a href="/group-chat" style="color:#f3bf56">My group chats / start another</a> &middot; <a href="/chat" style="color:#f3bf56">Private chat</a></p>
+    <div class="compose" id="composer" style="display:block"><div id="ds-chatbox"></div></div>
+    <p class="note" style="font-size:13px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px"><span><a href="/group-chat" style="color:#f3bf56">&laquo; All group chats</a> &middot; <a href="/chat" style="color:#f3bf56">Private chat</a></span><span id="homeslot" style="text-align:center"></span><span style="text-align:right"><button id="gdel" class="hide" style="border-color:#ff5c5c;color:#ff5c5c">Delete this group chat</button></span></p>
   </div>
 </div>
 <script>
@@ -87,7 +65,6 @@ function api(q, body){
     .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) { var e = new Error(j.error || ("Error " + r.status)); e.status = r.status; throw e; } return j; }); });
 }
 function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
-function speak(t){ try { var u = new SpeechSynthesisUtterance(t); speechSynthesis.speak(u); } catch(e){} }
 
 // ---- login ----
 function start(){
@@ -95,163 +72,92 @@ function start(){
 }
 $("lgo").onclick = function(){
   var n = $("lname").value.trim(), p = $("lpin").value.trim(); $("lerr").textContent = "";
-  fetch("/api/pin", {method:"POST", headers:{"Content-Type":"application/json"}, credentials:"same-origin", body:JSON.stringify({name:n, pin:p, action:"check", remember:true})})
+  fetch("/api/auth/login", {method:"POST", headers:{"Content-Type":"application/json"}, credentials:"same-origin", body:JSON.stringify({login:n, password:p, remember:true})})
     .then(function(r){ return r.json().then(function(j){ if (!r.ok) throw new Error(j.error || "Login failed"); }); })
     .then(function(){ show($("login"), false); start(); })
-    .catch(function(e){ $("lerr").textContent = e.message + (/PIN for this name/.test(e.message) ? " (create one on the main page message board first)" : ""); });
+    .catch(function(e){ $("lerr").textContent = e.message; });
 };
 $("lpin").onkeydown = function(e){ if (e.key === "Enter") $("lgo").click(); };
 
-// ---- group invites waiting for me ("on next login") ----
-function who(ms){ return ms.map(function(m){ return esc(m.name) + (m.status === "pending" ? " (invited)" : ""); }).join(", "); }
-function loadPending(){
-  return api("action=pending").then(function(j){
-    var b = $("pending"); b.innerHTML = ""; show(b, j.invites.length > 0);
-    if (j.invites.length) b.insertAdjacentHTML("beforeend", "<b>Group chat invitations</b>");
-    j.invites.forEach(function(r){
-      var d = document.createElement("div"); d.className = "req";
-      d.innerHTML = "<span><b>" + esc(r.owner) + "</b> invited you to a group chat with " + who(r.members) + ".</span>";
-      [["Join", true], ["Decline", false]].forEach(function(o){
-        var bt = document.createElement("button"); bt.textContent = o[0];
-        bt.onclick = function(){ api(null, {action:"answer", gid:r.gid, ok:o[1]}).then(function(){
-          if (o[1]) location.href = "/group-chat?g=" + r.gid; else { loadPending(); loadMine(); } }); };
-        d.appendChild(bt);
-      });
+// ---- lobby ----
+var AVA = {};
+fetch("/live/config.json", {cache:"no-store"}).then(function(r){ return r.json(); }).then(function(c){ AVA = Object.assign({}, c.avatars || {}, c.avatar_overrides || {}); }).catch(function(){}).then(function(){ if (!GID) loadRooms(); });
+function ava(n){ var k = String(n).toLowerCase(), u = AVA[k]; if (u && typeof u === "object") u = u.url || u.src; return u || ("/" + encodeURIComponent(n) + "-ava.png"); }
+function ago(t){ if (!t) return ""; var m = Math.round((Date.now() - t) / 60000); return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m/60) + " hr ago" : Math.round(m/1440) + " days ago"; }
+function loadRooms(){
+  if (!ME) return;
+  api("action=rooms").then(function(j){
+    var b = $("rooms"); b.innerHTML = "";
+    if (!j.rooms.length) b.innerHTML = "<p class=note>No group chats yet &mdash; create one above.</p>";
+    j.rooms.forEach(function(r){
+      var d = document.createElement("a"); d.className = "room"; d.href = "/group-chat?g=" + encodeURIComponent(r.gid);
+      d.innerHTML = "<img alt=''><div><div class=rt>" + (r.inviteOnly ? "&#9993; " : "") + (r.hasPassword ? "&#128274; " : "") + esc(r.title) + "</div><div class=ru>" + esc(r.owner) + "</div><div class=rm>" + r.count + " in chat" + (r.last ? " &middot; " + ago(r.last) : "") + "</div></div>";
+      var im = d.querySelector("img"); im.src = ava(r.owner); im.onerror = function(){ im.onerror = null; im.src = "/diamondspaderslogo.jpg"; };
       b.appendChild(d);
     });
-  }).catch(function(){});
-}
-function loadMine(){
-  api("action=mine").then(function(j){
-    var b = $("mygroups"); b.innerHTML = "";
-    var ok = j.groups.filter(function(g){ return g.myStatus === "ok"; });
-    if (ok.length) b.insertAdjacentHTML("beforeend", "<p class=note>Your group chats:</p>");
-    ok.forEach(function(g){ var d = document.createElement("div"); d.className = "req";
-      d.innerHTML = "<button>Open</button> <span>" + who(g.members) + "</span>"; d.querySelector("button").onclick = function(){ openGroup(g.gid); }; b.appendChild(d); });
-  }).catch(function(){});
+  }).catch(function(e){ $("perr").textContent = e.message; });
 }
 function afterLogin(){
-  $("me").textContent = ME + ":";
-  loadPending();
   var g = new URLSearchParams(location.search).get("g");
-  if (g) openGroup(g); else { show($("pick"), true); loadMine(); $("rname").focus(); }
+  if (g) openGroup(g); else { show($("pick"), true); loadRooms(); setInterval(loadRooms, 15000); }
 }
-
-// ---- recipients ----
-var NAMES = [];
-function chips(){ $("chips").innerHTML = NAMES.map(function(n, i){ return "<button data-i=" + i + ">" + esc(n) + " &times;</button>"; }).join(" ");
-  Array.prototype.forEach.call($("chips").querySelectorAll("button"), function(b){ b.onclick = function(){ NAMES.splice(+b.dataset.i, 1); chips(); }; }); }
-function addName(){ String($("rname").value).split(",").forEach(function(n){ n = n.trim();
-  if (n && NAMES.map(function(x){ return x.toLowerCase(); }).indexOf(n.toLowerCase()) < 0) NAMES.push(n); }); $("rname").value = ""; chips(); }
-$("radd").onclick = addName;
-$("rname").onkeydown = function(e){ if (e.key === "Enter") { e.preventDefault(); addName(); } };
-$("rgo").onclick = function(){
-  addName(); $("perr").textContent = ""; show($("notfound"), false);
-  if (!NAMES.length) { $("perr").textContent = "Add at least one username."; return; }
-  api("action=check&names=" + encodeURIComponent(NAMES.join(","))).then(function(j){
-    if (j.missing.length) { $("nfmsg").textContent = "Not on the Diamond Spaders player list: " + j.missing.join(", ") + "."; show($("notfound"), true);
-      NAMES = j.found.concat(j.missing); chips(); return; }
-    return api(null, {action:"create", names:j.found}).then(function(r){ openGroup(r.gid); });
-  }).catch(function(e){ $("perr").textContent = e.message; });
+$("gnew").onclick = function(){
+  var t = $("gtitle").value.trim(); $("perr").textContent = "";
+  if (!t) { $("perr").textContent = "Type a title first."; $("gtitle").focus(); return; }
+  var inv = $("ginv").checked, names = $("gnames").value.split(",").map(function(x){ return x.trim(); }).filter(Boolean);
+  if (inv && !names.length) { $("perr").textContent = "Type who to invite."; $("gnames").focus(); return; }
+  api(null, {action:"room", title:t, inviteOnly:inv, names:names, password:$("gpw").value}).then(function(r){ location.href = "/group-chat?g=" + r.gid; }).catch(function(e){ $("perr").textContent = e.message; });
 };
-$("nfretry").onclick = function(){ show($("notfound"), false); $("rname").focus(); };
+$("ginv").onchange = function(){ show($("gnames"), this.checked); };
+$("gtitle").onkeydown = function(e){ if (e.key === "Enter") $("gnew").click(); };
+$("gdel").onclick = function(){
+  if (!confirm("Delete this group chat and all its messages for everyone?")) return;
+  api(null, {action:"delete", gid:GID}).then(function(){ location.href = "/group-chat"; }).catch(function(e){ alert(e.message); });
+};
 
 // ---- chat ----
 var GID = "";
 function openGroup(gid){
-  GID = gid; WITH = "the group"; show($("pick"), false); show($("chat"), true);
+  if (window.__mbLoaded) { location.href = "/group-chat?g=" + encodeURIComponent(gid); return; }
+  var bc = document.getElementById("board-card"); if (bc) bc.remove();
+  GID = gid; WITH = "the group";
+  show($("pick"), false); show($("chat"), true);
   history.replaceState(null, "", "/group-chat?g=" + encodeURIComponent(gid));
+  function fail(m){ show($("composer"), false); show($("waitmsg"), true); $("waitmsg").textContent = m; }
+  api("action=info&gid=" + encodeURIComponent(gid)).then(function(i){
+    document.querySelector(".title span").textContent = i.title + " \u2014 by " + i.owner; show($("gdel"), i.isOwner);
+    if (i.status === "member") return go();
+    if (i.status === "denied") return fail("This group chat is invitation only.");
+    (function ask(msg){
+      var pw = "";
+      if (i.hasPassword) { pw = prompt((msg ? msg + "\n" : "") + "Password for \u201c" + i.title + "\u201d:"); if (pw === null) { location.href = "/group-chat"; return; } }
+      api(null, {action:"join", gid:gid, password:pw}).then(go).catch(function(e){ if (i.hasPassword && /password/i.test(e.message)) ask(e.message); else fail(e.message); });
+    })("");
+  }).catch(function(e){ fail(e.message); });
+}
+function go(){
   tick(); poll = setInterval(tick, 2000);
+  loadMB(chatAdapter(function(){ return "action=list&gid=" + encodeURIComponent(GID); }, function(){ return {gid:GID}; }));
 }
 function tick(){
   api("action=list&gid=" + encodeURIComponent(GID) + "&since=" + since).then(function(j){
     show($("composer"), true); show($("waitmsg"), false);
-    $("withLbl").textContent = "with " + j.members.filter(function(m){ return m.name.toLowerCase() !== ME.toLowerCase(); }).map(function(m){ return m.name + (m.status === "pending" ? " (invited)" : m.status === "no" ? " (declined)" : ""); }).join(", ");
+    $("withLbl").textContent = j.members.filter(function(m){ return m.status === "ok"; }).length + " in chat";
     j.messages.forEach(render);
   }).catch(function(e){ show($("composer"), false); show($("waitmsg"), true); $("waitmsg").textContent = e.message; });
 }
-var liveQ = [], livePlaying = false;
-function playLive(){
-  if (livePlaying || !liveQ.length) return; livePlaying = true;
-  var a = new Audio(liveQ.shift()); a.onended = a.onerror = function(){ livePlaying = false; playLive(); }; a.play().catch(function(){ livePlaying = false; });
-}
-function render(m){
-  if (seen[m.id]) return; seen[m.id] = 1; since = Math.max(since, m.t);
-  var mine = m.from.toLowerCase() === ME.toLowerCase(), src = "/api/chat/audio/" + encodeURIComponent(m.id);
-  var fresh = Date.now() - m.t < 60000;
-  if (m.kind === "live") {   // live mic segments: played as they arrive, not listed
-    if (!mine && fresh && $("hear").checked) { liveQ.push(src); playLive(); }
-    return;
-  }
-  var d = document.createElement("div"); d.className = "line";
-  var who = "<b>" + esc(m.from) + ":</b> ", when = " <small>" + new Date(m.t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) + "</small>";
-  if (m.kind === "clip") d.innerHTML = who + "<audio controls preload=none src='" + src + "'></audio>" + when;
-  else if (m.kind === "tts") {
-    d.innerHTML = who + "&#128483; " + esc(m.body) + " <button class=say>&#128264;</button>" + when;
-    d.querySelector(".say").onclick = function(){ speak(m.body); };
-    if (!mine && fresh) speak(m.body);
-  } else d.innerHTML = who + esc(m.body) + when;
-  var box = $("msgs"), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
-  box.appendChild(d); if (atEnd || mine) box.scrollTop = box.scrollHeight;
-}
-function sendText(kind, t, after){
-  t = t.trim(); if (!t) return;
-  api(null, {action:"send", gid:GID, kind:kind, body:t}).then(function(){ after(); tick(); }).catch(function(e){ alert(e.message); });
-}
-$("txt").onkeydown = function(e){ if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText("text", $("txt").value, function(){ $("txt").value = ""; }); } };
 
-// ---- voice menu ----
-$("spk").onclick = function(e){ e.stopPropagation(); $("menu").classList.toggle("hide"); };
-document.addEventListener("click", function(){ show($("menu"), false); });
-Array.prototype.forEach.call(document.querySelectorAll("#menu button"), function(b){
-  b.onclick = function(){ show($("menu"), false); ["pMic","pRec","pTts"].forEach(function(p){ show($(p), false); });
-    show($({mic:"pMic", rec:"pRec", tts:"pTts"}[b.dataset.v]), true); if (b.dataset.v === "tts") $("ttsTxt").focus(); };
-});
-Array.prototype.forEach.call(document.querySelectorAll(".panel .close"), function(b){ b.onclick = function(){ show(b.parentNode, false); stopMic(); }; });
-$("ttsTxt").onkeydown = function(e){ if (e.key === "Enter") { e.preventDefault(); var t = $("ttsTxt").value; speak(t); sendText("tts", t, function(){ $("ttsTxt").value = ""; }); } };
+function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=62"; document.body.appendChild(sc); return true; }
+function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "Chat with " + WITH),
+  get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
+    .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
+  post:function(t, img, imgUrl){ var b = sendBody(); b.action = "send"; b.kind = "text"; b.body = t; if (img) b.image = img; if (imgUrl) b.imageUrl = imgUrl; return api(null, b); } }; }
+function render(){}
 
-function toData(blob){ return new Promise(function(res){ var r = new FileReader(); r.onload = function(){ res(r.result); }; r.readAsDataURL(blob); }); }
-function sendAudio(blob, kind){ return toData(blob).then(function(d){ return api(null, {action:"audio", gid:GID, kind:kind, audio:d}); }); }
-function getMic(){ return navigator.mediaDevices.getUserMedia({audio:true}); }
-
-// Record: record -> stop -> review / send / start over
-var rec = null, recBlob = null, recStream = null;
-$("recGo").onclick = function(){
-  getMic().then(function(s){
-    recStream = s; var parts = []; rec = new MediaRecorder(s);
-    rec.ondataavailable = function(e){ if (e.data.size) parts.push(e.data); };
-    rec.onstop = function(){ s.getTracks().forEach(function(t){ t.stop(); }); recBlob = new Blob(parts, {type: rec.mimeType || "audio/webm"});
-      $("recAudio").src = URL.createObjectURL(recBlob); $("recState").textContent = "Recorded " + Math.round(recBlob.size / 1024) + " KB.";
-      show($("recStop"), false); show($("recDone"), true); };
-    rec.start(); $("recState").innerHTML = "<span class=live>&#9679; Recording...</span>"; show($("recGo"), false); show($("recStop"), true); show($("recDone"), false);
-    setTimeout(function(){ if (rec && rec.state === "recording") rec.stop(); }, 120000);   // 2 min cap
-  }).catch(function(){ $("recState").textContent = "Microphone not available (allow mic access)."; });
-};
-$("recStop").onclick = function(){ if (rec && rec.state === "recording") rec.stop(); };
-$("recReview").onclick = function(){ $("recAudio").currentTime = 0; $("recAudio").play(); };
-$("recAgain").onclick = function(){ recBlob = null; show($("recDone"), false); show($("recGo"), true); $("recState").textContent = "Ready to record."; };
-$("recSend").onclick = function(){ if (!recBlob) return; $("recState").textContent = "Sending...";
-  sendAudio(recBlob, "clip").then(function(){ $("recAgain").click(); $("recState").textContent = "Sent!"; tick(); }).catch(function(e){ $("recState").textContent = e.message; }); };
-
-// Microphone (live): short self-contained segments sent every ~2s, played in order on their side
-var micStream = null, micOn = false;
-function segment(){
-  if (!micOn) return;
-  var parts = [], r = new MediaRecorder(micStream);
-  r.ondataavailable = function(e){ if (e.data.size) parts.push(e.data); };
-  r.onstop = function(){ if (parts.length) sendAudio(new Blob(parts, {type: r.mimeType || "audio/webm"}), "live").catch(function(e){ $("micState").textContent = e.message; }); segment(); };
-  r.start(); setTimeout(function(){ if (r.state === "recording") r.stop(); }, 2000);
-}
-$("micGo").onclick = function(){
-  getMic().then(function(s){ micStream = s; micOn = true; segment();
-    $("micState").innerHTML = "<span class=live>&#9679; LIVE - " + "the group hears you (about 2-4 s delay)</span>"; show($("micGo"), false); show($("micStop"), true);
-  }).catch(function(){ $("micState").textContent = "Microphone not available (allow mic access)."; });
-};
-function stopMic(){ micOn = false; if (micStream) micStream.getTracks().forEach(function(t){ t.stop(); }); micStream = null;
-  $("micState").textContent = "Live mic is off."; show($("micGo"), true); show($("micStop"), false); }
-$("micStop").onclick = stopMic;
 
 start();
 })();
 </script>
+<script src="/voice.js?v=2"></script>
 </body></html>

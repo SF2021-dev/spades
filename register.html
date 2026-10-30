@@ -24,6 +24,9 @@
   a { color:var(--gold); }
   .hide { display:none; }
   .small { font-size:13px; margin-top:8px; }
+  label.rem { display:flex; align-items:center; gap:6px; margin-top:12px; cursor:pointer; }
+  label.rem input { width:auto; margin:0; }
+  .note { opacity:.8; margin-top:2px; }
   .linkbtn { background:none; border:0; color:var(--gold); text-decoration:underline; cursor:pointer; font:inherit; padding:0; }
 </style>
 <script data-goatcounter="/api/count" async src="/gc.js"></script><noscript><img src="/api/count?p=/register.html&noscript=1" alt="" width="1" height="1" style="position:absolute;left:-9999px"></noscript>
@@ -46,10 +49,12 @@
     <div class="tabs"><button id="tab-signup" class="on">Sign up</button><button id="tab-login">Log in</button></div>
 
     <form id="signup" autocomplete="on">
-      <p style="font-size:14px;line-height:1.4;margin:0 0 10px">This is a members only site: please use the same id you have registered with Diamond Spaders, and check for the name at <a href="https://www.myleague.com/diamondspaders/standings" target="_blank" rel="noopener">standings</a>, <a href="https://www.myleague.com/diamondspaders/standings?p=2" target="_blank" rel="noopener">page 2</a>, <a href="https://www.myleague.com/diamondspaders/standings?p=3" target="_blank" rel="noopener">page 3</a> and <a href="https://www.myleague.com/diamondspaders/standings?p=4" target="_blank" rel="noopener">page 4</a>.</p>
+      <p style="font-size:14px;line-height:1.4;margin:0 0 10px">This is a members only site: please use the same id you have registered with Diamond Spaders.</p>
       <label for="su-user">Username</label><input id="su-user" name="username" autocomplete="username" required minlength="3" maxlength="24">
       <label for="su-email">Email</label><input id="su-email" name="email" type="email" autocomplete="email" required>
       <label for="su-pass">Password (8+ characters)</label><input id="su-pass" name="password" type="password" autocomplete="new-password" required minlength="8">
+      <label class="rem" for="su-rem"><input type="checkbox" id="su-rem" checked> Remember me</label>
+      <div class="small note">Keeps you signed in on this device for 30 days. Uncheck on shared or public computers &mdash; you'll be signed out when you close the browser.</div>
       <button class="go" type="submit">Sign up</button>
       <div class="msg" id="su-msg"></div>
     </form>
@@ -57,6 +62,8 @@
     <form id="login" class="hide" autocomplete="on">
       <label for="li-id">Email or username</label><input id="li-id" name="login" autocomplete="username" required>
       <label for="li-pass">Password</label><input id="li-pass" name="password" type="password" autocomplete="current-password" required>
+      <label class="rem" for="li-rem"><input type="checkbox" id="li-rem" checked> Remember me</label>
+      <div class="small note">Keeps you signed in on this device for 30 days. Uncheck on shared or public computers &mdash; you'll be signed out when you close the browser.</div>
       <button class="go" type="submit">Log in</button>
       <div class="msg" id="li-msg"></div>
       <div class="small hide" id="resend-wrap"><button type="button" class="linkbtn" id="resend">Resend confirmation email</button></div>
@@ -94,7 +101,7 @@
 
   $("signup").onsubmit = function(e){
     e.preventDefault(); var f = this; busy(f, true); say($("su-msg"), "");
-    api("register", {username:$("su-user").value, email:$("su-email").value, password:$("su-pass").value}).then(function(d){
+    api("register", {username:$("su-user").value, email:$("su-email").value, password:$("su-pass").value, remember:$("su-rem").checked}).then(function(d){
       busy(f, false);
       if (d.ok && d.loggedIn) { showMe(d.user, "Welcome! Taking you in..."); setTimeout(goNext, 600); }
       else if (d.ok && d.emailSent !== false) { say($("su-msg"), "Check your email! We sent a confirmation link to " + $("su-email").value + ".", true); f.reset(); }
@@ -104,7 +111,7 @@
   };
   $("login").onsubmit = function(e){
     e.preventDefault(); var f = this; busy(f, true); say($("li-msg"), ""); $("resend-wrap").className = "small hide";
-    api("login", {login:$("li-id").value, password:$("li-pass").value}).then(function(d){
+    api("login", {login:$("li-id").value, password:$("li-pass").value, remember:$("li-rem").checked}).then(function(d){
       busy(f, false);
       if (d.ok) { showMe(d.user, "Welcome back!"); setTimeout(goNext, 600); }
       else { say($("li-msg"), d.error || "Login failed."); if (d.unverified) $("resend-wrap").className = "small"; }

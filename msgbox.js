@@ -23,9 +23,10 @@
   var ENDPOINT = "https://formsubmit.co/ajax/f865a31f1882069405c71e61dc656f64";
   var API = "/api/messages", PIN_API = "/api/pin";
   var ARCHIVE = "/messages.json";
-  var LOCAL = "ds-mb-msgs";           // offline cache of the last list seen
+  var AD = window.DS_MB_ADAPTER || null;   // chat pages: {boxId,name,title,get():Promise<[{id,name,message,t}]>,post(text):Promise}
+  var LOCAL = AD ? "ds-mb-chat-unused" : "ds-mb-msgs";           // offline cache of the last list seen
   var SHOW = 50, KEEP = 200;
-  var box = document.getElementById("ds-msgbox");
+  var box = document.getElementById(AD && AD.boxId || "ds-msgbox");
   if (!box) return;
   box.parentNode.appendChild(box);   // show messages at the bottom of the page (2026-10-18)
   var F = "'DS Coustard','Clarendon','Century Schoolbook',Georgia,serif";
@@ -193,6 +194,13 @@
     "#ds-msgbox .mb-link{color:inherit;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}" +
     "#ds-imgview{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;cursor:zoom-out}" +
     "#ds-imgview img{max-width:100vw;max-height:100vh;max-height:100dvh;object-fit:contain}";
+  if (AD && box && box.id !== "ds-msgbox") {   // chat pages: give the tool buttons the board's look under the chat box id
+    var B = "#" + box.id;
+    css.textContent += B + " .mb-emobtn{flex:none;background:transparent !important;border:0 !important;padding:2px !important;margin:0;cursor:pointer;line-height:0;min-width:32px;min-height:32px;display:inline-flex !important;align-items:center;justify-content:center;border-radius:6px;vertical-align:middle}" +
+      B + " .mb-emobtn:hover," + B + " .mb-emobtn[aria-expanded=true]{background:#e6ad3a !important}" +
+      B + " .mb-ball{display:block;width:23px;height:23px;border-radius:50%;box-shadow:inset -2px -3px 5px rgba(0,0,0,.35),0 0 0 1px #6b5310;" +
+      "background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.95) 0,rgba(255,255,255,.35) 18%,rgba(255,255,255,0) 40%),conic-gradient(red,orange,yellow,lime,cyan,blue,magenta,red)}";
+  }
   document.head.appendChild(css);
 
   function clean(m){
@@ -212,7 +220,7 @@
     var byKey = {}, uniq = [];
     out.sort(function(a, b){ return a.t - b.t; }).forEach(function(m){
       var k = m.name + "\0" + m.message;
-      if (byKey[k]) return;
+      if (byKey[k] && !AD) return;
       byKey[k] = 1; uniq.push(m);
     });
     return uniq;
@@ -222,10 +230,12 @@
     catch(e){ return []; }
   }
   function getShared(){
+    if (AD) return AD.get();
     return fetch(API + "?t=" + Date.now(), {cache: "no-store"})
       .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); }).then(parseList);
   }
   function postShared(entry){
+    if (AD) return AD.post(entry.message, entry.image, entry.imageUrl).then(function(){ return AD.get(); });
     return fetch(API, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
       body: JSON.stringify({id: entry.id, name: entry.name, message: entry.message, pin: entry.pin, image: entry.image || undefined, imageUrl: entry.imageUrl || undefined, cv: 57})})
       .then(function(r){
@@ -236,11 +246,12 @@
       });
   }
   function getArchive(){
+    if (AD) return Promise.resolve([]);
     return fetch(ARCHIVE + "?t=" + Date.now(), {cache: "no-store"})
       .then(function(r){ return r.ok ? r.text() : "[]"; }).then(parseList).catch(function(){ return []; });
   }
   function localList(){ try { return parseList(localStorage.getItem(LOCAL) || "[]"); } catch(e){ return []; } }
-  function saveLocal(list){ try { localStorage.setItem(LOCAL, JSON.stringify(list.slice(-SHOW))); } catch(e){} }
+  function saveLocal(list){ if (AD) return; try { localStorage.setItem(LOCAL, JSON.stringify(list.slice(-SHOW))); } catch(e){} }
   function viewImg(src){
     var v = document.createElement("div"); v.id = "ds-imgview"; v.setAttribute("role", "dialog"); v.setAttribute("aria-label", "Picture");
     var im = document.createElement("img"); im.src = src; im.alt = ""; v.appendChild(im);
@@ -258,6 +269,7 @@
       d.className = "mb-msg";
       d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span></div>';
       d.querySelector(".mb-who").textContent = m.name;
+      if (AD && m.t) { var tm = document.createElement("span"); tm.className = "mb-time"; tm.style.cssText = "font-size:12px;color:#5c4210;margin-right:6px;-webkit-text-stroke:0;white-space:nowrap"; tm.textContent = new Date(m.t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); var ln = d.querySelector(".mb-line"); ln.insertBefore(tm, ln.firstChild); }
       var pm = /^\[img:([A-Za-z0-9_-]{6,40})\]$/.exec(m.message);
       if (pm) {
         var im = document.createElement("img"); im.className = "mb-pic"; im.alt = "picture from " + m.name; im.loading = "lazy";
@@ -288,6 +300,11 @@
     '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button><label class="mb-emobtn" id="mb-imgbtn" for="mb-imgfile" role="button" tabindex="0" aria-label="Upload a picture" title="Upload a picture"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="#fff8e6" stroke="#5a3d00" stroke-width="1.6"/><circle cx="8" cy="9.5" r="2" fill="#f3bf56" stroke="#5a3d00" stroke-width="1"/><path d="M4 18l5.5-6 4 4 2.5-2.5L20 18z" fill="#2e8b57" stroke="#5a3d00" stroke-width="1"/></svg></label><input type="file" id="mb-imgfile" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none" tabindex="-1"></div></div>' +
     '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
+  if (AD) {
+    var _t = box.querySelector(".mb-title span"); if (_t) _t.textContent = AD.title || "Chat";
+    var _tp = document.getElementById("mb-top"); if (_tp) _tp.style.display = "none";
+    var _hm = box.querySelector(".mb-home"); if (_hm) { _hm.textContent = "Diamond Spaders Online home"; _hm.href = "/"; _hm.removeAttribute("target"); var _slot = document.getElementById("homeslot"); if (_slot) { _hm.style.cssText = "font-size:15px"; _slot.appendChild(_hm); } else { var _row = null; document.querySelectorAll("p.note").forEach(function(p){ if (/Chat with someone else/.test(p.textContent)) _row = p; }); if (_row) { _row.style.display = "flex"; _row.style.justifyContent = "space-between"; _row.style.alignItems = "center"; _hm.style.cssText = "font-size:15px;margin-left:auto"; _row.appendChild(_hm); } else { _hm.style.cssText = "display:block;text-align:right;margin-top:8px;font-size:15px"; box.appendChild(_hm); } } }
+  }
 
   var form = document.getElementById("mb-form"), st = document.getElementById("mb-status");
   var ta = document.getElementById("mb-text"), who = document.getElementById("mb-who"), colon = document.getElementById("mb-colon");
@@ -303,6 +320,7 @@
   var msgs = merge(localList());
   render(msgs);
   var savedName = ""; try { savedName = (localStorage.getItem("ds-mb-name") || "").trim().slice(0, 40); } catch(e){}
+  if (AD) savedName = AD.name;
 
   var HINTKEY = "ds-mb-hint-seen", HINT = "type here (enter to send)";
   function hintSeen(){ try { return localStorage.getItem(HINTKEY) === "1"; } catch(e){ return false; } }
@@ -327,7 +345,7 @@
   var REMKEY = "ds-mb-remember";
   function remembered(){ try { var r = JSON.parse(localStorage.getItem(REMKEY) || "null"); return !!(r && r.name === savedName && r.exp > Date.now()); } catch(e){ return false; } }
   function setRemember(exp){ try { if (exp) localStorage.setItem(REMKEY, JSON.stringify({name: savedName, exp: exp})); else localStorage.removeItem(REMKEY); } catch(e){} }
-  function getPin(){ if (remembered()) return "*"; return sessionPin(); }
+  function getPin(){ if (AD) return "*"; if (remembered()) return "*"; return sessionPin(); }
   function sessionPin(){ var d = readPin(); if (!d || d.name !== savedName || !/^\d{3}$/.test(d.pin)) return ""; try { sessionStorage.setItem(PINKEY, JSON.stringify(d)); } catch(e){} return d.pin; }
   function savePin(p){
     var v = JSON.stringify({name: savedName, pin: p});
@@ -448,7 +466,7 @@
   showCompose();
   document.getElementById("mb-compose").addEventListener("mousedown", function(ev){
     if (emoBtn.contains(ev.target) || document.getElementById("mb-tools").contains(ev.target)) { ev.preventDefault(); return; }   // keep the textarea's cursor; click handler toggles the picker
-    if (ev.target === who) { ev.preventDefault(); if (!askingName) askName(); return; }
+    if (ev.target === who) { ev.preventDefault(); if (!askingName && !AD) askName(); return; }
     if (ev.target === pinIn) return;
     if (ev.target === addrIn) return;
     if (document.getElementById("mb-rem").contains(ev.target)) return;   // remember-me checkbox
@@ -665,7 +683,7 @@
     });
   }
   refresh();
-  setInterval(function(){ if (!document.hidden) refresh(); }, 30000);
+  setInterval(function(){ if (!document.hidden) refresh(); }, AD ? 2500 : 30000);
 
   form.addEventListener("submit", function(ev){
     ev.preventDefault();
@@ -688,7 +706,7 @@
       st.textContent = "";
       var el = document.getElementById("mb-msgs"); el.scrollTop = el.scrollHeight;
       // email notification only after the message is saved for everyone; failures here don't matter to the poster
-      fetch(ENDPOINT, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
+      if (!AD) fetch(ENDPOINT, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
         body: JSON.stringify({name: name, message: stripTags(msg), _subject: "Diamond Spaders message from " + name,
                               _template: "table", _captcha: "false", _honey: ""})}).catch(function(){});
     }).catch(function(e){
@@ -773,7 +791,7 @@
       return postShared(entry).then(function(list){
         msgs = merge(list); saveLocal(msgs); render(msgs); st.textContent = "";
         var el = document.getElementById("mb-msgs"); el.scrollTop = el.scrollHeight;
-        fetch(ENDPOINT, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
+        if (!AD) fetch(ENDPOINT, {method: "POST", headers: {"Content-Type": "application/json", "Accept": "application/json"},
           body: JSON.stringify({name: savedName, message: "(posted a picture)", _subject: "Diamond Spaders picture from " + savedName,
                                 _template: "table", _captcha: "false", _honey: ""})}).catch(function(){});
       });

@@ -17,7 +17,7 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     if (!existing.verified_at) mail = await sendConfirmation(env, request, existing);
     return json({ ok: true, emailSent: mail.sent, message: "Check your email for a confirmation link." });
   }
-  const taken = await env.DB.prepare("SELECT 1 FROM users WHERE username = ?").bind(username).first();
+  const taken = await env.DB.prepare("SELECT 1 FROM users WHERE username = ? COLLATE NOCASE").bind(username).first();
   if (taken) throw new HttpError(409, "That username is taken.");
   const hash = await hashPassword(password);
   const user = await env.DB.prepare("INSERT INTO users (email, username, password_hash, verified_at, created_at) VALUES (?, ?, ?, NULL, ?) RETURNING id, email, username")
@@ -29,7 +29,7 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   if (!mail.sent && mail.reason === "provider_error")
     await env.DB.prepare("UPDATE users SET verified_at = ? WHERE id = ?").bind(Date.now(), user.id).run();
   if (!mail.sent && (mail.reason === "no_provider" || mail.reason === "provider_error"))
-    return json({ ok: true, loggedIn: true, user: publicUser(user) }, 201, { "Set-Cookie": await createSession(env, user.id) });
+    return json({ ok: true, loggedIn: true, user: publicUser(user) }, 201, { "Set-Cookie": await createSession(env, user.id, b.remember !== false) });
   return json({ ok: true, emailSent: mail.sent, reason: mail.reason, message: mail.sent ? "Check your email for a confirmation link." : "Account created, but the confirmation email could not be sent yet." }, 201);
 });
 

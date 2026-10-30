@@ -30,7 +30,7 @@ button:hover{background:#2a1608}
 #buzzBanner{position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:9999;background:#2a1405;color:#f3bf56;border:3px solid #f3bf56;border-radius:12px;padding:12px 24px;font:bold 24px 'Comic Sans MS','Comic Sans',cursive;transition:top .3s;box-shadow:0 6px 24px #000}
 #buzzBanner.on{top:16px}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
-</style><link rel="stylesheet" href="/gm-chat.css?v=9"></head><body>
+</style><link rel="stylesheet" href="/gm-chat.css?v=10"></head><body>
 <div class="card">
   <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
 
@@ -255,7 +255,9 @@ document.addEventListener("click", function once(){ document.removeEventListener
 start();
 })();
 </script>
-<script src="/gm-chat.js?v=12"></script>
+<div id="gmClock" style="position:fixed;top:6px;right:10px;font:11px/1.2 ui-monospace,monospace;color:#888;opacity:.75;z-index:9999;pointer-events:none"></div>
+<script>(function(){var e=document.getElementById('gmClock');function f(z){return new Date().toLocaleTimeString('en-US',Object.assign({hour:'numeric',minute:'2-digit'},z?{timeZone:z}:{}))}function u(){e.textContent=f()+' ('+f('America/New_York')+' EST)'}u();setInterval(u,15000)})();</script>
+<script src="/gm-chat.js?v=13"></script>
 <script src="/dmvoice.js?v=1"></script>
 <script src="/voice.js?v=3"></script>
 </body></html>

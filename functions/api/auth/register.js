@@ -2,9 +2,9 @@ import { wrap, readJson, json, HttpError, normEmail, validEmail, validUsername, 
 export const onRequestPost = wrap(async ({ request, env }) => {
   const b = await readJson(request);
   const email = normEmail(b.email), password = String(b.password || "");
-  let username = String(b.username || "").trim();
+  let username = String(b.username || "").trim().replace(/\s+/g, " ");
   if (!validEmail(email)) throw new HttpError(400, "Enter a valid email address.");
-  if (!validUsername(username)) throw new HttpError(400, "Username must be 3-20 letters, numbers, _ . or -");
+  if (!validUsername(username)) throw new HttpError(400, "Username must be 3-24 letters, numbers, spaces, _ . or -");
   if (password.length < 8 || password.length > 200) throw new HttpError(400, "Password must be at least 8 characters.");
   const member = await findMember(username);
   if (member === null) throw new HttpError(503, "Couldn't reach the Diamond Spaders standings to check your id. Please try again in a minute.");

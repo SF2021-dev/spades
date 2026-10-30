@@ -56,7 +56,7 @@ export function wrap(fn) {
 
 export const normEmail = (s) => String(s || "").trim().toLowerCase();
 export const validEmail = (s) => s.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-export const validUsername = (s) => /^[A-Za-z0-9_.-]{3,20}$/.test(s);
+export const validUsername = (s) => /^[A-Za-z0-9_.-](?:[A-Za-z0-9_. -]{1,22})[A-Za-z0-9_.-]$/.test(s);
 
 export function cookie(value, maxAge) {
   return `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;

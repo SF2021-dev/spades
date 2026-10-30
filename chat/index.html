@@ -30,7 +30,7 @@ button:hover{background:#2a1608}
 #buzzBanner{position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:9999;background:#2a1405;color:#f3bf56;border:3px solid #f3bf56;border-radius:12px;padding:12px 24px;font:bold 24px 'Comic Sans MS','Comic Sans',cursive;transition:top .3s;box-shadow:0 6px 24px #000}
 #buzzBanner.on{top:16px}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
-</style><link rel="stylesheet" href="/gm-chat.css?v=13"></head><body>
+</style><link rel="stylesheet" href="/gm-chat.css?v=14"></head><body>
 <div class="card">
   <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
 
@@ -275,6 +275,9 @@ try{c.checked=localStorage.getItem("ds-enter-sends")!=="0"}catch(e){c.checked=tr
 c.onchange=function(){try{localStorage.setItem("ds-enter-sends",c.checked?"1":"0")}catch(e){}};
 g.onclick=function(e){e.stopPropagation();o.style.display=o.style.display==="none"?"block":"none"};
 document.addEventListener("click",function(e){if(!o.contains(e.target)&&e.target!==g)o.style.display="none"});})();</script>
+<div id="emptyBg" style="position:fixed;top:0;right:0;bottom:0;left:0;z-index:0;pointer-events:none;overflow:hidden;display:none"><div style="position:absolute;inset:-30px;background:url('/chat/empty-bg.jpg?v=1') center/cover no-repeat;filter:blur(8px)"></div></div>
+<script>(function(){var bg=document.getElementById("emptyBg"),c=document.getElementById("chat");function u(){var sd=document.getElementById("gm-side");var l=0;if(sd&&innerWidth>700){l=sd.getBoundingClientRect().right;}bg.style.left=l+"px";bg.style.display=(c&&!c.classList.contains("hide"))?"none":"block";}if(c)new MutationObserver(u).observe(c,{attributes:true,attributeFilter:["class"]});addEventListener("resize",u);setInterval(u,1000);u();})();</script>
+<style>body>.card,#gm-side{position:relative;z-index:1}</style>
 <script src="/gm-chat.js?v=17"></script>
 <script src="/dmvoice.js?v=1"></script>
 <script src="/voice.js?v=3"></script>

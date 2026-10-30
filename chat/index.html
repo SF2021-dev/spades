@@ -111,7 +111,6 @@ function loadPartners(){
     var b = $("partners"), h = "<b>People you may chat with privately</b>";
     if (!j.partners.length) h += "<span style='font-size:14px'>Nobody yet. Enter a username above to ask permission.</span>";
     j.partners.forEach(function(n){ h += "<div class='req'><a href='/chat?to=" + encodeURIComponent(n) + "' style='color:#f3bf56;font-size:18px'>" + esc(n) + "</a> <button data-rm='" + esc(n) + "' style='font-size:12px;padding:2px 8px'>Remove</button></div>"; });
-    if (j.outgoing.length) { h += "<b style='margin-top:6px'>Your requests</b>"; j.outgoing.forEach(function(o){ h += "<div class='req'>" + esc(o.name) + " &ndash; " + (o.status === "no" ? "declined" : "waiting for approval") + "</div>"; }); }
     b.innerHTML = h;
     b.querySelectorAll("button[data-rm]").forEach(function(bt){ bt.onclick = function(){
       if (!confirm("Remove " + bt.dataset.rm + " from your private chat list? You'd both need to ask again.")) return;

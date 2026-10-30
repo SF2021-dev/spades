@@ -47,7 +47,7 @@ button:hover{background:#2a1608}
   <!-- step 2: recipient -->
   <div id="pick" class="hide">
     <p class="note">Who do you want to message privately?</p>
-    <div class="compose" id="raddrow" style="margin-left:60px;max-width:calc(100% - 60px);box-sizing:border-box"><span style="position:relative;flex:0 1 150px;min-width:0;display:flex"><input id="rname" name="ds-member-q" type="search" placeholder="+ member" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')" value="" style="flex:1;min-width:0;width:100%"><div id="rsug" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:#fff;color:#000;border:1px solid #888;border-radius:6px;max-height:260px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.3)"></div></span><button id="rgo">Add</button></div>
+    <div class="compose" id="raddrow" style="margin-left:60px;max-width:calc(100% - 60px);box-sizing:border-box"><span style="position:relative;flex:0 1 150px;min-width:0;display:flex"><input id="rname" name="ds-member-q" type="search" placeholder="+ member" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')" value="" style="flex:1;min-width:0;width:100%"><div id="rsug" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:#fff;color:#000;border:1px solid #888;border-radius:6px;max-height:260px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.3)"></div></span></div>
     <div id="notfound" class="hide panel">
       <span id="nfmsg"></span>
       <button id="nfretry">Enter a different username</button>
@@ -133,7 +133,7 @@ function pick(n){
     return api(null, {action:"request", to:j.name}).then(function(r){ openChat(j.name, r.status); });
   }).catch(function(e){ $("perr").textContent = e.message; });
 }
-$("rgo").onclick = function(){ pick($("rname").value); };
+// Add button removed: Enter adds
 var sugT, sugI = -1;
 function sugItems(){ return $("rsug").querySelectorAll("div[data-n]"); }
 function sugHi(){ sugItems().forEach(function(d,i){ d.style.background = i === sugI ? "#cde" : ""; }); }

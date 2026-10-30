@@ -295,9 +295,9 @@
   if (!window._mbMenuDoc) { window._mbMenuDoc = 1; document.addEventListener("click", function(){ document.querySelectorAll(".mb-msg.mb-mopen").forEach(function(o){ o.classList.remove("mb-mopen"); }); }); }
   (function(){ var s = document.createElement("style"); s.textContent =
     ".mb-msg.mb-delx{position:relative;padding-right:34px}" +
-    ".mb-unsend{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:24px;height:28px;border-radius:6px;border:0;background:rgba(0,0,0,.55);color:#fff;font:700 18px/28px Arial,sans-serif;padding:0;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .12s}" +
+    ".mb-unsend{position:absolute;right:2px;top:2px;width:22px;height:22px;border-radius:6px;border:0;background:rgba(0,0,0,.55);color:#fff;font:700 16px/22px Arial,sans-serif;padding:0;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .12s}" +
     ".mb-msg.mb-delx:hover .mb-unsend,.mb-msg.mb-delx:focus-within .mb-unsend,.mb-msg.mb-delx.mb-tap .mb-unsend,.mb-msg.mb-mopen .mb-unsend{opacity:1;pointer-events:auto}" +
-    ".mb-mmenu{display:none;position:absolute;right:0;top:100%;z-index:50;background:#222;border:1px solid #555;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.5);min-width:90px;overflow:hidden}" +
+    ".mb-mmenu{display:none;position:absolute;right:0;top:26px;z-index:50;background:#222;border:1px solid #555;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.5);min-width:90px;overflow:hidden}" +
     ".mb-msg.mb-mopen .mb-mmenu{display:block}" +
     ".mb-mmenu button{display:block;width:100%;text-align:left;background:none;border:0;color:#eee;font:14px Arial,sans-serif;padding:7px 12px;cursor:pointer}" +
     ".mb-mmenu button:hover{background:#3a3a3a}.mb-mmenu button:disabled{opacity:.5}";

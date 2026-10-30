@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Diamond Spaders — Player tours (all recorded tours)</title>
+<title>Diamond Spaders — Player tours by time frame</title>
 <style>
   html, body { margin:0; padding:0; background:#0a0a0a; color:#fbe646; font-family:Arial,Helvetica,sans-serif; }
   .wrap { max-width:900px; margin:0 auto; padding:0 0 30px; }
@@ -37,7 +37,7 @@
 <body>
 <div class="wrap">
 <a href="https://diamondspaders.online/"><img class="banner" src="https://diamondspaders.online/dsaltbanner.png" alt="Diamond Spaders"></a>
-<h1>PLAYER TOURS — LAST 30 DAYS</h1>
+<h1 id="hd">PLAYER TOURS — LAST 1 MONTH</h1>
 <div class="sub" id="range">Loading…</div>
 <form id="f" autocomplete="off">
   <div class="row">
@@ -51,6 +51,9 @@
     </div>
   </div>
   <datalist id="names"></datalist>
+  <div style="margin:8px 0;"><span class="lbl" style="display:inline;">TIME FRAME </span><select id="rg" aria-label="Time frame">
+    <option value="1d">1 day</option><option value="1w">1 week</option><option value="1m" selected>1 month</option><option value="90d">90 days</option><option value="6m">6 months</option><option value="1y">1 year</option><option value="all">All time</option>
+  </select></div>
   <button>search</button>
 </form>
 <div id="out"></div>
@@ -58,7 +61,7 @@
 </div>
 <script>
 (function () {
-  var D = null, out = document.getElementById("out"), q = document.getElementById("q");
+  var D = null, rg = document.getElementById("rg"), hd = document.getElementById("hd"), out = document.getElementById("out"), q = document.getElementById("q");
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   var MON = ["Jan","Feb","Mar","Apr","May","June","July","Aug","Sept","Oct","Nov","Dec"];
   function fdate(iso) { var p = iso.split("-"); return MON[+p[1] - 1] + " " + (+p[2]); }
@@ -74,11 +77,30 @@
     var list = names();
     if (!list.length) { out.innerHTML = ""; return; }
     var qs = "?p=" + encodeURIComponent(list[0]) + list.slice(1).map(function (n) { return "&a=" + encodeURIComponent(n); }).join("");
+    qs += "&range=" + rg.value;
     history.replaceState(null, "", qs);
+    var lab = rg.options[rg.selectedIndex].text;
+    hd.textContent = "PLAYER TOURS — " + (rg.value === "all" ? "ALL TIME" : "LAST " + lab.toUpperCase());
     var my = ++seq;
-    out.innerHTML = '<div class="muted">Searching last 30 days of tours in 6 leagues…</div>';
+    out.innerHTML = '<div class="muted">Searching ' + (rg.value === "all" ? "all recorded" : "the last " + esc(lab) + " of") + ' tours in 6 leagues…</div>';
     fetch("/api/history" + qs).then(function (r) { return r.json(); }).then(function (H) { if (my === seq) render(list, H); })
       .catch(function () { if (my === seq) out.innerHTML = '<div class="total">Could not load tour history — try again.</div>'; });
+  }
+  function ymd(iso) { var p = iso.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function span(iso) {
+    var a = ymd(iso), b = new Date(); b = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+    var y = b.getFullYear() - a.getFullYear(), m = b.getMonth() - a.getMonth(), d = b.getDate() - a.getDate();
+    if (d < 0) { m--; d += new Date(b.getFullYear(), b.getMonth(), 0).getDate(); }
+    if (m < 0) { y--; m += 12; }
+    var pl = function (n, w) { return n + " " + w + (n === 1 ? "" : "s"); }, parts = [];
+    if (y) parts.push(pl(y, "year")); if (m) parts.push(pl(m, "month")); if (d || !parts.length) parts.push(pl(d, "day"));
+    return parts.join(", ") + " (" + Math.round((b - a) / 864e5).toLocaleString() + " days)";
+  }
+  function fd(iso) { return fdate(iso) + ", " + iso.slice(0, 4); }
+  function rangeLine(R) {
+    if (!R) return "";
+    if (R.key === "all") return '<div class="total" style="margin-top:-6px;">Time period: All time' + (R.first ? " · Start date: " + fd(R.first) + " · Elapsed: " + span(R.first) : "") + "</div>";
+    return '<div class="muted" style="margin:-6px 0 12px;">Time frame: last ' + esc(R.label) + " (" + fd(R.from) + " – " + fd(R.to) + ")</div>";
   }
   function render(list, H) {
     var found = [], missing = [], by = {}, seen = {};
@@ -103,11 +125,12 @@
       });
     }
     var all = Object.keys(seen);
-    if (!found.length || !all.length) { out.innerHTML = '<div class="total">No tours found.</div>' + h; return; }
+    if (!found.length || !all.length) { out.innerHTML = '<div class="total">No tours found.</div>' + rangeLine(H.range) + h; return; }
     var leagues = Object.keys(by).sort(function (a, b) { return by[b].length - by[a].length; });
     var wins = all.filter(function (k) { return seen[k].t.p === "1"; }).length;
     var head = '<div class="total">' + found.map(esc).join(" + ") + ": " + all.length + " tour" + (all.length === 1 ? "" : "s") + " in " + leagues.length + " league" + (leagues.length === 1 ? "" : "s") + "</div>";
     head += '<div class="total" style="margin-top:-6px;">Wins: ' + wins + "</div>";
+    head += rangeLine(H.range);
     head += '<div class="muted" style="margin:-6px 0 12px;">Searched ' + list.length + " name" + (list.length === 1 ? "" : "s") + ": "
       + H.players.map(function (P) { var n = 0; Object.keys(P.leagues).forEach(function (L) { n += P.leagues[L].length; }); return P.name ? esc(P.name) + ' <b style="color:#fff">' + n + "</b>" : esc(P.q) + ' <b style="color:#ff8a8a">not found</b>'; }).join(" · ") + "</div>";
     var multi = found.length > 1;
@@ -132,14 +155,15 @@
   document.getElementById("f").addEventListener("submit", function (ev) { ev.preventDefault(); show(); });
   fetch("/snoop/data.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
     D = d;
-    document.getElementById("range").textContent = "Tours entered in the last 30 days (each league's Ladderbux log) · 6 leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · times = entry time (ET)";
+    document.getElementById("range").textContent = "Tours entered in the selected time frame (each league's Ladderbux log) · 6 leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · times = entry time (ET)";
     var dl = document.getElementById("names");
     dl.innerHTML = Object.keys(d.players).map(function (k) { return '<option value="' + esc(d.players[k].n) + '">'; }).join("");
     var sp = new URLSearchParams(location.search), p = sp.get("p");
     sp.getAll("a").slice(0, 5).forEach(function (a, i) { als[i].value = a; });
     if (p) q.value = p;
+    if (sp.get("range") && rg.querySelector('option[value="' + sp.get("range") + '"]')) rg.value = sp.get("range");
     if (p || sp.getAll("a").length) show();
-  }).catch(function () { var sp = new URLSearchParams(location.search), p = sp.get("p"); if (p) { q.value = p; show(); } });
+  }).catch(function () { var sp = new URLSearchParams(location.search), p = sp.get("p"); if (sp.get("range") && rg.querySelector('option[value="' + sp.get("range") + '"]')) rg.value = sp.get("range"); if (p) { q.value = p; show(); } });
 })();
 </script>
 </body>

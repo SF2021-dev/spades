@@ -262,13 +262,22 @@ start();
 <style>#dsgc:hover{opacity:.9!important}#dsgc:hover::after{content:"group chat";position:absolute;top:22px;left:0;background:#333;color:#fff;font:11px system-ui;padding:2px 6px;border-radius:4px;white-space:nowrap}</style>
 <div id="dsopts" style="display:none;position:fixed;top:30px;left:8px;z-index:9999;background:#fff;color:#222;border:1px solid #ccc;border-radius:8px;padding:10px 12px;font:14px system-ui;box-shadow:0 4px 14px rgba(0,0,0,.15)">
 <label style="cursor:pointer"><input type="checkbox" id="dsenter"> Enter sends message</label>
-<div style="font-size:12px;opacity:.65;margin-top:4px">When off: Enter = new line, Shift/Ctrl+Enter or the send arrow sends.</div></div>
+<div style="font-size:12px;opacity:.65;margin-top:4px">When off: Enter = new line, Shift/Ctrl+Enter or the send arrow sends.</div><div style="margin-top:10px">Font <select id="dsfont" style="font-size:13px"><option value="">Default</option><option value='system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'>System</option><option value='Arial,Helvetica,sans-serif'>Arial</option><option value='Verdana,Geneva,sans-serif'>Verdana</option><option value='Tahoma,Geneva,sans-serif'>Tahoma</option><option value='"Trebuchet MS",sans-serif'>Trebuchet MS</option><option value='Georgia,serif'>Georgia</option><option value='"Times New Roman",Times,serif'>Times New Roman</option><option value='"Courier New",Courier,monospace'>Courier New</option><option value='"Comic Sans MS","Comic Sans",cursive'>Comic Sans</option></select></div>
+<div style="margin-top:6px">Size <select id="dssize" style="font-size:13px"><option value="">Default</option><option>12</option><option>13</option><option>14</option><option>16</option><option>18</option><option>20</option><option>22</option><option>24</option></select></div>
+<button id="dsfontreset" style="margin-top:8px;font-size:12px;padding:3px 10px;cursor:pointer">Default font and font size</button></div>
+<style id="dsfontcss"></style>
+<script>(function(){var f=document.getElementById("dsfont"),z=document.getElementById("dssize"),st=document.getElementById("dsfontcss");
+function ap(){var ff=f.value,sz=z.value,c="";var sel="html body #ds-chatbox .mb-line,html body #ds-chatbox .mb-line *,html body #ds-chatbox .mb-tawrap textarea,html body #ds-chatbox .mb-mirror";
+if(ff)c+=sel+"{font-family:"+ff+" !important}";if(sz)c+=sel+"{font-size:"+sz+"px !important}";st.textContent=c;
+try{ff?localStorage.setItem("ds-font",ff):localStorage.removeItem("ds-font");sz?localStorage.setItem("ds-font-size",sz):localStorage.removeItem("ds-font-size")}catch(e){}}
+try{f.value=localStorage.getItem("ds-font")||"";z.value=localStorage.getItem("ds-font-size")||""}catch(e){}
+f.onchange=ap;z.onchange=ap;document.getElementById("dsfontreset").onclick=function(e){e.stopPropagation();f.value="";z.value="";ap()};ap();})();</script>
 <script>(function(){var g=document.getElementById("dsgear"),o=document.getElementById("dsopts"),c=document.getElementById("dsenter");
 try{c.checked=localStorage.getItem("ds-enter-sends")!=="0"}catch(e){c.checked=true}
 c.onchange=function(){try{localStorage.setItem("ds-enter-sends",c.checked?"1":"0")}catch(e){}};
 g.onclick=function(e){e.stopPropagation();o.style.display=o.style.display==="none"?"block":"none"};
 document.addEventListener("click",function(e){if(!o.contains(e.target)&&e.target!==g)o.style.display="none"});})();</script>
-<script src="/gm-chat.js?v=15"></script>
+<script src="/gm-chat.js?v=16"></script>
 <script src="/dmvoice.js?v=1"></script>
 <script src="/voice.js?v=3"></script>
 </body></html>

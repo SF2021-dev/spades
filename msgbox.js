@@ -320,12 +320,12 @@
   box.innerHTML =
     '<div class="mb-card">' +
     '<div class="mb-title"><span>Messages</span><a href="#" class="mb-top" id="mb-top">top of page</a><a href="https://www.myleague.com/diamondspaders/" class="mb-home" target="_blank" rel="noopener">Diamond Spaders Home</a></div>' +
-    '<form id="mb-form" autocomplete="off"><div class="mb-wrap">' +
+    '<form id="mb-form" autocomplete="off" novalidate><div class="mb-wrap">' +
     '<div class="mb-msgs" id="mb-msgs"></div>' +
     '<div class="mb-compose" id="mb-compose">' +
     '<span class="mb-who" id="mb-who" title="Click to change your name"></span>' +
     '<span class="mb-tawrap"><div class="mb-mirror" id="mb-mirror" aria-hidden="true"></div><textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message" spellcheck="true" lang="en" autocorrect="on" autocapitalize="sentences"></textarea></span>' +
-    '<input type="password" id="mb-pin" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="3-digit PIN" style="display:none">' +
+    '<input type="password" id="mb-pin" inputmode="numeric" maxlength="3" autocomplete="one-time-code" aria-label="3-digit PIN" style="display:none">' +
     '<input type="email" id="mb-email" maxlength="254" autocomplete="email" aria-label="Your email address" placeholder="you@example.com" style="display:none">' +
     '<span class="mb-pinhint" id="mb-pinhint" style="display:none"></span>' +
     '<label class="mb-rem" id="mb-rem" style="display:none" title="Stay signed in on this browser for 30 days"><input type="checkbox" id="mb-remcb"> remember me</label></div>' +
@@ -333,7 +333,7 @@
     '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
     '<img src="' + EMO_DIR + 'smile.svg?v=' + EMO_V + '" width="24" height="24" alt=""></button>' +
     '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button><label class="mb-emobtn" id="mb-imgbtn" for="mb-imgfile" role="button" tabindex="0" aria-label="Upload a picture" title="Upload a picture"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="#fff8e6" stroke="#5a3d00" stroke-width="1.6"/><circle cx="8" cy="9.5" r="2" fill="#f3bf56" stroke="#5a3d00" stroke-width="1"/><path d="M4 18l5.5-6 4 4 2.5-2.5L20 18z" fill="#2e8b57" stroke="#5a3d00" stroke-width="1"/></svg></label><input type="file" id="mb-imgfile" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none" tabindex="-1"></div></div>' +
-    '<input type="text" id="mb-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">' +
+    '<input type="text" id="mb-hp" name="ds-hp-nofill" tabindex="-1" autocomplete="new-password" data-lpignore="true" data-1p-ignore style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
   if (AD) {
     var _t = box.querySelector(".mb-title span"); if (_t) _t.textContent = AD.title || "Chat";
@@ -514,7 +514,10 @@
   ta.addEventListener("input", function(){ syncRuns(); grow(); if (!askingName && !pinMode && ta.value) markHint(); });
   ta.addEventListener("keydown", function(ev){
     if (ev.key === "Escape" && askingName && savedName) { askingName = false; ta.value = ta.dataset.draft || ""; showCompose(); return; }
-    if (ev.key !== "Enter" || ev.shiftKey || ev.isComposing) return;
+    if (ev.key !== "Enter" || ev.isComposing) return;
+    var enterSends = true; try { enterSends = localStorage.getItem("ds-enter-sends") !== "0"; } catch(e){}
+    if (!askingName && !enterSends) { if (!(ev.shiftKey || ev.ctrlKey || ev.metaKey)) return; }
+    else if (ev.shiftKey) return;
     ev.preventDefault();
     if (askingName) {
       var n = ta.value.replace(/\s+/g, " ").trim().slice(0, 40);
@@ -730,7 +733,7 @@
     if (msg.length > 1000) { st.textContent = "Message is too long with all those colors. Please shorten it."; return; }
     if (!name) { askName(); return; }
     if (!stripTags(msg).trim()) { st.textContent = "Type a message, then press Enter."; return; }
-    if (document.getElementById("mb-hp").value) return;   // bot filled the honeypot
+    if (!AD && document.getElementById("mb-hp").value) { st.textContent = "Message not sent (form autofill). Please try again."; document.getElementById("mb-hp").value = ""; return; }   // bot filled the honeypot (private chat is login-gated: skip)
     var pin = getPin();
     if (!pin) { sendAfterPin = true; needPin(); return; }
     sending = true; ta.readOnly = true; st.textContent = "Sending…"; st.dataset.err = "";

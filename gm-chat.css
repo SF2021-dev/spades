@@ -101,3 +101,13 @@ body.gm-dm #pick{display:none!important}
 #gm-foot #dsvp{margin:4px 16px;background:#262626;color:#e3e3e3;border:1px solid #3c4043;box-shadow:none}
 #gm-foot #dsvp button{background:#004a77;color:#c2e7ff}
 #gm-foot #dsvs{color:#9aa0a6!important}
+
+.gm-ct{position:relative}
+.gm-ct .gm-menu{display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:20;background:#2d2d2d;border:1px solid #555;border-radius:10px;padding:6px 10px;gap:10px;align-items:center;font-size:13px;color:#e3e3e3;box-shadow:0 3px 10px rgba(0,0,0,.5)}
+.gm-ct:hover .gm-menu,.gm-ct.asking .gm-menu{display:flex}
+.gm-ct .gm-menu label{cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.gm-ct .gm-menu button{font-size:12px;padding:2px 8px;border-radius:6px;cursor:pointer}
+.gm-ct .gm-del{background:#d93025;color:#fff;border:0}
+.gm-ct .gm-sure{display:none;white-space:nowrap}
+.gm-ct.asking .gm-sure{display:inline}
+.gm-ct.asking .gm-del,.gm-ct.asking label{display:none}

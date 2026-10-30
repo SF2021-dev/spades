@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diamond Spaders - Private Chat</title>
+<link rel="icon" href="/diamondspaderslogo.jpg">
+<style>
+@font-face{font-family:'DS Coustard';src:url(/fonts/coustard-400-latin.woff2) format('woff2')}
+html,body{margin:0;background:#0a0a0a;color:#f3bf56;font-family:'DS Coustard','Clarendon','Century Schoolbook',Georgia,serif}
+.card{max-width:900px;margin:16px auto;background:#000;border:1px solid #f3bf56;border-radius:10px;padding:10px 12px;box-sizing:border-box}
+.title{display:flex;justify-content:space-between;align-items:baseline;font-size:18px;font-weight:700;margin-bottom:8px}
+.title a{color:#f3bf56;text-decoration:none}.title a:hover{text-decoration:underline}
+.msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;min-height:calc(100dvh - 260px);max-height:calc(100dvh - 220px);overflow:auto;margin-bottom:12px}
+.msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}
+.line{font-size:20px;color:#000;line-height:1.18;padding:3px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;-webkit-text-stroke:.9px currentColor}
+.line:last-child{border-bottom:0}.line b{color:#4a2a00}.line small{font-size:12px;color:#5c4210;-webkit-text-stroke:0}
+.line audio{vertical-align:middle;height:32px;max-width:100%}
+.compose{display:flex;gap:8px;align-items:center;position:relative}
+.compose .who{white-space:nowrap;font-weight:700}
+textarea,input{flex:1;font:inherit;font-size:18px;background:#f3bf56;color:#000;border:1px solid #cb972e;border-radius:8px;padding:8px;resize:none;box-sizing:border-box}
+button{font:inherit;background:#161616;color:#fbe646;border:1px solid #f3bf56;border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{background:#2a1608}
+.spk{font-size:24px;padding:4px 10px;line-height:1}
+.menu{position:absolute;bottom:52px;right:0;background:#000;border:1px solid #f3bf56;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.panel{border:1px solid #f3bf56;border-radius:8px;padding:10px;margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{color:#fbe646;font-size:15px;margin:8px 0}
+.hide{display:none!important}
+.live{color:#ff5c5c;font-weight:700}
+#pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
+</style></head><body>
+<div class="card">
+  <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
+
+  <!-- step 1: log in with the site account (no PIN) -->
+  <div id="login" class="hide">
+    <p class="note">Log in with your Diamond Spaders Online username (or email) and password.</p>
+    <div class="compose"><input id="lname" placeholder="your username" maxlength="40"><input id="lpin" placeholder="password" type="password" autocomplete="current-password" style="flex:0 0 140px"><button id="lgo">Log in</button></div>
+    <p class="note" id="lerr"></p>
+  </div>
+
+  <!-- chat requests waiting for me (shown at login) -->
+  <div id="pending" class="hide panel" style="flex-direction:column;align-items:flex-start"></div>
+
+  <!-- step 2: recipient -->
+  <div id="pick" class="hide">
+    <p class="note">Who do you want to message privately?</p>
+    <div class="compose"><span style="position:relative;flex:1;display:flex"><input id="rname" placeholder="recipient's username" maxlength="40" autocomplete="off" style="flex:1"><div id="rsug" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:#fff;color:#000;border:1px solid #888;border-radius:6px;max-height:260px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.3)"></div></span><button id="rgo">Next</button></div>
+    <div id="notfound" class="hide panel">
+      <span id="nfmsg"></span>
+      <button id="nfretry">Enter a different username</button>
+      <button onclick="location.href='/'">Return to Diamond Spaders Online</button>
+    </div>
+    <p class="note" id="perr"></p>
+  </div>
+
+  <!-- step 3: chat -->
+  <div id="chat" class="hide">
+    <p class="note hide" id="waitmsg"></p>
+    <div class="compose" id="composer" style="display:block"><div id="ds-chatbox"></div></div>
+    <p class="note" style="font-size:13px"><a href="/chat" style="color:#f3bf56">Chat with someone else</a></p>
+  </div>
+</div>
+<script>
+(function(){
+var $ = function(i){ return document.getElementById(i); }, show = function(el, on){ el.classList.toggle("hide", !on); };
+var ME = "", WITH = "", since = 0, seen = {}, poll = null;
+function api(q, body){
+  return fetch("/api/chat" + (body ? "" : "?" + q), body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body), credentials:"same-origin"} : {credentials:"same-origin", cache:"no-store"})
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) { var e = new Error(j.error || ("Error " + r.status)); e.status = r.status; throw e; } return j; }); });
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+// ---- login ----
+function start(){
+  api("action=me").then(function(j){ ME = j.name; afterLogin(); }).catch(function(){ show($("login"), true); $("lname").value = localStorage.getItem("ds-mb-name") || ""; });
+}
+$("lgo").onclick = function(){
+  var n = $("lname").value.trim(), p = $("lpin").value.trim(); $("lerr").textContent = "";
+  fetch("/api/auth/login", {method:"POST", headers:{"Content-Type":"application/json"}, credentials:"same-origin", body:JSON.stringify({login:n, password:p, remember:true})})
+    .then(function(r){ return r.json().then(function(j){ if (!r.ok) throw new Error(j.error || "Login failed"); }); })
+    .then(function(){ show($("login"), false); start(); })
+    .catch(function(e){ $("lerr").textContent = e.message; });
+};
+$("lpin").onkeydown = function(e){ if (e.key === "Enter") $("lgo").click(); };
+
+// ---- permission requests waiting for me ("on next login") ----
+function loadPending(){
+  return api("action=pending").then(function(j){
+    var b = $("pending"); b.innerHTML = "";
+    show(b, j.requests.length > 0);
+    if (j.requests.length) b.insertAdjacentHTML("beforeend", "<b>Chat requests</b>");
+    j.requests.forEach(function(r){
+      var d = document.createElement("div"); d.className = "req";
+      d.innerHTML = "<span><b>" + esc(r.from) + "</b> wants to chat privately with you.</span>";
+      [["Allow", true], ["Deny", false]].forEach(function(o){
+        var bt = document.createElement("button"); bt.textContent = o[0];
+        bt.onclick = function(){ api(null, {action:"answer", from:r.from, ok:o[1]}).then(function(){
+          if (o[1]) location.href = "/chat?to=" + encodeURIComponent(r.from); else loadPending(); }); };
+        d.appendChild(bt);
+      });
+      b.appendChild(d);
+    });
+  }).catch(function(){});
+}
+function afterLogin(){
+  $("me").textContent = ME + ":";
+  loadPending();
+  var to = new URLSearchParams(location.search).get("to");
+  if (to) { $("rname").value = to; pick(to); } else { show($("pick"), true); $("rname").focus(); }
+}
+
+// ---- recipient ----
+function pick(n){
+  n = String(n || "").trim(); $("perr").textContent = ""; show($("notfound"), false); show($("pick"), true);
+  if (!n) return;
+  api("action=check&name=" + encodeURIComponent(n)).then(function(j){
+    if (!j.exists) { $("nfmsg").textContent = "\"" + n + "\" isn't on the Diamond Spaders player list."; show($("notfound"), true); return; }
+    return api(null, {action:"request", to:j.name}).then(function(r){ openChat(j.name, r.status); });
+  }).catch(function(e){ $("perr").textContent = e.message; });
+}
+$("rgo").onclick = function(){ pick($("rname").value); };
+var sugT, sugI = -1;
+function sugItems(){ return $("rsug").querySelectorAll("div[data-n]"); }
+function sugHi(){ sugItems().forEach(function(d,i){ d.style.background = i === sugI ? "#cde" : ""; }); }
+function sugHide(){ $("rsug").style.display = "none"; sugI = -1; }
+$("rname").oninput = function(){
+  clearTimeout(sugT); var v = $("rname").value.trim(); if (!v) return sugHide();
+  sugT = setTimeout(function(){
+    api("action=suggest&q=" + encodeURIComponent(v)).then(function(j){
+      if ($("rname").value.trim() !== v) return;
+      var b = $("rsug"); b.innerHTML = ""; sugI = -1;
+      (j.names || []).forEach(function(x){
+        var d = document.createElement("div"); d.dataset.n = x.name; d.style.cssText = "padding:6px 10px;cursor:pointer";
+        d.textContent = x.name; if (x.src === "member") { var s = document.createElement("small"); s.textContent = "  ✓ member"; s.style.color = "#2a7"; d.appendChild(s); }
+        d.onmousedown = function(e){ e.preventDefault(); $("rname").value = x.name; sugHide(); pick(x.name); };
+        b.appendChild(d);
+      });
+      b.style.display = j.names && j.names.length ? "block" : "none";
+    }).catch(sugHide);
+  }, 150);
+};
+$("rname").onblur = function(){ setTimeout(sugHide, 150); };
+$("rname").onkeydown = function(e){
+  var it = sugItems(), open = $("rsug").style.display !== "none" && it.length;
+  if (open && e.key === "ArrowDown") { e.preventDefault(); sugI = (sugI + 1) % it.length; sugHi(); return; }
+  if (open && e.key === "ArrowUp") { e.preventDefault(); sugI = (sugI - 1 + it.length) % it.length; sugHi(); return; }
+  if (e.key === "Escape") return sugHide();
+  if (e.key === "Enter") { if (open && sugI >= 0) $("rname").value = it[sugI].dataset.n; sugHide(); pick($("rname").value); }
+};
+$("nfretry").onclick = function(){ show($("notfound"), false); $("rname").value = ""; $("rname").focus(); };
+
+// ---- chat ----
+function openChat(name, status){
+  WITH = name; show($("pick"), false); show($("chat"), true);
+  $("withLbl").textContent = "with " + name;
+  history.replaceState(null, "", "/chat?to=" + encodeURIComponent(name));
+  setStatus(status);
+  poll = setInterval(tick, 2000);
+}
+function setStatus(s){
+  var ok = s === "ok";
+  show($("composer"), ok); show($("waitmsg"), !ok);
+  $("waitmsg").textContent = s === "no" ? WITH + " declined your chat request." :
+    "Waiting for " + WITH + " to allow chatting with you. They'll be asked the next time they log in.";
+}
+function tick(){
+  api("action=status&with=" + encodeURIComponent(WITH)).then(function(s){
+    setStatus(s.status); if (s.status !== "ok") return;
+    loadMB(chatAdapter(function(){ return "action=list&with=" + encodeURIComponent(WITH); }, function(){ return {to:WITH}; })); return;
+    return api("action=list&with=" + encodeURIComponent(WITH) + "&since=" + since).then(function(j){ j.messages.forEach(render); });
+  }).catch(function(){});
+}
+
+function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=60"; document.body.appendChild(sc); return true; }
+function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "Chat with " + WITH),
+  get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
+    .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
+  post:function(t){ var b = sendBody(); b.action = "send"; b.kind = "text"; b.body = t; return api(null, b); } }; }
+function render(){}
+
+
+start();
+})();
+</script>
+</body></html>

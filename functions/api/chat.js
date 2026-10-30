@@ -65,7 +65,9 @@ export const onRequestGet = wrap(async ({ request, env }) => {
     const r = await env.DB.prepare("SELECT CASE WHEN from_name = ? COLLATE NOCASE THEN to_name ELSE from_name END AS name, MAX(t) AS t FROM chat_perms " +
       "WHERE status = 'ok' AND (from_name = ? COLLATE NOCASE OR to_name = ? COLLATE NOCASE) GROUP BY lower(name) ORDER BY name COLLATE NOCASE").bind(my, my, my).all();
     const o = await env.DB.prepare("SELECT to_name AS name, status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND status IN ('pending','no') ORDER BY t DESC").bind(my).all();
-    return json({ partners: (r.results || []).map((x) => x.name), outgoing: o.results || [] });
+    let favs = [];
+    try { favs = ((await env.DB.prepare("SELECT name FROM chat_favs WHERE owner = ? COLLATE NOCASE").bind(my).all()).results || []).map((x) => x.name); } catch {}
+    return json({ partners: (r.results || []).map((x) => x.name), outgoing: o.results || [], favorites: favs });
   }
   if (a === "buzzes") {
     const now = Date.now();
@@ -108,9 +110,17 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     await env.DB.prepare("UPDATE chat_perms SET status = ?, t = ? WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(b.ok ? "ok" : "no", now, f, my).run();
     return json({ ok: true });
   }
+  if (b.action === "fav") {   // star/unstar a contact (per user)
+    const w = normName(b.with); if (!w) throw new HttpError(400, "Who?");
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS chat_favs (owner TEXT NOT NULL COLLATE NOCASE, name TEXT NOT NULL COLLATE NOCASE, t INTEGER NOT NULL, PRIMARY KEY (owner, name))").run();
+    if (b.on) await env.DB.prepare("INSERT OR REPLACE INTO chat_favs (owner, name, t) VALUES (?, ?, ?)").bind(my, w, now).run();
+    else await env.DB.prepare("DELETE FROM chat_favs WHERE owner = ? COLLATE NOCASE AND name = ? COLLATE NOCASE").bind(my, w).run();
+    return json({ ok: true });
+  }
   if (b.action === "remove") {   // take someone off my private-chat list (they must ask again)
     const w = normName(b.with); if (!w) throw new HttpError(400, "Who?");
     await env.DB.prepare("DELETE FROM chat_perms WHERE (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE) OR (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE)").bind(my, w, w, my).run();
+    try { await env.DB.prepare("DELETE FROM chat_favs WHERE owner = ? COLLATE NOCASE AND name = ? COLLATE NOCASE").bind(my, w).run(); } catch {}
     return json({ ok: true });
   }
   if (b.action === "cancel") {   // withdraw/delete my own outgoing request (pending or declined)

@@ -25,6 +25,18 @@
       '<span class="gm-tx"><div class="gm-nm">' + esc(name) + '</div>' + (snip ? '<div class="gm-sn">' + esc(snip) + '</div>' : '') + '</span>' + (time ? '<span class="gm-tm">' + esc(time) + '</span>' : '') + '</a>';
   }
   function reqRow(name, html){ return '<div class="gm-req">' + html + '<button type="button" class="gm-x" title="Delete request" aria-label="Delete request" data-cancel="' + esc(name) + '">&times;</button></div>'; }
+  function ctRow(n, fav, html){ return '<div class="gm-ct" data-n="' + esc(n) + '">' + html + '<div class="gm-menu"><label><input type="checkbox" class="gm-fav"' + (fav ? ' checked' : '') + '> favorite</label><button type="button" class="gm-del">delete</button>' +
+    '<span class="gm-sure">Are you sure? <button type="button" class="gm-y">Y</button> <button type="button" class="gm-n">N</button></span></div></div>'; }
+  function post(o){ return fetch("/api/chat", {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"}, body: JSON.stringify(o)}).then(function(r){ if (!r.ok) throw 0; }); }
+  side.addEventListener("change", function(e){ var c = e.target; if (!c.classList || !c.classList.contains("gm-fav")) return;
+    var n = c.closest(".gm-ct").getAttribute("data-n"); post({action:"fav", with:n, on:c.checked}).then(load).catch(function(){ alert("Couldn't save favorite."); }); });
+  side.addEventListener("click", function(e){
+    var t = e.target, ct = t.closest && t.closest(".gm-ct"); if (!ct || !t.closest(".gm-menu")) return;
+    if (t.classList.contains("gm-del")) { e.preventDefault(); ct.classList.add("asking"); }
+    else if (t.classList.contains("gm-n")) { e.preventDefault(); ct.classList.remove("asking"); }
+    else if (t.classList.contains("gm-y")) { e.preventDefault(); var n = ct.getAttribute("data-n");
+      post({action:"remove", with:n}).then(function(){ ct.remove(); if (n.toLowerCase() === selTo) location.href = "/chat"; else load(); }).catch(function(){ alert("Couldn't delete that contact."); }); }
+  });
   side.addEventListener("click", function(e){
     var b = e.target.closest && e.target.closest(".gm-x"); if (!b) return; e.preventDefault(); e.stopPropagation();
     var n = b.getAttribute("data-cancel"); b.disabled = true;
@@ -47,12 +59,13 @@
         return row("/group-chat?g=" + encodeURIComponent(r.gid), (r.inviteOnly ? "\u2709 " : "") + (r.hasPassword ? "\uD83D\uDD12 " : "") + r.title, r.owner,
           "by " + r.owner + " \u00b7 " + r.count + " in folder", ago(r.last), r.gid === selG); }).join("") : '<div class="gm-empty">No folders yet.</div>');
     }) : get("/api/chat?action=partners").then(function(j){
-      var ps = (j.partners || []).slice().sort(az), out = (j.outgoing || []).slice().sort(function(a, b){ return az(a.name, b.name); });
-      return '<div class="gm-sec">Players</div>' + (ps.length ? ps.map(function(n){ return row("/chat?to=" + encodeURIComponent(n), n, n, "", "", n.toLowerCase() === selTo); }).join("") : '<div class="gm-empty">Nobody yet &mdash; enter a username above.</div>') +
+      var fv = {}; (j.favorites || []).forEach(function(n){ fv[n.toLowerCase()] = 1; });
+      var ps = (j.partners || []).slice().sort(function(a, b){ var fa = fv[a.toLowerCase()] ? 0 : 1, fb = fv[b.toLowerCase()] ? 0 : 1; return fa - fb || az(a, b); }), out = (j.outgoing || []).slice().sort(function(a, b){ return az(a.name, b.name); });
+      return '<div class="gm-sec">Players</div>' + (ps.length ? ps.map(function(n){ return ctRow(n, !!fv[n.toLowerCase()], row("/chat?to=" + encodeURIComponent(n), (fv[n.toLowerCase()] ? "\u2605 " : "") + n, n, "", "", n.toLowerCase() === selTo)); }).join("") : '<div class="gm-empty">Nobody yet &mdash; enter a username above.</div>') +
         (out.length ? '<div class="gm-sec">Your requests</div>' + out.map(function(o){ return reqRow(o.name, row("/chat?to=" + encodeURIComponent(o.name), o.name, o.name, o.status === "no" ? "declined" : "waiting for approval", "", o.name.toLowerCase() === selTo)); }).join("") : "");
     });
     hd.innerHTML = head();
-    p.then(function(h){ list.innerHTML = h; avatars(); }).catch(function(){});
+    p.then(function(h){ if (list.querySelector('.gm-ct.asking, .gm-ct:hover .gm-menu')) return; list.innerHTML = h; avatars(); }).catch(function(){});
   }
   load(); setInterval(load, 15000);
   if (GROUP && location.hash === "#new") setTimeout(function(){ var t = document.getElementById("gtitle"); if (t) t.focus(); }, 800);

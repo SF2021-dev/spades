@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diamond Spaders - Private Chat</title>
+<link rel="icon" href="/diamondspaderslogo.jpg">
+<style>
+@font-face{font-family:'DS Coustard';src:url(/fonts/coustard-400-latin.woff2) format('woff2')}
+html,body{margin:0;background:#0a0a0a;color:#f3bf56;font-family:'DS Coustard','Clarendon','Century Schoolbook',Georgia,serif}
+.card{max-width:900px;margin:16px auto;background:#000;border:1px solid #f3bf56;border-radius:10px;padding:10px 12px;box-sizing:border-box}
+.title{display:flex;justify-content:space-between;align-items:baseline;font-size:18px;font-weight:700;margin-bottom:8px}
+.title a{color:#f3bf56;text-decoration:none}.title a:hover{text-decoration:underline}
+.msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;min-height:calc(100dvh - 260px);max-height:calc(100dvh - 220px);overflow:auto;margin-bottom:12px}
+.msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}
+.line{font-size:20px;color:#000;line-height:1.18;padding:3px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;-webkit-text-stroke:.9px currentColor}
+.line:last-child{border-bottom:0}.line b{color:#4a2a00}.line small{font-size:12px;color:#5c4210;-webkit-text-stroke:0}
+.line audio{vertical-align:middle;height:32px;max-width:100%}
+.compose{display:flex;gap:8px;align-items:center;position:relative}
+.compose .who{white-space:nowrap;font-weight:700}
+textarea,input{flex:1;font:inherit;font-size:18px;background:#f3bf56;color:#000;border:1px solid #cb972e;border-radius:8px;padding:8px;resize:none;box-sizing:border-box}
+button{font:inherit;background:#161616;color:#fbe646;border:1px solid #f3bf56;border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{background:#2a1608}
+.spk{font-size:24px;padding:4px 10px;line-height:1}
+.menu{position:absolute;bottom:52px;right:0;background:#000;border:1px solid #f3bf56;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.panel{border:1px solid #f3bf56;border-radius:8px;padding:10px;margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{color:#fbe646;font-size:15px;margin:8px 0}
+.hide{display:none!important}
+.live{color:#ff5c5c;font-weight:700}
+#pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
+</style></head><body>
+<div class="card">
+  <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
+
+  <!-- step 1: log in (same name + 3-digit PIN as the message board) -->
+  <div id="login" class="hide">
+    <p class="note">Log in with your message-board name and 3-digit PIN.</p>
+    <div class="compose"><input id="lname" placeholder="your username" maxlength="40"><input id="lpin" placeholder="PIN" maxlength="3" inputmode="numeric" type="password" style="flex:0 0 90px"><button id="lgo">Log in</button></div>
+    <p class="note" id="lerr"></p>
+  </div>
+
+  <!-- chat requests waiting for me (shown at login) -->
+  <div id="pending" class="hide panel" style="flex-direction:column;align-items:flex-start"></div>
+
+  <!-- step 2: recipient -->
+  <div id="pick" class="hide">
+    <p class="note">Who do you want to message privately?</p>
+    <div class="compose"><span style="position:relative;flex:1;display:flex"><input id="rname" placeholder="recipient's username" maxlength="40" autocomplete="off" style="flex:1"><div id="rsug" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:#fff;color:#000;border:1px solid #888;border-radius:6px;max-height:260px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.3)"></div></span><button id="rgo">Next</button></div>
+    <div id="notfound" class="hide panel">
+      <span id="nfmsg"></span>
+      <button id="nfretry">Enter a different username</button>
+      <button onclick="location.href='/'">Return to Diamond Spaders Online</button>
+    </div>
+    <p class="note" id="perr"></p>
+  </div>
+
+  <!-- step 3: chat -->
+  <div id="chat" class="hide">
+    <div class="msgs" id="msgs"></div>
+    <p class="note hide" id="waitmsg"></p>
+    <div class="compose" id="composer">
+      <span class="who" id="me"></span>
+      <textarea id="txt" rows="1" placeholder="type here (enter to send)"></textarea>
+      <button class="spk" id="spk" title="Voice">&#128264;</button>
+      <div class="menu hide" id="menu">
+        <button data-v="mic">&#127908; Microphone (live)</button>
+        <button data-v="rec">&#9210; Record a clip</button>
+        <button data-v="tts">&#128483; Text to speech</button>
+      </div>
+    </div>
+    <div class="panel hide" id="pMic"><span id="micState">Live mic is off.</span><button id="micGo">Start talking</button><button id="micStop" class="hide">Stop</button><button class="close">Close</button>
+      <label style="font-size:14px"><input type="checkbox" id="hear" checked style="flex:none"> play their live audio</label></div>
+    <div class="panel hide" id="pRec"><span id="recState">Ready to record.</span>
+      <button id="recGo">&#9210; Record</button><button id="recStop" class="hide">&#9209; Stop</button>
+      <span id="recDone" class="hide"><button id="recReview">&#9654; Review</button> <button id="recSend">Send</button> <button id="recAgain">Start over</button></span>
+      <button class="close">Close</button><audio id="recAudio" class="hide"></audio></div>
+    <div class="panel hide" id="pTts"><input id="ttsTxt" placeholder="type, then press Enter - it will be spoken to them" maxlength="1000"><button class="close">Close</button></div>
+    <p class="note" style="font-size:13px"><a href="/chat" style="color:#f3bf56">Chat with someone else</a></p>
+  </div>
+</div>
+<script>
+(function(){
+var $ = function(i){ return document.getElementById(i); }, show = function(el, on){ el.classList.toggle("hide", !on); };
+var ME = "", WITH = "", since = 0, seen = {}, poll = null;
+function api(q, body){
+  return fetch("/api/chat" + (body ? "" : "?" + q), body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body), credentials:"same-origin"} : {credentials:"same-origin", cache:"no-store"})
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) { var e = new Error(j.error || ("Error " + r.status)); e.status = r.status; throw e; } return j; }); });
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function speak(t){ try { var u = new SpeechSynthesisUtterance(t); speechSynthesis.speak(u); } catch(e){} }
+
+// ---- login ----
+function start(){
+  api("action=me").then(function(j){ ME = j.name; afterLogin(); }).catch(function(){ show($("login"), true); $("lname").value = localStorage.getItem("ds-mb-name") || ""; });
+}
+$("lgo").onclick = function(){
+  var n = $("lname").value.trim(), p = $("lpin").value.trim(); $("lerr").textContent = "";
+  fetch("/api/pin", {method:"POST", headers:{"Content-Type":"application/json"}, credentials:"same-origin", body:JSON.stringify({name:n, pin:p, action:"check", remember:true})})
+    .then(function(r){ return r.json().then(function(j){ if (!r.ok) throw new Error(j.error || "Login failed"); }); })
+    .then(function(){ show($("login"), false); start(); })
+    .catch(function(e){ $("lerr").textContent = e.message + (/PIN for this name/.test(e.message) ? " (create one on the main page message board first)" : ""); });
+};
+$("lpin").onkeydown = function(e){ if (e.key === "Enter") $("lgo").click(); };
+
+// ---- permission requests waiting for me ("on next login") ----
+function loadPending(){
+  return api("action=pending").then(function(j){
+    var b = $("pending"); b.innerHTML = "";
+    show(b, j.requests.length > 0);
+    if (j.requests.length) b.insertAdjacentHTML("beforeend", "<b>Chat requests</b>");
+    j.requests.forEach(function(r){
+      var d = document.createElement("div"); d.className = "req";
+      d.innerHTML = "<span><b>" + esc(r.from) + "</b> wants to chat privately with you.</span>";
+      [["Allow", true], ["Deny", false]].forEach(function(o){
+        var bt = document.createElement("button"); bt.textContent = o[0];
+        bt.onclick = function(){ api(null, {action:"answer", from:r.from, ok:o[1]}).then(function(){
+          if (o[1]) location.href = "/chat?to=" + encodeURIComponent(r.from); else loadPending(); }); };
+        d.appendChild(bt);
+      });
+      b.appendChild(d);
+    });
+  }).catch(function(){});
+}
+function afterLogin(){
+  $("me").textContent = ME + ":";
+  loadPending();
+  var to = new URLSearchParams(location.search).get("to");
+  if (to) { $("rname").value = to; pick(to); } else { show($("pick"), true); $("rname").focus(); }
+}
+
+// ---- recipient ----
+function pick(n){
+  n = String(n || "").trim(); $("perr").textContent = ""; show($("notfound"), false); show($("pick"), true);
+  if (!n) return;
+  api("action=check&name=" + encodeURIComponent(n)).then(function(j){
+    if (!j.exists) { $("nfmsg").textContent = "\"" + n + "\" isn't on the Diamond Spaders player list."; show($("notfound"), true); return; }
+    return api(null, {action:"request", to:j.name}).then(function(r){ openChat(j.name, r.status); });
+  }).catch(function(e){ $("perr").textContent = e.message; });
+}
+$("rgo").onclick = function(){ pick($("rname").value); };
+var sugT, sugI = -1;
+function sugItems(){ return $("rsug").querySelectorAll("div[data-n]"); }
+function sugHi(){ sugItems().forEach(function(d,i){ d.style.background = i === sugI ? "#cde" : ""; }); }
+function sugHide(){ $("rsug").style.display = "none"; sugI = -1; }
+$("rname").oninput = function(){
+  clearTimeout(sugT); var v = $("rname").value.trim(); if (!v) return sugHide();
+  sugT = setTimeout(function(){
+    api("action=suggest&q=" + encodeURIComponent(v)).then(function(j){
+      if ($("rname").value.trim() !== v) return;
+      var b = $("rsug"); b.innerHTML = ""; sugI = -1;
+      (j.names || []).forEach(function(x){
+        var d = document.createElement("div"); d.dataset.n = x.name; d.style.cssText = "padding:6px 10px;cursor:pointer";
+        d.textContent = x.name; if (x.src === "member") { var s = document.createElement("small"); s.textContent = "  ✓ member"; s.style.color = "#2a7"; d.appendChild(s); }
+        d.onmousedown = function(e){ e.preventDefault(); $("rname").value = x.name; sugHide(); pick(x.name); };
+        b.appendChild(d);
+      });
+      b.style.display = j.names && j.names.length ? "block" : "none";
+    }).catch(sugHide);
+  }, 150);
+};
+$("rname").onblur = function(){ setTimeout(sugHide, 150); };
+$("rname").onkeydown = function(e){
+  var it = sugItems(), open = $("rsug").style.display !== "none" && it.length;
+  if (open && e.key === "ArrowDown") { e.preventDefault(); sugI = (sugI + 1) % it.length; sugHi(); return; }
+  if (open && e.key === "ArrowUp") { e.preventDefault(); sugI = (sugI - 1 + it.length) % it.length; sugHi(); return; }
+  if (e.key === "Escape") return sugHide();
+  if (e.key === "Enter") { if (open && sugI >= 0) $("rname").value = it[sugI].dataset.n; sugHide(); pick($("rname").value); }
+};
+$("nfretry").onclick = function(){ show($("notfound"), false); $("rname").value = ""; $("rname").focus(); };
+
+// ---- chat ----
+function openChat(name, status){
+  WITH = name; show($("pick"), false); show($("chat"), true);
+  $("withLbl").textContent = "with " + name;
+  history.replaceState(null, "", "/chat?to=" + encodeURIComponent(name));
+  setStatus(status);
+  poll = setInterval(tick, 2000);
+}
+function setStatus(s){
+  var ok = s === "ok";
+  show($("composer"), ok); show($("waitmsg"), !ok);
+  $("waitmsg").textContent = s === "no" ? WITH + " declined your chat request." :
+    "Waiting for " + WITH + " to allow chatting with you. They'll be asked the next time they log in.";
+}
+function tick(){
+  api("action=status&with=" + encodeURIComponent(WITH)).then(function(s){
+    setStatus(s.status); if (s.status !== "ok") return;
+    return api("action=list&with=" + encodeURIComponent(WITH) + "&since=" + since).then(function(j){ j.messages.forEach(render); });
+  }).catch(function(){});
+}
+var liveQ = [], livePlaying = false;
+function playLive(){
+  if (livePlaying || !liveQ.length) return; livePlaying = true;
+  var a = new Audio(liveQ.shift()); a.onended = a.onerror = function(){ livePlaying = false; playLive(); }; a.play().catch(function(){ livePlaying = false; });
+}
+function render(m){
+  if (seen[m.id]) return; seen[m.id] = 1; since = Math.max(since, m.t);
+  var mine = m.from.toLowerCase() === ME.toLowerCase(), src = "/api/chat/audio/" + encodeURIComponent(m.id);
+  var fresh = Date.now() - m.t < 60000;
+  if (m.kind === "live") {   // live mic segments: played as they arrive, not listed
+    if (!mine && fresh && $("hear").checked) { liveQ.push(src); playLive(); }
+    return;
+  }
+  var d = document.createElement("div"); d.className = "line";
+  var who = "<b>" + esc(m.from) + ":</b> ", when = " <small>" + new Date(m.t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) + "</small>";
+  if (m.kind === "clip") d.innerHTML = who + "<audio controls preload=none src='" + src + "'></audio>" + when;
+  else if (m.kind === "tts") {
+    d.innerHTML = who + "&#128483; " + esc(m.body) + " <button class=say>&#128264;</button>" + when;
+    d.querySelector(".say").onclick = function(){ speak(m.body); };
+    if (!mine && fresh) speak(m.body);
+  } else d.innerHTML = who + esc(m.body) + when;
+  var box = $("msgs"), atEnd = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  box.appendChild(d); if (atEnd || mine) box.scrollTop = box.scrollHeight;
+}
+function sendText(kind, t, after){
+  t = t.trim(); if (!t) return;
+  api(null, {action:"send", to:WITH, kind:kind, body:t}).then(function(){ after(); tick(); }).catch(function(e){ alert(e.message); });
+}
+$("txt").onkeydown = function(e){ if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText("text", $("txt").value, function(){ $("txt").value = ""; }); } };
+
+// ---- voice menu ----
+$("spk").onclick = function(e){ e.stopPropagation(); $("menu").classList.toggle("hide"); };
+document.addEventListener("click", function(){ show($("menu"), false); });
+Array.prototype.forEach.call(document.querySelectorAll("#menu button"), function(b){
+  b.onclick = function(){ show($("menu"), false); ["pMic","pRec","pTts"].forEach(function(p){ show($(p), false); });
+    show($({mic:"pMic", rec:"pRec", tts:"pTts"}[b.dataset.v]), true); if (b.dataset.v === "tts") $("ttsTxt").focus(); };
+});
+Array.prototype.forEach.call(document.querySelectorAll(".panel .close"), function(b){ b.onclick = function(){ show(b.parentNode, false); stopMic(); }; });
+$("ttsTxt").onkeydown = function(e){ if (e.key === "Enter") { e.preventDefault(); var t = $("ttsTxt").value; speak(t); sendText("tts", t, function(){ $("ttsTxt").value = ""; }); } };
+
+function toData(blob){ return new Promise(function(res){ var r = new FileReader(); r.onload = function(){ res(r.result); }; r.readAsDataURL(blob); }); }
+function sendAudio(blob, kind){ return toData(blob).then(function(d){ return api(null, {action:"audio", to:WITH, kind:kind, audio:d}); }); }
+function getMic(){ return navigator.mediaDevices.getUserMedia({audio:true}); }
+
+// Record: record -> stop -> review / send / start over
+var rec = null, recBlob = null, recStream = null;
+$("recGo").onclick = function(){
+  getMic().then(function(s){
+    recStream = s; var parts = []; rec = new MediaRecorder(s);
+    rec.ondataavailable = function(e){ if (e.data.size) parts.push(e.data); };
+    rec.onstop = function(){ s.getTracks().forEach(function(t){ t.stop(); }); recBlob = new Blob(parts, {type: rec.mimeType || "audio/webm"});
+      $("recAudio").src = URL.createObjectURL(recBlob); $("recState").textContent = "Recorded " + Math.round(recBlob.size / 1024) + " KB.";
+      show($("recStop"), false); show($("recDone"), true); };
+    rec.start(); $("recState").innerHTML = "<span class=live>&#9679; Recording...</span>"; show($("recGo"), false); show($("recStop"), true); show($("recDone"), false);
+    setTimeout(function(){ if (rec && rec.state === "recording") rec.stop(); }, 120000);   // 2 min cap
+  }).catch(function(){ $("recState").textContent = "Microphone not available (allow mic access)."; });
+};
+$("recStop").onclick = function(){ if (rec && rec.state === "recording") rec.stop(); };
+$("recReview").onclick = function(){ $("recAudio").currentTime = 0; $("recAudio").play(); };
+$("recAgain").onclick = function(){ recBlob = null; show($("recDone"), false); show($("recGo"), true); $("recState").textContent = "Ready to record."; };
+$("recSend").onclick = function(){ if (!recBlob) return; $("recState").textContent = "Sending...";
+  sendAudio(recBlob, "clip").then(function(){ $("recAgain").click(); $("recState").textContent = "Sent!"; tick(); }).catch(function(e){ $("recState").textContent = e.message; }); };
+
+// Microphone (live): short self-contained segments sent every ~2s, played in order on their side
+var micStream = null, micOn = false;
+function segment(){
+  if (!micOn) return;
+  var parts = [], r = new MediaRecorder(micStream);
+  r.ondataavailable = function(e){ if (e.data.size) parts.push(e.data); };
+  r.onstop = function(){ if (parts.length) sendAudio(new Blob(parts, {type: r.mimeType || "audio/webm"}), "live").catch(function(e){ $("micState").textContent = e.message; }); segment(); };
+  r.start(); setTimeout(function(){ if (r.state === "recording") r.stop(); }, 2000);
+}
+$("micGo").onclick = function(){
+  getMic().then(function(s){ micStream = s; micOn = true; segment();
+    $("micState").innerHTML = "<span class=live>&#9679; LIVE - " + esc(WITH) + " hears you (about 2-4 s delay)</span>"; show($("micGo"), false); show($("micStop"), true);
+  }).catch(function(){ $("micState").textContent = "Microphone not available (allow mic access)."; });
+};
+function stopMic(){ micOn = false; if (micStream) micStream.getTracks().forEach(function(t){ t.stop(); }); micStream = null;
+  $("micState").textContent = "Live mic is off."; show($("micGo"), true); show($("micStop"), false); }
+$("micStop").onclick = stopMic;
+
+start();
+})();
+</script>
+</body></html>

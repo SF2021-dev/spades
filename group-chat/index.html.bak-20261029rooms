@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diamond Spaders - Group Chat</title>
+<link rel="icon" href="/diamondspaderslogo.jpg">
+<style>
+@font-face{font-family:'DS Coustard';src:url(/fonts/coustard-400-latin.woff2) format('woff2')}
+html,body{margin:0;background:#0a0a0a;color:#f3bf56;font-family:'DS Coustard','Clarendon','Century Schoolbook',Georgia,serif}
+.card{max-width:900px;margin:16px auto;background:#000;border:1px solid #f3bf56;border-radius:10px;padding:10px 12px;box-sizing:border-box}
+.title{display:flex;justify-content:space-between;align-items:baseline;font-size:18px;font-weight:700;margin-bottom:8px}
+.title a{color:#f3bf56;text-decoration:none}.title a:hover{text-decoration:underline}
+.msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;min-height:calc(100dvh - 260px);max-height:calc(100dvh - 220px);overflow:auto;margin-bottom:12px}
+.msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}
+.line{font-size:20px;color:#000;line-height:1.18;padding:3px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;-webkit-text-stroke:.9px currentColor}
+.line:last-child{border-bottom:0}.line b{color:#4a2a00}.line small{font-size:12px;color:#5c4210;-webkit-text-stroke:0}
+.line audio{vertical-align:middle;height:32px;max-width:100%}
+.compose{display:flex;gap:8px;align-items:center;position:relative}
+.compose .who{white-space:nowrap;font-weight:700}
+textarea,input{flex:1;font:inherit;font-size:18px;background:#f3bf56;color:#000;border:1px solid #cb972e;border-radius:8px;padding:8px;resize:none;box-sizing:border-box}
+button{font:inherit;background:#161616;color:#fbe646;border:1px solid #f3bf56;border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{background:#2a1608}
+.spk{font-size:24px;padding:4px 10px;line-height:1}
+.menu{position:absolute;bottom:52px;right:0;background:#000;border:1px solid #f3bf56;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.panel{border:1px solid #f3bf56;border-radius:8px;padding:10px;margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{color:#fbe646;font-size:15px;margin:8px 0}
+.hide{display:none!important}
+.live{color:#ff5c5c;font-weight:700}
+#pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
+</style></head><body>
+<div class="card">
+  <div class="title"><span>Diamond Spaders Group Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
+
+  <!-- step 1: log in with the site account (no PIN) -->
+  <div id="login" class="hide">
+    <p class="note">Log in with your Diamond Spaders Online username (or email) and password.</p>
+    <div class="compose"><input id="lname" placeholder="your username" maxlength="40"><input id="lpin" placeholder="password" type="password" autocomplete="current-password" style="flex:0 0 140px"><button id="lgo">Log in</button></div>
+    <p class="note" id="lerr"></p>
+  </div>
+
+  <!-- chat requests waiting for me (shown at login) -->
+  <div id="pending" class="hide panel" style="flex-direction:column;align-items:flex-start"></div>
+
+  <!-- step 2: recipients -->
+  <div id="pick" class="hide">
+    <div id="mygroups"></div>
+    <p class="note">Start a new group chat: add each player's username (Enter adds), then press Start.</p>
+    <div class="compose"><input id="rname" placeholder="recipient's username" maxlength="40"><button id="radd">Add</button><button id="rgo">Start group chat</button></div>
+    <div id="chips" class="note"></div>
+    <div id="notfound" class="hide panel">
+      <span id="nfmsg"></span>
+      <button id="nfretry">Fix the names and try again</button>
+      <button onclick="location.href='/'">Return to Diamond Spaders Online</button>
+    </div>
+    <p class="note" id="perr"></p>
+  </div>
+
+  <!-- step 3: chat -->
+  <div id="chat" class="hide">
+    <p class="note hide" id="waitmsg"></p>
+    <div class="compose" id="composer" style="display:block"><div id="ds-chatbox"></div></div>
+    <p class="note" style="font-size:13px"><a href="/group-chat" style="color:#f3bf56">My group chats / start another</a> &middot; <a href="/chat" style="color:#f3bf56">Private chat</a></p>
+  </div>
+</div>
+<div class="card" id="board-card"><div class="title"><span>Message Board</span></div><div id="ds-msgbox"></div></div>
+<script>
+(function(){
+var $ = function(i){ return document.getElementById(i); }, show = function(el, on){ el.classList.toggle("hide", !on); };
+var ME = "", WITH = "", since = 0, seen = {}, poll = null;
+function api(q, body){
+  return fetch("/api/groupchat" + (body ? "" : "?" + q), body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body), credentials:"same-origin"} : {credentials:"same-origin", cache:"no-store"})
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) { var e = new Error(j.error || ("Error " + r.status)); e.status = r.status; throw e; } return j; }); });
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+// ---- login ----
+function start(){
+  api("action=me").then(function(j){ ME = j.name; afterLogin(); }).catch(function(){ show($("login"), true); $("lname").value = localStorage.getItem("ds-mb-name") || ""; });
+}
+$("lgo").onclick = function(){
+  var n = $("lname").value.trim(), p = $("lpin").value.trim(); $("lerr").textContent = "";
+  fetch("/api/auth/login", {method:"POST", headers:{"Content-Type":"application/json"}, credentials:"same-origin", body:JSON.stringify({login:n, password:p, remember:true})})
+    .then(function(r){ return r.json().then(function(j){ if (!r.ok) throw new Error(j.error || "Login failed"); }); })
+    .then(function(){ show($("login"), false); start(); })
+    .catch(function(e){ $("lerr").textContent = e.message; });
+};
+$("lpin").onkeydown = function(e){ if (e.key === "Enter") $("lgo").click(); };
+
+// ---- group invites waiting for me ("on next login") ----
+function who(ms){ return ms.map(function(m){ return esc(m.name) + (m.status === "pending" ? " (invited)" : ""); }).join(", "); }
+function loadPending(){
+  return api("action=pending").then(function(j){
+    var b = $("pending"); b.innerHTML = ""; show(b, j.invites.length > 0);
+    if (j.invites.length) b.insertAdjacentHTML("beforeend", "<b>Group chat invitations</b>");
+    j.invites.forEach(function(r){
+      var d = document.createElement("div"); d.className = "req";
+      d.innerHTML = "<span><b>" + esc(r.owner) + "</b> invited you to a group chat with " + who(r.members) + ".</span>";
+      [["Join", true], ["Decline", false]].forEach(function(o){
+        var bt = document.createElement("button"); bt.textContent = o[0];
+        bt.onclick = function(){ api(null, {action:"answer", gid:r.gid, ok:o[1]}).then(function(){
+          if (o[1]) location.href = "/group-chat?g=" + r.gid; else { loadPending(); loadMine(); } }); };
+        d.appendChild(bt);
+      });
+      b.appendChild(d);
+    });
+  }).catch(function(){});
+}
+function loadMine(){
+  api("action=mine").then(function(j){
+    var b = $("mygroups"); b.innerHTML = "";
+    var ok = j.groups.filter(function(g){ return g.myStatus === "ok"; });
+    if (ok.length) b.insertAdjacentHTML("beforeend", "<p class=note>Your group chats:</p>");
+    ok.forEach(function(g){ var d = document.createElement("div"); d.className = "req";
+      d.innerHTML = "<button>Open</button> <span>" + who(g.members) + "</span>"; d.querySelector("button").onclick = function(){ openGroup(g.gid); }; b.appendChild(d); });
+  }).catch(function(){});
+}
+function afterLogin(){
+  $("me").textContent = ME + ":";
+  loadPending();
+  var g = new URLSearchParams(location.search).get("g");
+  if (g) openGroup(g); else { show($("pick"), true); loadMine(); $("rname").focus(); }
+}
+
+// ---- recipients ----
+var NAMES = [];
+function chips(){ $("chips").innerHTML = NAMES.map(function(n, i){ return "<button data-i=" + i + ">" + esc(n) + " &times;</button>"; }).join(" ");
+  Array.prototype.forEach.call($("chips").querySelectorAll("button"), function(b){ b.onclick = function(){ NAMES.splice(+b.dataset.i, 1); chips(); }; }); }
+function addName(){ String($("rname").value).split(",").forEach(function(n){ n = n.trim();
+  if (n && NAMES.map(function(x){ return x.toLowerCase(); }).indexOf(n.toLowerCase()) < 0) NAMES.push(n); }); $("rname").value = ""; chips(); }
+$("radd").onclick = addName;
+$("rname").onkeydown = function(e){ if (e.key === "Enter") { e.preventDefault(); addName(); } };
+$("rgo").onclick = function(){
+  addName(); $("perr").textContent = ""; show($("notfound"), false);
+  if (!NAMES.length) { $("perr").textContent = "Add at least one username."; return; }
+  api("action=check&names=" + encodeURIComponent(NAMES.join(","))).then(function(j){
+    if (j.missing.length) { $("nfmsg").textContent = "Not on the Diamond Spaders player list: " + j.missing.join(", ") + "."; show($("notfound"), true);
+      NAMES = j.found.concat(j.missing); chips(); return; }
+    return api(null, {action:"create", names:j.found}).then(function(r){ openGroup(r.gid); });
+  }).catch(function(e){ $("perr").textContent = e.message; });
+};
+$("nfretry").onclick = function(){ show($("notfound"), false); $("rname").focus(); };
+
+// ---- chat ----
+var GID = "";
+function openGroup(gid){
+  if (window.__mbLoaded) { location.href = "/group-chat?g=" + encodeURIComponent(gid); return; }
+  var bc = document.getElementById("board-card"); if (bc) bc.remove();
+  GID = gid; WITH = "the group"; show($("pick"), false); show($("chat"), true);
+  history.replaceState(null, "", "/group-chat?g=" + encodeURIComponent(gid));
+  tick(); poll = setInterval(tick, 2000);
+  loadMB(chatAdapter(function(){ return "action=list&gid=" + encodeURIComponent(GID); }, function(){ return {gid:GID}; }));
+}
+function tick(){
+  api("action=list&gid=" + encodeURIComponent(GID) + "&since=" + since).then(function(j){
+    show($("composer"), true); show($("waitmsg"), false);
+    $("withLbl").textContent = "with " + j.members.filter(function(m){ return m.name.toLowerCase() !== ME.toLowerCase(); }).map(function(m){ return m.name + (m.status === "pending" ? " (invited)" : m.status === "no" ? " (declined)" : ""); }).join(", ");
+    j.messages.forEach(render);
+  }).catch(function(e){ show($("composer"), false); show($("waitmsg"), true); $("waitmsg").textContent = e.message; });
+}
+
+function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=62"; document.body.appendChild(sc); return true; }
+function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "Chat with " + WITH),
+  get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
+    .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
+  post:function(t, img, imgUrl){ var b = sendBody(); b.action = "send"; b.kind = "text"; b.body = t; if (img) b.image = img; if (imgUrl) b.imageUrl = imgUrl; return api(null, b); } }; }
+function render(){}
+
+
+if (!new URLSearchParams(location.search).get("g")) loadMB(null);
+start();
+})();
+</script>
+</body></html>

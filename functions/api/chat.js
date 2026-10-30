@@ -19,8 +19,9 @@ import { findMember, canonFn } from "../_shared/standings.js";
 const MAX_AUDIO = 1024 * 1024, MAX_TXT = 1000;
 
 async function me(env, request) {
-  let n = await tokenName(env, request);
-  if (!n) { try { const u = await currentUser(request, env); if (u && u.username) n = (await known(env, u.username)) || u.username; } catch {} }
+  let n = "";
+  { try { const u = await currentUser(request, env); if (u && u.username) n = (await known(env, u.username)) || u.username; } catch {} }
+  if (!n) n = await tokenName(env, request);
   if (!n) throw new HttpError(401, "Please log in to chat.");
   return n;
 }

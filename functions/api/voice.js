@@ -4,8 +4,9 @@
 import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
 import { tokenName } from "../_shared/pins.js";
 import { known } from "../_shared/chatnames.js";
-async function me(env, request) { let n = await tokenName(env, request);
-  if (!n) { try { const u = await currentUser(request, env); if (u && u.username) n = (await known(env, u.username)) || u.username; } catch {} }
+async function me(env, request) { let n = "";
+  { try { const u = await currentUser(request, env); if (u && u.username) n = (await known(env, u.username)) || u.username; } catch {} }
+  if (!n) n = await tokenName(env, request);
   if (!n) throw new HttpError(401, "Please log in."); return n; }
 let ready = false;
 async function init(env) { if (ready) return; ready = true;

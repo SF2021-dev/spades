@@ -13,8 +13,9 @@ import { normName, tokenName } from "../_shared/pins.js";
 import { canonFn } from "../_shared/standings.js";
 import { known } from "../_shared/chatnames.js";
 const MAX_AUDIO = 1024 * 1024, MAX_TXT = 1000, MAX_MEMBERS = 12;
-async function me(env, request) { let n = await tokenName(env, request);
-  if (!n) { try { const u = await currentUser(request, env); if (u && u.username) n = (await known(env, u.username)) || u.username; } catch {} } if (!n) throw new HttpError(401, "Please log in to chat."); return n; }
+async function me(env, request) { let n = "";
+  { try { const u = await currentUser(request, env); if (u && u.username) n = (await known(env, u.username)) || u.username; } catch {} }
+  if (!n) n = await tokenName(env, request); if (!n) throw new HttpError(401, "Please log in to chat."); return n; }
 async function members(env, gid) { return (await env.DB.prepare("SELECT name, status FROM chat_group_members WHERE gid = ? ORDER BY t").bind(gid).all()).results || []; }
 let migrated = false;
 async function migrate(env) { if (migrated) return; migrated = true; for (const c of ["title TEXT", "inv INTEGER", "pw TEXT"]) { try { await env.DB.prepare("ALTER TABLE chat_groups ADD COLUMN " + c).run(); } catch {} } }

@@ -443,10 +443,12 @@
     grow();
   }
   function askName(){
+    if (AD) return;
     pinMode = ""; askingName = true; ta.dataset.draft = ta.value; ta.value = savedName; showCompose(); ta.focus(); ta.select();
   }
   // Make sure this tab has a verified PIN for savedName; if not, switch the compose line to PIN entry.
   function needPin(){
+    if (AD) return false;   // private/group chat: site login only, never a PIN
     if (!savedName || askingName || pinMode || getPin()) return false;
     pinMode = "check"; showCompose(); st.textContent = "";
     var forName = savedName;
@@ -775,6 +777,7 @@
         body: JSON.stringify({name: name, message: stripTags(msg), _subject: "Diamond Spaders message from " + name,
                               _template: "table", _captcha: "false", _honey: ""})}).catch(function(){});
     }).catch(function(e){
+      if (AD && e && e.status === 401) { location.href = "/register?gate=1&next=" + encodeURIComponent(location.pathname + location.search); return; }
       if (e && (e.status === 401 || e.status === 428)) {   // PIN changed/reset on the server: ask again, keep the draft
         savePin(""); setRemember(0); sending = false; ta.readOnly = false; sendAfterPin = true;
         needPin(); st.textContent = (e.message || "Please enter your PIN.") + " Your message was NOT posted yet.";

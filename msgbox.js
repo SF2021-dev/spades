@@ -303,7 +303,7 @@
   if (AD) {
     var _t = box.querySelector(".mb-title span"); if (_t) _t.textContent = AD.title || "Chat";
     var _tp = document.getElementById("mb-top"); if (_tp) _tp.style.display = "none";
-    var _hm = box.querySelector(".mb-home"); if (_hm) { _hm.textContent = "Diamond Spaders Online home"; _hm.href = "/"; _hm.removeAttribute("target"); var _slot = document.getElementById("homeslot"); if (_slot) { _hm.style.cssText = "font-size:15px"; _slot.appendChild(_hm); } else { var _row = null; document.querySelectorAll("p.note").forEach(function(p){ if (/Chat with someone else/.test(p.textContent)) _row = p; }); if (_row) { _row.style.display = "flex"; _row.style.justifyContent = "space-between"; _row.style.alignItems = "center"; _hm.style.cssText = "font-size:15px;margin-left:auto"; _row.appendChild(_hm); } else { _hm.style.cssText = "display:block;text-align:right;margin-top:8px;font-size:15px"; box.appendChild(_hm); } } }
+    var _hm = box.querySelector(".mb-home"); if (_hm) { _hm.textContent = "Diamond Spaders Online home"; _hm.href = "/"; _hm.removeAttribute("target"); var _slot = document.getElementById("homeslot"); if (_slot) { _hm.style.cssText = "font-size:15px"; _slot.appendChild(_hm); } else { _hm.remove(); } }
   }
 
   var form = document.getElementById("mb-form"), st = document.getElementById("mb-status");

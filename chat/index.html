@@ -169,7 +169,7 @@ function openChat(name, status){
   poll = setInterval(tick, 2000);
 }
 function setStatus(s){
-  var ok = s === "ok";
+  var ok = s === "ok"; window.DS_DM_WITH = ok ? WITH : "";
   show($("composer"), ok); show($("waitmsg"), !ok);
   $("waitmsg").textContent = s === "no" ? WITH + " declined your chat request." :
     "Waiting for " + WITH + " to allow chatting with you. They'll be asked the next time they log in.";
@@ -194,5 +194,5 @@ function render(){}
 start();
 })();
 </script>
-<script src="/voice.js?v=2"></script>
+<script src="/dmvoice.js?v=1"></script>
 </body></html>

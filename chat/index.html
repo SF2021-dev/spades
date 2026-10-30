@@ -275,7 +275,7 @@ try{c.checked=localStorage.getItem("ds-enter-sends")!=="0"}catch(e){c.checked=tr
 c.onchange=function(){try{localStorage.setItem("ds-enter-sends",c.checked?"1":"0")}catch(e){}};
 g.onclick=function(e){e.stopPropagation();o.style.display=o.style.display==="none"?"block":"none"};
 document.addEventListener("click",function(e){if(!o.contains(e.target)&&e.target!==g)o.style.display="none"});})();</script>
-<div id="emptyBg" style="position:fixed;top:44px;right:0;bottom:0;left:0;z-index:2;pointer-events:none;overflow:hidden;display:none"><div style="position:absolute;inset:-30px;background:url('/chat/empty-bg.jpg?v=3') center/cover no-repeat;filter:blur(2.5px)"></div></div>
+<div id="emptyBg" style="position:fixed;top:44px;right:0;bottom:0;left:0;z-index:2;pointer-events:none;overflow:hidden;display:none"><div style="position:absolute;inset:0;background:url('/chat/empty-bg.svg?v=4') 0 0/240px 240px repeat;filter:grayscale(1)"></div><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font:700 160px Georgia,serif;color:rgba(255,255,255,.08)">&#9824;</div></div>
 <script>(function(){var bg=document.getElementById("emptyBg"),c=document.getElementById("chat");function u(){var sd=document.getElementById("gm-side");var l=0;if(sd&&innerWidth>700){l=sd.getBoundingClientRect().right;}bg.style.left=l+"px";bg.style.display=(c&&!c.classList.contains("hide"))?"none":"block";}if(c)new MutationObserver(u).observe(c,{attributes:true,attributeFilter:["class"]});addEventListener("resize",u);setInterval(u,1000);u();})();</script>
 <style>body>.card,#gm-side{position:relative;z-index:1}#gm-side{z-index:3}</style>
 <script src="/gm-chat.js?v=17"></script>

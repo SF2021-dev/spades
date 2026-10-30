@@ -156,6 +156,10 @@
     "#ds-msgbox .mb-status:empty{min-height:0;margin:0}" +
     "#ds-msgbox #mb-text{min-height:0 !important;max-height:120px}" +
     "#ds-msgbox .mb-compose{max-height:240px}" +
+    "#ds-msgbox .mb-wrap .mb-msgs{display:flex;flex-direction:column;padding-bottom:0}#ds-msgbox .mb-wrap .mb-msgs>:first-child{margin-top:auto}" +
+    "#ds-msgbox .mb-wrap .mb-msgs .mb-msg:last-child .mb-line{border-bottom:1px solid #cb972e}" +
+    "#ds-msgbox .mb-compose{border-top:0 !important;padding:3px 12px 8px !important;line-height:1.18}#ds-msgbox .mb-compose:focus-within{background:transparent}" +
+    "#ds-msgbox .mb-compose .mb-who:empty,#ds-msgbox .mb-compose .mb-colon:empty{display:none}" +
     "#ds-msgbox .mb-emo{vertical-align:middle;display:inline-block;margin:0 1px;filter:drop-shadow(0 0 .6px #5a3d00) drop-shadow(0 0 .4px #5a3d00)}" +
     "#ds-msgbox .mb-emobtn img{filter:drop-shadow(0 0 .6px #5a3d00) drop-shadow(0 0 .4px #5a3d00)}" +
     "#ds-msgbox .mb-emobtn{flex:none;background:transparent;border:0;padding:2px;margin:0;cursor:pointer;line-height:0;min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px}" +
@@ -398,7 +402,7 @@
     var remEl = document.getElementById("mb-rem");
     if (remEl) remEl.style.display = (pinning && pinMode !== "check") ? "" : "none";
     if (pinning) {
-      who.textContent = savedName + ":";
+      who.textContent = "";
       pinHint.textContent = {check: "checking PIN…", "new": "create a 3-digit PIN (000-999), then press Enter",
         confirm: "type the same PIN again to confirm", email: "email needed only for initial login-- to discourage duplicate accounts",
         enter: "enter your 3-digit PIN, then press Enter"}[pinMode];
@@ -408,7 +412,7 @@
       who.textContent = "Your name:";
       ta.placeholder = "type your name or username, then press Enter"; ta.maxLength = 40;
     } else if (savedName) {
-      who.textContent = savedName + ":";
+      who.textContent = "";
       ta.placeholder = hintSeen() ? "" : HINT; ta.maxLength = 1000;
     } else {
       who.textContent = ""; if (colon) colon.textContent = "";

@@ -8,6 +8,8 @@
 // POST {action:"request", to}         -> asks X for permission (shown to X on next login)
 // POST {action:"answer", from, ok}    -> approve/deny a request
 // POST {action:"send", to, kind:"text"|"tts", body}          (needs approved permission)
+// GET ?action=buzzes                 -> {buzzes:[{from,t}]} (consumed on read)
+// POST {action:"buzz", to}            -> attention ping (1 per 5s per pair)
 // POST {action:"audio", to, kind:"clip"|"live", audio:"data:audio/...;base64,..."}  (<= 1 MB)
 import { storeChatImage } from "../_shared/msgimg.js";
 import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
@@ -64,6 +66,12 @@ export const onRequestGet = wrap(async ({ request, env }) => {
     const o = await env.DB.prepare("SELECT to_name AS name, status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND status IN ('pending','no') ORDER BY t DESC").bind(my).all();
     return json({ partners: (r.results || []).map((x) => x.name), outgoing: o.results || [] });
   }
+  if (a === "buzzes") {
+    const now = Date.now();
+    const r = await env.DB.prepare("SELECT from_name AS \"from\", MAX(t) AS t FROM chat_buzz WHERE to_name = ? COLLATE NOCASE AND t > ? GROUP BY lower(from_name)").bind(my, now - 60e3).all();
+    await env.DB.prepare("DELETE FROM chat_buzz WHERE to_name = ? COLLATE NOCASE OR t < ?").bind(my, now - 60e3).run();
+    return json({ buzzes: r.results || [] });
+  }
   const w = normName(q.get("with"));
   if (!w) throw new HttpError(400, "Who are you chatting with?");
   if (a === "status") return json(await perm(env, my, w));
@@ -115,6 +123,12 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     const id = mid(now);
     await env.DB.prepare("INSERT INTO chat_msgs (id, from_name, to_name, kind, body, t) VALUES (?, ?, ?, ?, ?, ?)").bind(id, my, to, kind, body, now).run();
     return json({ ok: true, id }, 201);
+  }
+  if (b.action === "buzz") {
+    const last = await env.DB.prepare("SELECT MAX(t) AS t FROM chat_buzz WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(my, to).first();
+    if (last && last.t && now - last.t < 5000) throw new HttpError(429, "Easy - wait a few seconds before buzzing again.");
+    await env.DB.prepare("INSERT INTO chat_buzz (from_name, to_name, t) VALUES (?, ?, ?)").bind(my, to, now).run();
+    return json({ ok: true });
   }
   if (b.action === "audio") {
     const m = /^data:(audio\/[a-z0-9.+-]+)(?:;[^,;]*)*;base64,([A-Za-z0-9+/=]+)$/.exec(String(b.audio || ""));

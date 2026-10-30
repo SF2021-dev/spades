@@ -25,6 +25,10 @@ button:hover{background:#2a1608}
 .note{color:#fbe646;font-size:15px;margin:8px 0}
 .hide{display:none!important}
 .live{color:#ff5c5c;font-weight:700}
+@keyframes dsbuzz{0%,100%{transform:translate(0)}10%,50%,90%{transform:translate(-8px,2px)}30%,70%{transform:translate(8px,-2px)}}
+#chat.buzzing{animation:dsbuzz .5s 3;box-shadow:0 0 0 4px #f3bf56,0 0 30px #f3bf56;border-radius:10px}
+#buzzBanner{position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:9999;background:#2a1405;color:#f3bf56;border:3px solid #f3bf56;border-radius:12px;padding:12px 24px;font:bold 24px 'Comic Sans MS','Comic Sans',cursive;transition:top .3s;box-shadow:0 6px 24px #000}
+#buzzBanner.on{top:16px}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
 </style></head><body>
 <div class="card">
@@ -115,7 +119,8 @@ function loadPartners(){
   }).catch(function(){});
 }
 function afterLogin(){
-  loadPending(); loadPartners(); setInterval(loadPending, 15000);
+  loadPending(); loadPartners(); setInterval(loadPending, 15000); setInterval(checkBuzz, 2000); checkBuzz(); addBuzzBtn();
+  if (/[?&]buzzed=1/.test(location.search)) setTimeout(function(){ buzzFx(new URLSearchParams(location.search).get("to")); }, 600);
   var to = new URLSearchParams(location.search).get("to");
   if (to) { $("rname").value = to; pick(to); } else { show($("pick"), true); $("rname").focus(); }
 }
@@ -189,6 +194,44 @@ function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, titl
     .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
   post:function(t, img, imgUrl){ var b = sendBody(); b.action = "send"; b.kind = "text"; b.body = t; if (img) b.image = img; if (imgUrl) b.imageUrl = imgUrl; return api(null, b); } }; }
 function render(){}
+
+// ---- buzz ----
+var buzzSnd = new Audio("/buzz.wav?v=1"); buzzSnd.preload = "auto";
+function addBuzzBtn(){
+  var iv = setInterval(function(){
+    var t = $("mb-tools"); if (!t || $("buzzBtn")) return; clearInterval(iv);
+    var b = document.createElement("button"); b.id = "buzzBtn"; b.type = "button"; b.textContent = "🔔 Buzz"; b.title = "Buzz them: plays a sound and pops this chat up on their screen";
+    b.style.cssText = "font:bold 15px 'Comic Sans MS','Comic Sans',cursive;background:#f3bf56;color:#3a1a00;border:2px solid #cb972e;border-radius:8px;padding:2px 10px;cursor:pointer;margin-left:auto";
+    b.onclick = function(){ if (!WITH || b.disabled) return; b.disabled = true; var o = b.textContent; b.textContent = "Buzzing…";
+      api(null, {action:"buzz", to:WITH}).then(function(){ b.textContent = "Buzzed!"; }).catch(function(e){ b.textContent = e.status === 429 ? "Wait…" : "Can't buzz"; })
+        .then(function(){ setTimeout(function(){ b.textContent = o; b.disabled = false; }, 5000); }); };
+    t.appendChild(b);
+  }, 300);
+}
+function checkBuzz(){
+  api("action=buzzes").then(function(j){ var z = (j.buzzes || [])[0]; if (!z) return;
+    playBuzz();
+    if (!WITH || WITH.toLowerCase() !== String(z.from).toLowerCase()) { location.href = "/chat?to=" + encodeURIComponent(z.from) + "&buzzed=1"; return; }
+    buzzFx(z.from);
+  }).catch(function(){});
+}
+function playBuzz(){
+  try { buzzSnd.currentTime = 0; var p = buzzSnd.play(); if (p && p.catch) p.catch(beep); } catch(e){ beep(); }
+}
+function beep(){ try { var C = window.AudioContext || window.webkitAudioContext, c = new C();
+  [880,1320,880,1320].forEach(function(f,i){ var o = c.createOscillator(), g = c.createGain(); o.type = "square"; o.frequency.value = f; g.gain.value = .08; o.connect(g); g.connect(c.destination); o.start(c.currentTime + i*.16); o.stop(c.currentTime + i*.16 + .12); }); } catch(e){} }
+var titleIv = null, baseTitle = document.title;
+function buzzFx(from){
+  playBuzz(); try { window.focus(); } catch(e){}
+  if (window.Notification && Notification.permission === "granted" && document.hidden) { try { var n = new Notification("BUZZ from " + from, {body:"Diamond Spaders private chat", tag:"ds-buzz"}); n.onclick = function(){ window.focus(); n.close(); }; } catch(e){} }
+  var c = $("chat"); c.scrollIntoView({block:"start"}); c.classList.remove("buzzing"); void c.offsetWidth; c.classList.add("buzzing");
+  var bn = $("buzzBanner"); if (!bn) { bn = document.createElement("div"); bn.id = "buzzBanner"; document.body.appendChild(bn); }
+  bn.textContent = "🔔 " + from + " buzzed you!"; bn.className = "on"; setTimeout(function(){ bn.className = ""; }, 4000);
+  clearInterval(titleIv); var k = 0; titleIv = setInterval(function(){ document.title = (k++ % 2) ? baseTitle : "🔔 BUZZ from " + from + "!"; if (k > 20 && !document.hidden) { clearInterval(titleIv); document.title = baseTitle; } }, 700);
+  if (/[?&]buzzed=1/.test(location.search)) history.replaceState(null, "", "/chat?to=" + encodeURIComponent(from));
+}
+document.addEventListener("visibilitychange", function(){ if (!document.hidden && titleIv) { setTimeout(function(){ clearInterval(titleIv); titleIv = null; document.title = baseTitle; }, 3000); } });
+document.addEventListener("click", function once(){ document.removeEventListener("click", once); if (window.Notification && Notification.permission === "default") try { Notification.requestPermission(); } catch(e){} });
 
 
 start();

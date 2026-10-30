@@ -264,24 +264,43 @@
     v.addEventListener("click", close); document.addEventListener("keydown", esc);
     document.body.appendChild(v);
   }
-  function addUnsend(d, m){   // red X on my latest message: hover (or tap the message on touch) to show, click to remove for everyone
+  function addUnsend(d, m){   // hover ⋮ on a message: menu with Copy and Delete
+    if (d.querySelector(".mb-unsend")) return;
     d.classList.add("mb-delx"); d.tabIndex = 0;
-    var x = document.createElement("button"); x.type = "button"; x.className = "mb-unsend"; x.textContent = "\u2715";
-    x.title = "Delete this message"; x.setAttribute("aria-label", "Delete this message");
-    x.addEventListener("click", function(ev){
-      ev.stopPropagation(); if (x.disabled) return; x.disabled = true;
+    var x = document.createElement("button"); x.type = "button"; x.className = "mb-unsend"; x.textContent = "\u22EE";
+    x.title = "Options"; x.setAttribute("aria-label", "Message options");
+    var mn = document.createElement("div"); mn.className = "mb-mmenu";
+    var cp = document.createElement("button"); cp.type = "button"; cp.textContent = "Copy";
+    var dl = document.createElement("button"); dl.type = "button"; dl.textContent = "Delete";
+    mn.appendChild(cp); mn.appendChild(dl);
+    function closeAll(){ document.querySelectorAll(".mb-msg.mb-mopen").forEach(function(o){ o.classList.remove("mb-mopen"); }); }
+    x.addEventListener("click", function(ev){ ev.stopPropagation(); var o = d.classList.contains("mb-mopen"); closeAll(); if (!o) d.classList.add("mb-mopen"); });
+    mn.addEventListener("click", function(ev){ ev.stopPropagation(); });
+    cp.addEventListener("click", function(){
+      var im = d.querySelector("img:not(.mb-ava)"); var txt = im ? im.src : String(m.message || "");
+      if (!im) { var c = d.cloneNode(true); c.querySelectorAll(".mb-unsend,.mb-mmenu,.mb-name,.mb-time").forEach(function(e){ e.remove(); }); var tt = (c.innerText || c.textContent || "").trim(); if (tt && /<|&/.test(txt)) txt = tt; }
+      function done(){ cp.textContent = "Copied"; setTimeout(function(){ cp.textContent = "Copy"; closeAll(); }, 700); }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, fb); else fb();
+      function fb(){ var ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch(e){} ta.remove(); done(); }
+    });
+    dl.addEventListener("click", function(){
+      if (dl.disabled) return; dl.disabled = true;
       AD.del(m.id).then(function(){
         msgs = msgs.filter(function(o){ return o.id !== m.id; }); render(msgs);
-      }).catch(function(e){ x.disabled = false; alert("Couldn't delete: " + ((e && e.message) || e)); });
+      }).catch(function(e){ dl.disabled = false; alert("Couldn't delete: " + ((e && e.message) || e)); });
     });
     d.addEventListener("click", function(){ d.classList.toggle("mb-tap"); });
-    d.appendChild(x);
+    d.appendChild(x); d.appendChild(mn);
   }
+  if (!window._mbMenuDoc) { window._mbMenuDoc = 1; document.addEventListener("click", function(){ document.querySelectorAll(".mb-msg.mb-mopen").forEach(function(o){ o.classList.remove("mb-mopen"); }); }); }
   (function(){ var s = document.createElement("style"); s.textContent =
     ".mb-msg.mb-delx{position:relative;padding-right:34px}" +
-    ".mb-unsend{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:0;background:#d11;color:#fff;font:700 15px/28px Arial,sans-serif;padding:0;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .12s;box-shadow:0 1px 3px rgba(0,0,0,.4)}" +
-    ".mb-msg.mb-delx:hover .mb-unsend,.mb-msg.mb-delx:focus-within .mb-unsend,.mb-msg.mb-delx.mb-tap .mb-unsend{opacity:1;pointer-events:auto}" +
-    ".mb-unsend:hover{background:#f22}.mb-unsend:disabled{opacity:.5!important}";
+    ".mb-unsend{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:24px;height:28px;border-radius:6px;border:0;background:rgba(0,0,0,.55);color:#fff;font:700 18px/28px Arial,sans-serif;padding:0;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .12s}" +
+    ".mb-msg.mb-delx:hover .mb-unsend,.mb-msg.mb-delx:focus-within .mb-unsend,.mb-msg.mb-delx.mb-tap .mb-unsend,.mb-msg.mb-mopen .mb-unsend{opacity:1;pointer-events:auto}" +
+    ".mb-mmenu{display:none;position:absolute;right:0;top:100%;z-index:50;background:#222;border:1px solid #555;border-radius:6px;box-shadow:0 3px 10px rgba(0,0,0,.5);min-width:90px;overflow:hidden}" +
+    ".mb-msg.mb-mopen .mb-mmenu{display:block}" +
+    ".mb-mmenu button{display:block;width:100%;text-align:left;background:none;border:0;color:#eee;font:14px Arial,sans-serif;padding:7px 12px;cursor:pointer}" +
+    ".mb-mmenu button:hover{background:#3a3a3a}.mb-mmenu button:disabled{opacity:.5}";
     document.head.appendChild(s); })();
   function render(list){
     var el = document.getElementById("mb-msgs");

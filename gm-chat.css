@@ -74,3 +74,8 @@ body.gm-dm #ds-chatbox .mb-from{display:none}
  body.gm .card>*:not(#gm-side){grid-column:1}
  #ds-chatbox .mb-msg{max-width:85%}
 }
+/* request rows: red X on hover deletes the request */
+.gm-req{position:relative}
+.gm-req .gm-x{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:none;width:26px;height:26px;border:0;border-radius:50%;background:#d93025;color:#fff;font:bold 18px/26px sans-serif;cursor:pointer;padding:0}
+.gm-req:hover .gm-x,.gm-req .gm-x:focus{display:block}
+.gm-req .gm-x:hover{background:#b3261e}

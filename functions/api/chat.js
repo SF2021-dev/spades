@@ -15,6 +15,7 @@ import { storeChatImage, deleteImage } from "../_shared/msgimg.js";
 import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
 import { normName, tokenName } from "../_shared/pins.js";
 import { known, ROSTER } from "../_shared/chatnames.js";
+import { findMember } from "../_shared/standings.js";
 const MAX_AUDIO = 1024 * 1024, MAX_TXT = 1000;
 
 async function me(env, request) {
@@ -111,6 +112,16 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     const w = normName(b.with); if (!w) throw new HttpError(400, "Who?");
     await env.DB.prepare("DELETE FROM chat_perms WHERE (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE) OR (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE)").bind(my, w, w, my).run();
     return json({ ok: true });
+  }
+  if (b.action === "cancel") {   // withdraw/delete my own outgoing request (pending or declined)
+    const w = normName(b.to || b.with); if (!w) throw new HttpError(400, "Who?");
+    await env.DB.prepare("DELETE FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE AND status != 'ok'").bind(my, w).run();
+    return json({ ok: true });
+  }
+  if (b.action === "request") {   // only players listed on the MyLeague standings pages
+    const sm = await findMember(normName(b.to));
+    if (sm === null) throw new HttpError(503, "Couldn't reach the Diamond Spaders standings to check that name. Try again in a minute.");
+    if (!sm) throw new HttpError(404, "\"" + normName(b.to) + "\" isn't on the Diamond Spaders standings, so you can't send a chat request to that name.");
   }
   const to = await known(env, normName(b.to));
   if (!to) throw new HttpError(404, "No player by that name.");

@@ -13,6 +13,14 @@
     return '<a class="gm-row' + (sel ? ' sel' : '') + '" href="' + href + '"><span class="gm-av" data-av="' + esc(avName) + '">' + esc((name || "?").charAt(0).toUpperCase()) + '</span>' +
       '<span class="gm-tx"><div class="gm-nm">' + esc(name) + '</div>' + (snip ? '<div class="gm-sn">' + esc(snip) + '</div>' : '') + '</span>' + (time ? '<span class="gm-tm">' + esc(time) + '</span>' : '') + '</a>';
   }
+  function reqRow(name, html){ return '<div class="gm-req">' + html + '<button type="button" class="gm-x" title="Delete request" aria-label="Delete request" data-cancel="' + esc(name) + '">&times;</button></div>'; }
+  side.addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest(".gm-x"); if (!b) return; e.preventDefault(); e.stopPropagation();
+    var n = b.getAttribute("data-cancel"); b.disabled = true;
+    fetch("/api/chat", {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"}, body: JSON.stringify({action:"cancel", to:n})})
+      .then(function(r){ if (!r.ok) throw 0; var w = b.closest(".gm-req"); if (w) w.remove(); if (n.toLowerCase() === selTo) location.href = "/chat"; else load(); })
+      .catch(function(){ b.disabled = false; alert("Couldn't delete that request."); });
+  });
   function avatars(){
     side.querySelectorAll(".gm-av[data-av]").forEach(function(s){ var n = s.dataset.av; s.removeAttribute("data-av"); if (!n) return;
       var im = new Image(); im.alt = ""; im.onload = function(){ s.textContent = ""; s.appendChild(im); }; im.src = "/" + encodeURIComponent(n) + "-ava.png"; });
@@ -30,7 +38,7 @@
     }) : get("/api/chat?action=partners").then(function(j){
       var ps = (j.partners || []).slice().sort(az), out = (j.outgoing || []).slice().sort(function(a, b){ return az(a.name, b.name); });
       return '<div class="gm-sec">Players</div>' + (ps.length ? ps.map(function(n){ return row("/chat?to=" + encodeURIComponent(n), n, n, "", "", n.toLowerCase() === selTo); }).join("") : '<div class="gm-empty">Nobody yet &mdash; Start chat to ask someone.</div>') +
-        (out.length ? '<div class="gm-sec">Your requests</div>' + out.map(function(o){ return row("/chat?to=" + encodeURIComponent(o.name), o.name, o.name, o.status === "no" ? "declined" : "waiting for approval", "", o.name.toLowerCase() === selTo); }).join("") : "");
+        (out.length ? '<div class="gm-sec">Your requests</div>' + out.map(function(o){ return reqRow(o.name, row("/chat?to=" + encodeURIComponent(o.name), o.name, o.name, o.status === "no" ? "declined" : "waiting for approval", "", o.name.toLowerCase() === selTo)); }).join("") : "");
     });
     p.then(function(h){ side.innerHTML = head() + h; avatars(); }).catch(function(){ side.innerHTML = head(); });
   }

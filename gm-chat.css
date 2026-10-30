@@ -123,3 +123,9 @@ body.gm-dm #pick{display:none!important}
 body.gm #ds-chatbox .mb-rich .mb-tawrap textarea,body.gm #ds-chatbox .mb-rich #mb-text{color:transparent !important;caret-color:#e3e3e3 !important}
 .gm-ct .gm-blk{background:#5f6368;color:#fff;border:0}
 .gm-ct.asking .gm-blk{display:none}
+
+/* 2026-10-30: tools hidden behind a + toggle */
+#gm-plus{flex:none;width:36px;height:36px;border-radius:50% !important;border:0 !important;padding:0 !important;background:#3c3c3c !important;color:#e3e3e3 !important;font:400 26px/36px Arial,sans-serif !important;cursor:pointer;order:-2;transition:transform .15s}
+#ds-chatbox .mb-compose:not(.gm-tools-on) .mb-tools{display:none !important}
+#ds-chatbox .mb-compose.gm-tools-on #gm-plus{transform:rotate(45deg)}
+#ds-chatbox .mb-tawrap{min-width:60px !important}

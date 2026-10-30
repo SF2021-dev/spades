@@ -78,6 +78,10 @@
     var c = document.getElementById("mb-compose"), t = document.getElementById("mb-tools"), f = document.getElementById("mb-form");
     if (!c || !t || !f) return; clearInterval(iv);
     c.insertBefore(t, c.firstChild);
+    var pl = document.createElement("button"); pl.type = "button"; pl.id = "gm-plus"; pl.title = "More: emoji, color, picture, buzz"; pl.setAttribute("aria-label", "More tools"); pl.setAttribute("aria-expanded", "false"); pl.textContent = "+";
+    pl.addEventListener("mousedown", function(e){ e.preventDefault(); });
+    pl.onclick = function(){ var on = !c.classList.contains("gm-tools-on"); c.classList.toggle("gm-tools-on", on); pl.setAttribute("aria-expanded", on ? "true" : "false"); };
+    c.insertBefore(pl, c.firstChild);
     var s = document.createElement("button"); s.type = "button"; s.id = "gm-send"; s.title = "Send"; s.setAttribute("aria-label", "Send");
     s.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 20.5v-17L22 12z"/></svg>';
     s.onclick = function(){ if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event("submit", {cancelable:true})); };

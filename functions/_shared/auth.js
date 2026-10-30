@@ -93,7 +93,7 @@ export async function sendConfirmation(env, request, user) {
     .bind(await sha256(token), user.id, Date.now() + TOKEN_HOURS * 36e5).run();
   const link = `${new URL(request.url).origin}/api/auth/confirm?token=${token}`;
   if (!env.RESEND_API_KEY) { console.warn("RESEND_API_KEY not set; confirmation email not sent for user", user.id); return { sent: false, reason: "no_provider" }; }
-  const from = env.EMAIL_FROM || "Diamond Spaders <noreply@diamondspaders.online>";
+  const from = env.EMAIL_FROM || "Diamond Spaders <noreply@mail.diamondspaders.online>";
   const html = `<div style="font-family:'Comic Sans MS','Comic Sans',cursive;background:#000;color:#f3bf56;padding:24px;border-radius:10px">
 <h2 style="margin:0 0 12px">Welcome to Diamond Spaders, ${esc(user.username)}!</h2>
 <p>Click below to confirm your email address:</p>

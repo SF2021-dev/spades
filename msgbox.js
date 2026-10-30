@@ -297,7 +297,9 @@
       d.innerHTML = '<div class="mb-line"><span class="mb-who"></span><span class="mb-colon">: </span><span class="mb-body"></span></div>';
       d.querySelector(".mb-who").textContent = m.name;
       if (AD) { d.querySelector(".mb-who").style.display = "none"; d.querySelector(".mb-colon").style.display = "none"; }
-      if (AD && !(savedName && String(m.name).toLowerCase() === String(savedName).toLowerCase())) { var gt = document.createElement("span"); gt.className = "mb-gt"; gt.textContent = "> "; gt.style.cssText = "margin-right:4px;font-weight:bold"; var ln2 = d.querySelector(".mb-line"); ln2.insertBefore(gt, ln2.firstChild); }
+      var mineM = !!(savedName && String(m.name).toLowerCase() === String(savedName).toLowerCase()); d.classList.add(mineM ? "mb-mine" : "mb-in");
+      if (AD && !mineM) { var fr = document.createElement("div"); fr.className = "mb-from"; fr.textContent = m.name; d.insertBefore(fr, d.firstChild); }
+      if (AD && !mineM) { var gt = document.createElement("span"); gt.className = "mb-gt"; gt.textContent = "> "; gt.style.cssText = "margin-right:4px;font-weight:bold"; var ln2 = d.querySelector(".mb-line"); ln2.insertBefore(gt, ln2.firstChild); }
       if (false && AD && m.t) { var tm = document.createElement("span"); tm.className = "mb-time"; tm.style.cssText = "font-size:12px;color:#5c4210;margin-right:6px;-webkit-text-stroke:0;white-space:nowrap"; tm.textContent = new Date(m.t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); var ln = d.querySelector(".mb-line"); ln.insertBefore(tm, ln.firstChild); }
       var pm = /^\[img:([A-Za-z0-9_-]{6,40})\]$/.exec(m.message);
       if (pm) {

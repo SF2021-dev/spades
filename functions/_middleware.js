@@ -3,7 +3,10 @@
 import { currentUser } from "./_shared/auth.js";
 
 const OPEN = [/^\/register(\.html)?\/?$/, /^\/api\/auth\//, /^\/dsaltbanner\.png$/, /^\/gc\.js$/, /^\/api\/count/,
-  /^\/favicon\.ico$/, /^\/fonts\//, /^\/CNAME$/];
+  /^\/favicon\.ico$/, /^\/fonts\//, /^\/CNAME$/,
+  // Public start pages (no login) + the assets they load.
+  /^\/start2?(\.html)?\/?$/, /^\/start2\/(index\.html)?$/, /^\/start2\/icons\//, /^\/icons\//,
+  /^\/startmenu\.js$/, /^\/start-bg\.jpg$/, /^\/bing-today\.jpg$/];
 
 export async function onRequest(ctx) {
   const { request, env, next } = ctx;

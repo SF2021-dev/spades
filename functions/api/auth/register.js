@@ -1,10 +1,15 @@
 import { wrap, readJson, json, HttpError, normEmail, validEmail, validUsername, hashPassword, sendConfirmation, createSession, publicUser } from "../../_shared/auth.js";
 export const onRequestPost = wrap(async ({ request, env }) => {
   const b = await readJson(request);
-  const email = normEmail(b.email), username = String(b.username || "").trim(), password = String(b.password || "");
+  const email = normEmail(b.email), password = String(b.password || "");
+  let username = String(b.username || "").trim();
   if (!validEmail(email)) throw new HttpError(400, "Enter a valid email address.");
   if (!validUsername(username)) throw new HttpError(400, "Username must be 3-20 letters, numbers, _ . or -");
   if (password.length < 8 || password.length > 200) throw new HttpError(400, "Password must be at least 8 characters.");
+  const member = await findMember(username);
+  if (member === null) throw new HttpError(503, "Couldn't reach the Diamond Spaders standings to check your id. Please try again in a minute.");
+  if (!member) throw new HttpError(403, "\"" + username + "\" wasn't found on the Diamond Spaders standings (pages 1-4). Please use the exact id you registered with Diamond Spaders and try again.");
+  username = member;
   const existing = await env.DB.prepare("SELECT id, email, username, verified_at FROM users WHERE email = ?").bind(email).first();
   if (existing) {
     // Don't reveal whether an email is registered; re-send the link if still unverified.
@@ -27,3 +32,21 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     return json({ ok: true, loggedIn: true, user: publicUser(user) }, 201, { "Set-Cookie": await createSession(env, user.id) });
   return json({ ok: true, emailSent: mail.sent, reason: mail.reason, message: mail.sent ? "Check your email for a confirmation link." : "Account created, but the confirmation email could not be sent yet." }, 201);
 });
+
+// Returns canonical member name, false if not found, null if standings unreachable.
+async function findMember(name) {
+  const want = name.toLowerCase(); let ok = 0;
+  const pages = await Promise.all([1,2,3,4].map(async (p) => {
+    try {
+      const r = await fetch("https://www.myleague.com/diamondspaders/standings" + (p > 1 ? "?p=" + p : ""), { headers: { "User-Agent": "Mozilla/5.0 DiamondSpadersOnline" }, cf: { cacheTtl: 600, cacheEverything: true } });
+      if (!r.ok) return ""; ok++; return await r.text();
+    } catch (e) { return ""; }
+  }));
+  if (!ok) return null;
+  for (const html of pages)
+    for (const m of html.matchAll(/\/diamondspaders\/profile\/([^"'?#\/]+)/g)) {
+      const n = decodeURIComponent(m[1]);
+      if (n.toLowerCase() === want) return n;
+    }
+  return false;
+}

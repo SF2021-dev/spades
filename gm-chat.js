@@ -62,7 +62,7 @@
       var fv = {}; (j.favorites || []).forEach(function(n){ fv[n.toLowerCase()] = 1; });
       var ps = (j.partners || []).slice().sort(function(a, b){ var fa = fv[a.toLowerCase()] ? 0 : 1, fb = fv[b.toLowerCase()] ? 0 : 1; return fa - fb || az(a, b); }), out = (j.outgoing || []).slice().sort(function(a, b){ return az(a.name, b.name); });
       return '<div class="gm-sec">Players</div>' + (ps.length ? ps.map(function(n){ return ctRow(n, !!fv[n.toLowerCase()], row("/chat?to=" + encodeURIComponent(n), (fv[n.toLowerCase()] ? "\u2605 " : "") + n, n, "", "", n.toLowerCase() === selTo)); }).join("") : '<div class="gm-empty">Nobody yet &mdash; enter a username above.</div>') +
-        (out.length ? '<div class="gm-sec">Your requests</div>' + out.map(function(o){ return reqRow(o.name, row("/chat?to=" + encodeURIComponent(o.name), o.name, o.name, o.status === "no" ? "declined" : "waiting for approval", "", o.name.toLowerCase() === selTo)); }).join("") : "");
+        (out.length ? '<div class="gm-sec">Your requests</div>' + out.map(function(o){ return reqRow(o.name, row("/chat?to=" + encodeURIComponent(o.name), o.name, o.name, o.status === "no" ? "declined" : "awaiting approval", "", o.name.toLowerCase() === selTo)); }).join("") : "");
     });
     hd.innerHTML = head();
     p.then(function(h){ if (list.querySelector('.gm-ct.asking, .gm-ct:hover .gm-menu')) return; list.innerHTML = h; avatars(); }).catch(function(){});

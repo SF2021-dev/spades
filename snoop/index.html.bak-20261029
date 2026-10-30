@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diamond Spaders — Player tours (last 30 days)</title>
+<style>
+  html, body { margin:0; padding:0; background:#0a0a0a; color:#fbe646; font-family:Arial,Helvetica,sans-serif; }
+  .wrap { max-width:900px; margin:0 auto; padding:0 0 30px; }
+  .banner { width:100%; height:auto; max-height:140px; object-fit:contain; display:block; }
+  h1 { font-size:22px; letter-spacing:.08em; margin:14px 16px 4px; }
+  .sub { color:#c9a227; font-size:13px; margin:0 16px 14px; }
+  form { margin:0 16px 14px; }
+  .row { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:10px; align-items:start; }
+  .als { display:flex; flex-direction:column; gap:6px; }
+  .lbl { font-size:12px; font-weight:800; letter-spacing:.12em; color:#c9a227; margin-bottom:4px; }
+  .als input { font-size:15px; padding:7px 10px; }
+  form button { display:block; margin-top:10px; width:100%; }
+  @media (max-width:560px) { .row { grid-template-columns:1fr; } }
+  .who { color:#c9a227; font-size:12px; }
+  input { width:100%; box-sizing:border-box; min-width:0; font-size:18px; padding:10px 12px; border-radius:8px; border:1px solid #fbe646; background:#161616; color:#fff; }
+  button { font-size:18px; font-weight:800; padding:10px 18px; border-radius:8px; border:0; background:#fbe646; color:#120c08; cursor:pointer; }
+  #out { margin:0 16px; }
+  .total { font-size:20px; font-weight:800; color:#fff; margin:6px 0 12px; }
+  .lg { border:1px solid #444; border-radius:10px; background:#161616; margin-bottom:10px; }
+  .lg summary { cursor:pointer; padding:12px 14px; font-size:17px; font-weight:800; display:flex; justify-content:space-between; gap:10px; }
+  .lg summary b { color:#fff; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  td { padding:6px 14px; border-top:1px solid #2a2a2a; color:#eee; }
+  td a { color:#fbe646; }
+  .muted { color:#c9a227; font-size:14px; }
+  .sugg a { color:#fbe646; margin-right:10px; cursor:pointer; text-decoration:underline; }
+  .home { display:inline-block; margin:18px 16px 0; color:#fbe646; font-weight:800; }
+</style>
+<script data-goatcounter="/api/count" async src="/gc.js"></script><noscript><img src="/api/count?p=/snoop/&noscript=1" alt="" width="1" height="1" style="position:absolute;left:-9999px"></noscript>
+</head>
+<body>
+<div class="wrap">
+<a href="https://diamondspaders.online/"><img class="banner" src="https://diamondspaders.online/dsaltbanner.png" alt="Diamond Spaders"></a>
+<h1>PLAYER TOURS — LAST 30 DAYS</h1>
+<div class="sub" id="range">Loading…</div>
+<form id="f" autocomplete="off">
+  <div class="row">
+    <div><div class="lbl">PLAYER</div><input id="q" list="names" placeholder="Player name" aria-label="Player name" autofocus></div>
+    <div class="als"><div class="lbl">ALIASES</div>
+      <input class="al" list="names" placeholder="Alias 1" aria-label="Alias 1">
+      <input class="al" list="names" placeholder="Alias 2" aria-label="Alias 2">
+      <input class="al" list="names" placeholder="Alias 3" aria-label="Alias 3">
+      <input class="al" list="names" placeholder="Alias 4" aria-label="Alias 4">
+      <input class="al" list="names" placeholder="Alias 5" aria-label="Alias 5">
+    </div>
+  </div>
+  <datalist id="names"></datalist>
+  <button>search</button>
+</form>
+<div id="out"></div>
+<a class="home" href="https://diamondspaders.online/">&larr; Diamond Spaders home</a>
+</div>
+<script>
+(function () {
+  var D = null, out = document.getElementById("out"), q = document.getElementById("q");
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  var MON = ["Jan","Feb","Mar","Apr","May","June","July","Aug","Sept","Oct","Nov","Dec"];
+  function fdate(iso) { var p = iso.split("-"); return MON[+p[1] - 1] + " " + (+p[2]); }
+  function ftime(hm) { var p = hm.split(":"), h = +p[0]; return (h % 12 || 12) + ":" + p[1] + " " + (h >= 12 ? "PM" : "AM"); }
+  var als = Array.prototype.slice.call(document.querySelectorAll(".al"));
+  function names() {
+    var seen = {}, list = [];
+    [q].concat(als).forEach(function (el) { var v = el.value.trim(); if (v && !seen[v.toLowerCase()]) { seen[v.toLowerCase()] = 1; list.push(v); } });
+    return list;
+  }
+  function show() {
+    var list = names();
+    if (!list.length) { out.innerHTML = ""; return; }
+    var qs = "?p=" + encodeURIComponent(list[0]) + list.slice(1).map(function (n) { return "&a=" + encodeURIComponent(n); }).join("");
+    history.replaceState(null, "", qs);
+    var found = [], missing = [], tourWho = {}, tourRec = {};
+    list.forEach(function (n) {
+      var e = D.players[n.toLowerCase()];
+      if (!e) { missing.push(n); return; }
+      found.push(e.n);
+      e.t.forEach(function (i, j) {
+        (tourWho[i] = tourWho[i] || []).push(e.n);
+        if (!tourRec[i] && e.r && e.r[j]) tourRec[i] = e.r[j];   /* same tour twice (aliases) counts once */
+      });
+    });
+    var h = "";
+    if (missing.length) {
+      h += '<div class="muted" style="margin-bottom:8px;">No tours in the last 30 days for: ' + missing.map(esc).join(", ") + "</div>";
+      missing.forEach(function (n) {
+        var key = n.toLowerCase();
+        var near = Object.keys(D.players).filter(function (k) { return k.indexOf(key) >= 0; }).slice(0, 10);
+        if (near.length) h += '<div class="sugg muted" style="margin-bottom:8px;">“' + esc(n) + '” — did you mean: ' + near.map(function (k) { return '<a data-n="' + esc(D.players[k].n) + '" data-for="' + esc(n) + '">' + esc(D.players[k].n) + "</a>"; }).join("") + "</div>";
+      });
+    }
+    var idx = Object.keys(tourWho);
+    if (!found.length) { out.innerHTML = '<div class="total">No tours found.</div>' + h; return; }
+    var by = {};
+    idx.forEach(function (i) { var t = D.tours[i]; (by[t[0]] = by[t[0]] || []).push([t, tourWho[i]]); });
+    var leagues = Object.keys(by).sort(function (a, b) { return by[b].length - by[a].length; });
+    var head = '<div class="total">' + found.map(esc).join(" + ") + ": " + idx.length + " tour" + (idx.length === 1 ? "" : "s") + " in " + leagues.length + " league" + (leagues.length === 1 ? "" : "s") + "</div>";
+    var multi = found.length > 1;
+    var W = 0, Lo = 0;
+    idx.forEach(function (i) { if (tourRec[i]) { W += tourRec[i][0]; Lo += tourRec[i][1]; } });
+    head += '<div class="total" style="margin-top:-6px;">Total: ' + (W + Lo) + " game" + (W + Lo === 1 ? "" : "s") + "</div>";
+    /* per-name breakdown so it is obvious every alias was searched */
+    head += '<div class="muted" style="margin:-6px 0 12px;">Searched ' + list.length + " name" + (list.length === 1 ? "" : "s") + ": "
+      + list.map(function (n) { var e = D.players[n.toLowerCase()]; return e ? esc(e.n) + " <b style=\"color:#fff\">" + e.t.length + "</b>" : esc(n) + " <b style=\"color:#ff8a8a\">not found</b>"; }).join(" · ") + "</div>";
+    leagues.forEach(function (L) {
+      var rows = by[L].slice().sort(function (a, b) { return (b[0][2] + b[0][3]).localeCompare(a[0][2] + a[0][3]); });
+      h += '<details class="lg"><summary><span>' + esc(D.leagues[L] || L) + "</span><b>" + rows.length + "</b></summary><table>";
+      rows.forEach(function (r) {
+        var t = r[0];
+        h += "<tr><td>" + fdate(t[2]) + "</td><td>" + ftime(t[3]) + ' ET</td><td><a href="https://www.myleague.com/' + esc(t[0]) + "/tournament/" + esc(t[1]) + '/" target="_blank">' + esc(t[4] || "tour " + t[1]) + "</a>"
+          + (multi ? ' <span class="who">(' + r[1].map(esc).join(", ") + ")</span>" : "") + "</td></tr>";
+      });
+      h += "</table></details>";
+    });
+    out.innerHTML = head + h;
+  }
+  out.addEventListener("click", function (ev) {
+    var n = ev.target.getAttribute && ev.target.getAttribute("data-n"), f = ev.target.getAttribute && ev.target.getAttribute("data-for");
+    if (!n) return;
+    [q].concat(als).forEach(function (el) { if (el.value.trim().toLowerCase() === (f || "").toLowerCase()) el.value = n; });
+    show();
+  });
+  document.getElementById("f").addEventListener("submit", function (ev) { ev.preventDefault(); if (D) show(); });
+  fetch("/snoop/data.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+    D = d;
+    document.getElementById("range").textContent = fdate(d.from) + " – " + fdate(d.to) + " (ET) · " + Object.keys(d.leagues).length
+      + " leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · counts checked-in tours; games = matches played · updated " + d.updated;
+    var dl = document.getElementById("names");
+    dl.innerHTML = Object.keys(d.players).map(function (k) { return '<option value="' + esc(d.players[k].n) + '">'; }).join("");
+    var sp = new URLSearchParams(location.search), p = sp.get("p");
+    sp.getAll("a").slice(0, 5).forEach(function (a, i) { als[i].value = a; });
+    if (p) q.value = p;
+    if (p || sp.getAll("a").length) show();
+  }).catch(function () { document.getElementById("range").textContent = "Could not load player data."; });
+})();
+</script>
+</body>
+</html>

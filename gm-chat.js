@@ -11,7 +11,7 @@
     ["pending"].forEach(function(i){ var e = document.getElementById(i); if (e) tools.appendChild(e); });
     if (cmp) tools.insertBefore(cmp, tools.firstChild);
     ["notfound", "perr"].forEach(function(i){ var e = document.getElementById(i); if (e) tools.insertBefore(e, cmp ? cmp.nextSibling : null); });
-    var ri = document.getElementById("rname"); if (ri) ri.placeholder = "Start chat: username";
+    var ri = document.getElementById("rname"); if (ri) ri.placeholder = "+ member";
   }
   var qs = new URLSearchParams(location.search), selTo = (qs.get("to") || "").toLowerCase(), selG = qs.get("g") || "";
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }

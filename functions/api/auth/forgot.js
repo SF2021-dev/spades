@@ -17,12 +17,12 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   if (last && last.at > Date.now() - 10 * 60e3) return json(msg);
   const pw = tempPw();
   const from = env.EMAIL_FROM || "Diamond Spaders <noreply@mail.diamondspaders.online>";
-  const login = `${new URL(request.url).origin}/register?login=1`;
+  const login = `${new URL(request.url).origin}/register?login=1`; const change = `${new URL(request.url).origin}/register?pw=1`;
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST", headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from, to: [u.email], subject: "Your Diamond Spaders password",
-      text: `Hi ${u.username},\n\nYour Diamond Spaders password is: ${pw}\n\nLog in at ${login} with your username (${u.username}) and this password.\n\nIf you didn't ask for this, just log in with this password; nobody else received it.`,
-      html: `<div style="font-family:Arial,sans-serif;background:#000;color:#f3bf56;padding:24px;border-radius:10px"><h2 style="margin:0 0 12px">Hi ${esc(u.username)}</h2><p>Your Diamond Spaders password is:</p><p style="font-size:24px;font-weight:700;color:#fff;letter-spacing:2px">${pw}</p><p>Log in at <a style="color:#f3bf56" href="${login}">${login}</a> with username <b>${esc(u.username)}</b> and this password.</p></div>` }),
+      text: `Hi ${u.username},\n\nYour Diamond Spaders password is: ${pw}\n\nLog in at ${login} with your username (${u.username}) and this password. To change it, log in then go to ${change}\n\nIf you didn't ask for this, just log in with this password; nobody else received it.`,
+      html: `<div style="font-family:Arial,sans-serif;background:#000;color:#f3bf56;padding:24px;border-radius:10px"><h2 style="margin:0 0 12px">Hi ${esc(u.username)}</h2><p>Your Diamond Spaders password is:</p><p style="font-size:24px;font-weight:700;color:#fff;letter-spacing:2px">${pw}</p><p>Log in at <a style="color:#f3bf56" href="${login}">${login}</a> with username <b>${esc(u.username)}</b> and this password.</p><p>Want a different one? After logging in, open <a style="color:#f3bf56" href="${change}">${change}</a> and click Change password.</p></div>` }),
   });
   if (!r.ok) { console.error("forgot: resend", r.status, await r.text()); return json(msg); }
   // Only change the password once the email actually went out; mark email verified since they proved inbox access by using it.

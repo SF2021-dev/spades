@@ -41,6 +41,13 @@
     <div style="font-size:18px">Logged in as <span class="who" id="me-name"></span></div>
     <div class="small" id="me-email"></div>
     <div class="msg ok" id="me-msg"></div>
+    <div class="small"><button type="button" class="linkbtn" id="cp-open">Change password</button></div>
+    <form id="cp" class="hide" autocomplete="on">
+      <label for="cp-cur">Current password (or the one we emailed you)</label><input id="cp-cur" type="password" autocomplete="current-password" required>
+      <label for="cp-new">New password (8+ characters)</label><input id="cp-new" type="password" autocomplete="new-password" required minlength="8">
+      <button class="go" type="submit">Save new password</button>
+      <div class="msg" id="cp-msg"></div>
+    </form>
     <button class="go" id="logout">Log out</button>
     <div class="small"><a href="/" onclick="event.preventDefault();goNext()">← Back to Diamond Spaders</a></div>
   </div>
@@ -129,6 +136,11 @@
     say($("li-msg"), "Sending...", true);
     api("forgot", {login:id}).then(function(d){ say($("li-msg"), d.message || d.error || "Sent.", !!d.ok); }, function(){ say($("li-msg"), "Network error. Try again."); });
   };
+  $("cp-open").onclick = function(){ $("cp").className = ""; $("cp-cur").focus(); };
+  $("cp").onsubmit = function(e){
+    e.preventDefault(); var f = this; busy(f, true); say($("cp-msg"), "");
+    api("change", {current:$("cp-cur").value, password:$("cp-new").value}).then(function(d){ busy(f, false); say($("cp-msg"), d.message || d.error || "Error", !!d.ok); if (d.ok) f.reset(); }, function(){ busy(f, false); say($("cp-msg"), "Network error. Try again."); });
+  };
   $("logout").onclick = function(){
     api("logout", {}).then(function(){ $("me-card").className = "card hide"; $("auth-card").className = "card"; tab("login"); });
   };
@@ -136,7 +148,7 @@
   var q = new URLSearchParams(location.search);
   if (q.get("confirm") === "invalid") { tab("login"); say($("li-msg"), "That confirmation link is invalid or expired. Log in to request a new one."); }
   if (q.get("login") !== null) tab("login");
-  api("me").then(function(d){ if (d.user) { showMe(d.user, q.get("confirmed") ? "Email confirmed. You're logged in!" : ""); if (q.get("next")) setTimeout(goNext, 300); } });
+  api("me").then(function(d){ if (d.user) { showMe(d.user, q.get("confirmed") ? "Email confirmed. You're logged in!" : ""); if (q.get("next") && !q.get("pw")) setTimeout(goNext, 300); } });
 })();
 </script>
 </body>

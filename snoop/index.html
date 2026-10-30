@@ -76,7 +76,7 @@
     var qs = "?p=" + encodeURIComponent(list[0]) + list.slice(1).map(function (n) { return "&a=" + encodeURIComponent(n); }).join("");
     history.replaceState(null, "", qs);
     var my = ++seq;
-    out.innerHTML = '<div class="muted">Searching all recorded tours in 6 leagues…</div>';
+    out.innerHTML = '<div class="muted">Searching last 30 days of tours in 6 leagues…</div>';
     fetch("/api/history" + qs).then(function (r) { return r.json(); }).then(function (H) { if (my === seq) render(list, H); })
       .catch(function () { if (my === seq) out.innerHTML = '<div class="total">Could not load tour history — try again.</div>'; });
   }
@@ -132,7 +132,7 @@
   document.getElementById("f").addEventListener("submit", function (ev) { ev.preventDefault(); show(); });
   fetch("/snoop/data.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
     D = d;
-    document.getElementById("range").textContent = "All recorded tours (each league's Ladderbux log) · 6 leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · times = entry time (ET)";
+    document.getElementById("range").textContent = "Tours entered in the last 30 days (each league's Ladderbux log) · 6 leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · times = entry time (ET)";
     var dl = document.getElementById("names");
     dl.innerHTML = Object.keys(d.players).map(function (k) { return '<option value="' + esc(d.players[k].n) + '">'; }).join("");
     var sp = new URLSearchParams(location.search), p = sp.get("p");

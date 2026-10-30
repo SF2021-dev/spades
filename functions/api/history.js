@@ -1,4 +1,4 @@
-// GET /api/history?p=Name&a=Alias... -> every recorded tour (all time) per league, from each league's public Ladderbux log.
+// GET /api/history?p=Name&a=Alias... -> tours entered in the last 30 days per league, from each league's public Ladderbux log.
 import REG from "../../ask/leagues.json";
 const UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120";
 const LEAGUES = { diamondspaders: "Diamond Spaders", hardwood: "Just4Fun", teamtfriends: "Team T Friends", ams: "AMS", dagreathoudini: "da Great Houdini", fantasyspaders: "Fantasy Spaders" };
@@ -23,7 +23,8 @@ async function bux(srv, slug, player) {
     const w = act.match(/Won: ([\d,]+)/); if (w) x.b += +w[1].replace(/,/g, "");
     i += 4;
   }
-  return { name: nm[1], tours: Object.values(tours).filter(x => x.e).map(({ e, ...r }) => r) };
+  const cut = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+  return { name: nm[1], tours: Object.values(tours).filter(x => x.e && x.d >= cut).map(({ e, ...r }) => r) };
 }
 async function buxAny(slug, player) {
   const first = (REG.servers || {})[slug] || "cgi6", order = [first, first === "cgi6" ? "plus2" : "cgi6"];

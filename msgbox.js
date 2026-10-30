@@ -584,7 +584,7 @@
       var b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitem"); b.title = ":" + e[0] + ":"; b.setAttribute("aria-label", e[0]);
       var im = emoImg(e[0]); im.className = ""; im.width = im.height = 32; b.appendChild(im);
       b.addEventListener("mousedown", function(ev){ ev.preventDefault(); });   // don't steal focus from the textarea
-      b.addEventListener("click", function(ev){ ev.preventDefault(); insertEmo(e[0]); });
+      b.addEventListener("click", function(ev){ ev.preventDefault(); insertEmo(e[0]); closePick(); });
       pick.appendChild(b);
     });
     var cr = document.createElement("a"); cr.className = "ep-credit"; cr.href = "https://github.com/jdecked/twemoji"; cr.target = "_blank"; cr.rel = "noopener";

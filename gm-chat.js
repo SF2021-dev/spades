@@ -107,26 +107,34 @@
       cc.classList.remove("gm-tools-on"); if (c !== cc) c.classList.remove("gm-tools-on"); pp.setAttribute("aria-expanded", "false");
     }
     var ct = 0;
-    function collapse(){ clearTimeout(ct); ct = setTimeout(doCollapse, 20); }
-    var emoUsed = false, cpStep = "";
-    function onUse(e){
+    function collapse(){ clearTimeout(ct); ct = setTimeout(doCollapse, 30); }
+    // 2026-10-30 v3: collapse as soon as a tool in the row is tapped (emoji/color/picture/buzz).
+    // Popups are positioned on open, so hiding the row right after does not move them.
+    function onTool(e){
       var t = e.target; if (!t || !t.closest) return;
-      var b = t.closest("button,[role=menuitem],[role=menuitemradio]"); if (!b) return;
-      if (b.closest("#ds-emopick")) { emoUsed = true; collapse(); return; }
-      var cp = b.closest("#ds-colpick"), h = cp && cp.querySelector(".cp-head");
-      if (h && h.textContent.trim().toLowerCase() === "outline") collapse();
+      var cc = document.getElementById("mb-compose"); if (!cc || !cc.classList.contains("gm-tools-on")) return;
+      var tr = document.getElementById("mb-tools");
+      if (tr && tr.contains(t) && t.closest("button,label,[role=button]")) collapse();
     }
-    document.addEventListener("click", onUse, true);
-    document.addEventListener("pointerup", function(e){ if (e.pointerType && e.pointerType !== "mouse") onUse(e); }, true);
-    // popup watcher: emoji picker dismissed after a pick, or color popup closed from the outline step -> collapse
-    var chk = 0;
-    new MutationObserver(function(){
-      var cp = document.getElementById("ds-colpick"), ep = document.getElementById("ds-emopick");
-      if (cp) { var h = cp.querySelector(".cp-head"); cpStep = h ? h.textContent.trim().toLowerCase() : ""; }
-      else if (cpStep) { var was = cpStep; cpStep = ""; clearTimeout(chk); chk = setTimeout(function(){ if (!document.getElementById("ds-colpick") && was === "outline") collapse(); }, 40); }
-      if (!ep && emoUsed) { emoUsed = false; collapse(); }
-    }).observe(document.body, {childList: true});
-    document.addEventListener("change", function(e){ var f = e.target; if (f && f.id === "mb-imgfile" && f.files && f.files.length) collapse(); }, true);
+    document.addEventListener("click", onTool, true);
+    document.addEventListener("change", function(e){ var f = e.target; if (f && f.id === "mb-imgfile") collapse(); }, true);
+    // 2026-10-30 v4: ANY action dismisses the tool row and its pop-ups (emoji, color/outline, picture):
+    // click/tap elsewhere, typing, send, Esc, scroll, focus leaving, tab hidden.
+    function popsOpen(){ return document.getElementById("ds-emopick") || document.getElementById("ds-colpick"); }
+    function closePops(){ if (popsOpen()) document.body.dispatchEvent(new MouseEvent("mousedown", {bubbles:true, cancelable:true})); }
+    function dismissAll(){ closePops(); var cc = document.getElementById("mb-compose"); if (cc && cc.classList.contains("gm-tools-on")) collapse(); }
+    function inUi(t){ return t && t.closest && (t.closest("#ds-emopick,#ds-colpick,#mb-tools,#gm-plus")); }
+    document.addEventListener("pointerdown", function(e){ if (!inUi(e.target)) dismissAll(); }, true);
+    document.addEventListener("keydown", function(e){
+      if (e.key === "Escape") { dismissAll(); return; }
+      if (e.target && e.target.closest && e.target.closest("#ds-emopick,#ds-colpick")) return;
+      if (e.key && (e.key.length === 1 || e.key === "Enter" || e.key === "Backspace" || e.key === "Delete")) dismissAll();
+    }, true);
+    document.addEventListener("submit", function(){ dismissAll(); }, true);
+    window.addEventListener("scroll", function(e){ var t = e.target; if (t && t.closest && t.closest("#ds-emopick,#ds-colpick")) return; dismissAll(); }, true);
+    window.addEventListener("wheel", function(e){ if (!inUi(e.target)) dismissAll(); }, {capture:true, passive:true});
+    window.addEventListener("blur", dismissAll); window.addEventListener("resize", dismissAll);
+    document.addEventListener("visibilitychange", function(){ if (document.hidden) dismissAll(); });
     var s = document.createElement("button"); s.type = "button"; s.id = "gm-send"; s.title = "Send"; s.setAttribute("aria-label", "Send");
     s.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 20.5v-17L22 12z"/></svg>';
     s.onclick = function(){ if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event("submit", {cancelable:true})); };

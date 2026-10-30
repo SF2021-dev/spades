@@ -57,8 +57,8 @@ body.gm-dm #ds-chatbox .mb-from{display:none}
 #ds-chatbox .mb-line:has(.mb-pic){background:transparent !important;padding:0 !important}
 #ds-chatbox .mb-link{color:inherit;text-decoration:underline}
 #ds-chatbox .mb-msg.mb-delx{padding-right:0}
-#ds-chatbox .mb-unsend{position:absolute;left:-30px;right:auto;top:50%;transform:translateY(-50%);width:22px;height:26px;border-radius:6px;background:rgba(0,0,0,.55) !important;color:#fff !important;border:0 !important;padding:0 !important;cursor:pointer;font:700 18px/26px Arial,sans-serif}
-#ds-chatbox .mb-msg.mb-in .mb-unsend{left:auto;right:-30px}
+#ds-chatbox .mb-unsend{position:absolute;left:auto;right:2px;top:2px;transform:none;width:22px;height:22px;border-radius:6px;background:rgba(0,0,0,.55) !important;color:#fff !important;border:0 !important;padding:0 !important;cursor:pointer;font:700 16px/22px Arial,sans-serif}
+#ds-chatbox .mb-msg.mb-delx{padding-right:30px}
 #ds-chatbox .mb-unsend:hover{background:rgba(0,0,0,.8) !important}
 #ds-chatbox .mb-mmenu{left:0;right:auto}
 #ds-chatbox .mb-msg.mb-in .mb-mmenu{left:auto;right:0}

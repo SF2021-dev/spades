@@ -26,15 +26,15 @@
       var im = new Image(); im.alt = ""; im.onload = function(){ s.textContent = ""; s.appendChild(im); }; im.src = "/" + encodeURIComponent(n) + "-ava.png"; });
   }
   function head(){
-    return '<div class="gm-brand"><span>' + (GROUP ? "Group chats" : "Messages") + '</span><a href="' + (GROUP ? "/chat" : "/group-chat") + '">' + (GROUP ? "Private chat" : "Group chats") + ' &raquo;</a></div>' +
-      (GROUP ? '<a class="gm-start" href="/group-chat#new">&#128172; Start group chat</a>' : '<a class="gm-start" href="/chat">&#128172; Start chat</a>');
+    return '<div class="gm-brand"><span>' + (GROUP ? "Folders" : "Messages") + '</span><a href="' + (GROUP ? "/chat" : "/group-chat") + '">' + (GROUP ? "Private chat" : "Folders") + ' &raquo;</a></div>' +
+      (GROUP ? '<a class="gm-start" href="/group-chat#new">&#128172; Create folder</a>' : '<a class="gm-start" href="/chat">&#128172; Start chat</a>');
   }
   function load(){
     var p = GROUP ? get("/api/groupchat?action=rooms").then(function(j){
       var rs = (j.rooms || []).slice().sort(function(a, b){ return az(a.title, b.title); });
-      return '<div class="gm-sec">Group chats</div>' + (rs.length ? rs.map(function(r){
+      return '<div class="gm-sec">Folders</div>' + (rs.length ? rs.map(function(r){
         return row("/group-chat?g=" + encodeURIComponent(r.gid), (r.inviteOnly ? "\u2709 " : "") + (r.hasPassword ? "\uD83D\uDD12 " : "") + r.title, r.owner,
-          "by " + r.owner + " \u00b7 " + r.count + " in chat", ago(r.last), r.gid === selG); }).join("") : '<div class="gm-empty">No group chats yet.</div>');
+          "by " + r.owner + " \u00b7 " + r.count + " in folder", ago(r.last), r.gid === selG); }).join("") : '<div class="gm-empty">No folders yet.</div>');
     }) : get("/api/chat?action=partners").then(function(j){
       var ps = (j.partners || []).slice().sort(az), out = (j.outgoing || []).slice().sort(function(a, b){ return az(a.name, b.name); });
       return '<div class="gm-sec">Players</div>' + (ps.length ? ps.map(function(n){ return row("/chat?to=" + encodeURIComponent(n), n, n, "", "", n.toLowerCase() === selTo); }).join("") : '<div class="gm-empty">Nobody yet &mdash; Start chat to ask someone.</div>') +

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Diamond Spaders - Group Chat</title>
+<title>Diamond Spaders - Folders</title>
 <link rel="icon" href="/diamondspaderslogo.jpg">
 <style>
 @font-face{font-family:'DS Coustard';src:url(/fonts/coustard-400-latin.woff2) format('woff2')}
@@ -32,7 +32,7 @@ button:hover{background:#2a1608}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
 </style><link rel="stylesheet" href="/gm-chat.css?v=1"></head><body>
 <div class="card">
-  <div class="title"><span>Diamond Spaders Group Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
+  <div class="title"><span>Diamond Spaders Folders</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
 
   <!-- step 1: log in with the site account (no PIN) -->
   <div id="login" class="hide">
@@ -43,7 +43,7 @@ button:hover{background:#2a1608}
 
   <!-- lobby: active group chats -->
   <div id="pick" class="hide">
-    <div class="compose" style="margin-bottom:6px"><input id="gtitle" placeholder="Title for a new group chat" maxlength="60"><button id="gnew">+ Create group chat</button></div>
+    <div class="compose" style="margin-bottom:6px"><input id="gtitle" placeholder="Title for a new folder" maxlength="60"><button id="gnew">+ Create folder</button></div>
     <div class="compose" style="margin-bottom:10px;flex-wrap:wrap;align-items:center;gap:8px"><label style="white-space:nowrap"><input type="checkbox" id="ginv" style="flex:none;width:auto"> Invitation only</label><input id="gnames" class="hide" placeholder="Invite players (comma separated)" maxlength="400"><input id="gpw" type="password" autocomplete="new-password" placeholder="Password (optional)" maxlength="60" style="flex:0 0 190px"></div>
     <p class="note" id="perr"></p>
     <div id="rooms" class="rooms"></div>
@@ -53,7 +53,7 @@ button:hover{background:#2a1608}
   <div id="chat" class="hide">
     <p class="note hide" id="waitmsg"></p>
     <div class="compose" id="composer" style="display:block"><div id="ds-chatbox"></div></div>
-    <p class="note" style="font-size:13px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px"><span><a href="/group-chat" style="color:#f3bf56">&laquo; All group chats</a> &middot; <a href="/chat" style="color:#f3bf56">Private chat</a></span><span id="homeslot" style="text-align:center"></span><span style="text-align:right"><button id="gdel" class="hide" style="border-color:#ff5c5c;color:#ff5c5c">Delete this group chat</button></span></p>
+    <p class="note" style="font-size:13px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px"><span><a href="/group-chat" style="color:#f3bf56">&laquo; All folders</a> &middot; <a href="/chat" style="color:#f3bf56">Private chat</a></span><span id="homeslot" style="text-align:center"></span><span style="text-align:right"><button id="gdel" class="hide" style="border-color:#ff5c5c;color:#ff5c5c">Delete this folder</button></span></p>
   </div>
 </div>
 <script>
@@ -88,7 +88,7 @@ function loadRooms(){
   if (!ME) return;
   api("action=rooms").then(function(j){
     var b = $("rooms"); b.innerHTML = "";
-    if (!j.rooms.length) b.innerHTML = "<p class=note>No group chats yet &mdash; create one above.</p>";
+    if (!j.rooms.length) b.innerHTML = "<p class=note>No folders yet &mdash; create one above.</p>";
     j.rooms.forEach(function(r){
       var d = document.createElement("a"); d.className = "room"; d.href = "/group-chat?g=" + encodeURIComponent(r.gid);
       d.innerHTML = "<img alt=''><div><div class=rt>" + (r.inviteOnly ? "&#9993; " : "") + (r.hasPassword ? "&#128274; " : "") + esc(r.title) + "</div><div class=ru>" + esc(r.owner) + "</div><div class=rm>" + r.count + " in chat" + (r.last ? " &middot; " + ago(r.last) : "") + "</div></div>";
@@ -111,7 +111,7 @@ $("gnew").onclick = function(){
 $("ginv").onchange = function(){ show($("gnames"), this.checked); };
 $("gtitle").onkeydown = function(e){ if (e.key === "Enter") $("gnew").click(); };
 $("gdel").onclick = function(){
-  if (!confirm("Delete this group chat and all its messages for everyone?")) return;
+  if (!confirm("Delete this folder and all its messages for everyone?")) return;
   api(null, {action:"delete", gid:GID}).then(function(){ location.href = "/group-chat"; }).catch(function(e){ alert(e.message); });
 };
 
@@ -127,7 +127,7 @@ function openGroup(gid){
   api("action=info&gid=" + encodeURIComponent(gid)).then(function(i){
     document.querySelector(".title span").textContent = i.title + " \u2014 by " + i.owner; show($("gdel"), i.isOwner);
     if (i.status === "member") return go();
-    if (i.status === "denied") return fail("This group chat is invitation only.");
+    if (i.status === "denied") return fail("This folder is invitation only.");
     (function ask(msg){
       var pw = "";
       if (i.hasPassword) { pw = prompt((msg ? msg + "\n" : "") + "Password for \u201c" + i.title + "\u201d:"); if (pw === null) { location.href = "/group-chat"; return; } }
@@ -149,7 +149,7 @@ function tick(){
 
 function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
   var sc = document.createElement("script"); sc.src = "/msgbox.js?v=72"; document.body.appendChild(sc); return true; }
-function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "Chat with " + WITH),
+function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Folder" : "Chat with " + WITH),
   get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
     .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
   post:function(t, img, imgUrl){ var b = sendBody(); b.action = "send"; b.kind = "text"; b.body = t; if (img) b.image = img; if (imgUrl) b.imageUrl = imgUrl; return api(null, b); },

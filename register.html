@@ -129,7 +129,7 @@
   var q = new URLSearchParams(location.search);
   if (q.get("confirm") === "invalid") { tab("login"); say($("li-msg"), "That confirmation link is invalid or expired. Log in to request a new one."); }
   if (q.get("login") !== null) tab("login");
-  api("me").then(function(d){ if (d.user) showMe(d.user, q.get("confirmed") ? "Email confirmed. You're logged in!" : ""); });
+  api("me").then(function(d){ if (d.user) { showMe(d.user, q.get("confirmed") ? "Email confirmed. You're logged in!" : ""); if (q.get("next")) setTimeout(goNext, 300); } });
 })();
 </script>
 </body>

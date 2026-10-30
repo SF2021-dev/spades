@@ -10,6 +10,7 @@
 import { storeChatImage, deleteImage } from "../_shared/msgimg.js";
 import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
 import { normName, tokenName } from "../_shared/pins.js";
+import { canonFn } from "../_shared/standings.js";
 import { known } from "../_shared/chatnames.js";
 const MAX_AUDIO = 1024 * 1024, MAX_TXT = 1000, MAX_MEMBERS = 12;
 async function me(env, request) { let n = await tokenName(env, request);
@@ -56,7 +57,7 @@ export const onRequestGet = wrap(async ({ request, env }) => {
     const { g, st } = await access(env, String(q.get("gid") || ""), my);
     return json({ gid: g.gid, owner: g.owner, status: st, inviteOnly: !!g.inv, hasPassword: !!g.pw, title: g.title || ("Group chat by " + g.owner), isOwner: g.owner.toLowerCase() === my.toLowerCase() });
   }
-  if (a === "me") return json({ name: my });
+  if (a === "me") return json({ name: (await canonFn())(my) });
   if (a === "mine" || a === "pending") {
     const rows = (await env.DB.prepare("SELECT g.gid, g.owner, m.status FROM chat_group_members m JOIN chat_groups g ON g.gid = m.gid WHERE m.name = ? COLLATE NOCASE AND m.status " + (a === "pending" ? "= 'pending'" : "!= 'no'") + " ORDER BY g.t DESC LIMIT 50").bind(my).all()).results || [];
     const out = []; for (const r of rows) out.push({ gid: r.gid, owner: r.owner, myStatus: r.status, members: await members(env, r.gid) });
@@ -66,7 +67,9 @@ export const onRequestGet = wrap(async ({ request, env }) => {
     const gid = String(q.get("gid") || ""); await needMember(env, gid, my);
     const since = Number(q.get("since")) || 0;
     const r = await env.DB.prepare("SELECT id, from_name AS \"from\", kind, body, t FROM chat_msgs WHERE to_name = ? AND t > ? ORDER BY t DESC LIMIT 100").bind("g:" + gid, since).all();
-    return json({ members: await members(env, gid), messages: (r.results || []).reverse() });
+    const C = await canonFn(), mem = await members(env, gid);
+    return json({ members: Array.isArray(mem) ? mem.map((x) => typeof x === "string" ? C(x) : (x && x.name ? { ...x, name: C(x.name) } : x)) : mem,
+      messages: (r.results || []).reverse().map((x) => (x.from ? { ...x, from: C(x.from) } : x.name ? { ...x, name: C(x.name) } : x)) });
   }
   throw new HttpError(400, "Unknown action");
 });

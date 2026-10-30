@@ -15,7 +15,7 @@ import { storeChatImage, deleteImage } from "../_shared/msgimg.js";
 import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
 import { normName, tokenName } from "../_shared/pins.js";
 import { known, ROSTER } from "../_shared/chatnames.js";
-import { findMember } from "../_shared/standings.js";
+import { findMember, canonFn } from "../_shared/standings.js";
 const MAX_AUDIO = 1024 * 1024, MAX_TXT = 1000;
 
 async function me(env, request) {
@@ -53,13 +53,13 @@ export const onRequestGet = wrap(async ({ request, env }) => {
   if (a === "check") {
     const n = normName(q.get("name"));
     if (!n || n.length > 40) throw new HttpError(400, "Name is required.");
-    const k = await known(env, n); return json({ exists: !!k, name: k || n });
+    const k = await known(env, n), C = await canonFn(); return json({ exists: !!k, name: C(k || n) });
   }
   const my = await me(env, request);
-  if (a === "me") return json({ name: my });
+  if (a === "me") return json({ name: (await canonFn())(my) });
   if (a === "pending") {
     const r = await env.DB.prepare("SELECT from_name AS \"from\", t FROM chat_perms WHERE to_name = ? COLLATE NOCASE AND status = 'pending' ORDER BY t").bind(my).all();
-    return json({ requests: r.results || [] });
+    const C = await canonFn(); return json({ requests: (r.results || []).map((x) => ({ ...x, from: C(x.from) })) });
   }
   if (a === "partners") {
     const r = await env.DB.prepare("SELECT CASE WHEN from_name = ? COLLATE NOCASE THEN to_name ELSE from_name END AS name, MAX(t) AS t FROM chat_perms " +
@@ -67,13 +67,13 @@ export const onRequestGet = wrap(async ({ request, env }) => {
     const o = await env.DB.prepare("SELECT to_name AS name, status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND status IN ('pending','no') ORDER BY t DESC").bind(my).all();
     let favs = [];
     try { favs = ((await env.DB.prepare("SELECT name FROM chat_favs WHERE owner = ? COLLATE NOCASE").bind(my).all()).results || []).map((x) => x.name); } catch {}
-    return json({ partners: (r.results || []).map((x) => x.name), outgoing: o.results || [], favorites: favs });
+    const C = await canonFn(); return json({ partners: (r.results || []).map((x) => C(x.name)), outgoing: (o.results || []).map((x) => ({ ...x, name: C(x.name) })), favorites: favs.map(C) });
   }
   if (a === "buzzes") {
     const now = Date.now();
     const r = await env.DB.prepare("SELECT from_name AS \"from\", MAX(t) AS t FROM chat_buzz WHERE to_name = ? COLLATE NOCASE AND t > ? GROUP BY lower(from_name)").bind(my, now - 60e3).all();
     await env.DB.prepare("DELETE FROM chat_buzz WHERE to_name = ? COLLATE NOCASE OR t < ?").bind(my, now - 60e3).run();
-    return json({ buzzes: r.results || [] });
+    const C = await canonFn(); return json({ buzzes: (r.results || []).map((x) => ({ ...x, from: C(x.from) })) });
   }
   const w = normName(q.get("with"));
   if (!w) throw new HttpError(400, "Who are you chatting with?");
@@ -85,7 +85,7 @@ export const onRequestGet = wrap(async ({ request, env }) => {
       "SELECT id, from_name AS \"from\", to_name AS \"to\", kind, body, (audio IS NOT NULL) AS hasAudio, t FROM chat_msgs " +
       "WHERE ((from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE) OR (from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE)) AND t > ? ORDER BY t DESC LIMIT 100"
     ).bind(my, w, w, my, since).all();
-    return json({ messages: (r.results || []).reverse() });
+    const C = await canonFn(); return json({ messages: (r.results || []).reverse().map((x) => ({ ...x, from: C(x.from), to: C(x.to) })) });
   }
   throw new HttpError(400, "Unknown action");
 });
@@ -133,7 +133,8 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     if (sm === null) throw new HttpError(503, "Couldn't reach the Diamond Spaders standings to check that name. Try again in a minute.");
     if (!sm) throw new HttpError(404, "\"" + normName(b.to) + "\" isn't on the Diamond Spaders standings, so you can't send a chat request to that name.");
   }
-  const to = await known(env, normName(b.to));
+  let to = await known(env, normName(b.to));
+  if (to) to = (await canonFn())(to);
   if (!to) throw new HttpError(404, "No player by that name.");
   if (to.toLowerCase() === my.toLowerCase()) throw new HttpError(400, "You can't chat with yourself.");
   if (b.action === "request") {

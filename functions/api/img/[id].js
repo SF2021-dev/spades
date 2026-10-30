@@ -14,6 +14,21 @@ export function toBytes(v) {
 export async function onRequestGet({ params, env }) {
   const id = String(params.id || "");
   if (!/^[A-Za-z0-9_-]{6,40}$/.test(id)) return new Response("Not found", { status: 404 });
+  if (env.IMAGES) {
+    const k = await env.IMAGES.getWithMetadata("img:" + id, "arrayBuffer");
+    if (k && k.value) {
+      const body = new Uint8Array(k.value), md = k.metadata || {};
+      let mime = md.mime;
+      if (!TYPES[mime]) { const r0 = await env.DB.prepare("SELECT mime FROM msg_images WHERE id = ?").bind(id).first(); mime = r0 && r0.mime; }
+      if (!TYPES[mime]) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
+      if (md.bytes && Number(md.bytes) !== body.length) return new Response("Picture incomplete", { status: 500, headers: { "Cache-Control": "no-store" } });
+      return new Response(body, { headers: {
+        "Content-Type": mime, "Content-Length": String(body.length),
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff", "Content-Security-Policy": "default-src 'none'; sandbox",
+        "Content-Disposition": "inline" } });
+    }
+  }
   const r = await env.DB.prepare("SELECT mime, bytes, data FROM msg_images WHERE id = ?").bind(id).first();
   if (!r || !TYPES[r.mime]) return new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });
   const head = toBytes(r.data), want = Number(r.bytes) || head.length;

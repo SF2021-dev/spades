@@ -11,7 +11,7 @@
 // GET ?action=buzzes                 -> {buzzes:[{from,t}]} (consumed on read)
 // POST {action:"buzz", to}            -> attention ping (1 per 5s per pair)
 // POST {action:"audio", to, kind:"clip"|"live", audio:"data:audio/...;base64,..."}  (<= 1 MB)
-import { storeChatImage } from "../_shared/msgimg.js";
+import { storeChatImage, deleteImage } from "../_shared/msgimg.js";
 import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
 import { normName, tokenName } from "../_shared/pins.js";
 import { known, ROSTER } from "../_shared/chatnames.js";
@@ -96,6 +96,7 @@ async function unsendMsg(env, my, id, where, binds) {   // delete my own message
   const pm = /^\[img:([A-Za-z0-9_-]{6,40})\]$/.exec(row.body || "");
   if (pm) st.push(env.DB.prepare("DELETE FROM msg_images WHERE id = ?").bind(pm[1]), env.DB.prepare("DELETE FROM msg_image_chunks WHERE id = ?").bind(pm[1]));
   try { await env.DB.batch(st); } catch (e) { await st[0].run(); }
+  if (pm) await deleteImage(env, pm[1]);
   return json({ ok: true });
 }
 

@@ -20,13 +20,24 @@ export async function fetchGif(u) {
   return { mime: "image/gif", data: b };
 }
 
-// D1 rows top out near 2 MB, so big images are split: first CHUNK bytes in msg_images.data, the rest in msg_image_chunks (id, seq).
-const CHUNK = 1024 * 1024;
-export function imageInserts(env, id, name, mime, data, now, orIgnore) {
-  const st = [env.DB.prepare(`INSERT ${orIgnore ? "OR IGNORE " : ""}INTO msg_images (id, name, mime, bytes, data, t) VALUES (?, ?, ?, ?, ?, ?)`).bind(id, name, mime, data.length, data.length > CHUNK ? data.slice(0, CHUNK) : data, now)];
-  for (let o = CHUNK, i = 1; o < data.length; o += CHUNK, i++)
-    st.push(env.DB.prepare(`INSERT ${orIgnore ? "OR IGNORE " : ""}INTO msg_image_chunks (id, seq, data) VALUES (?, ?, ?)`).bind(id, i, data.slice(o, o + CHUNK)));
-  return st;
+// Images over KV_MIN bytes live whole in KV (env.IMAGES, key "img:<id>"); D1 msg_images keeps a metadata row (data empty).
+// Small images stay in D1. Legacy big images may still be split across msg_images + msg_image_chunks (read path only).
+const CHUNK = 1024 * 1024, KV_MIN = 900 * 1024;
+export async function putImageKV(env, id, mime, data) {
+  if (data.length <= KV_MIN) return false;
+  if (!env.IMAGES) throw new HttpError(503, "Big picture storage isn't available right now. Please try a smaller picture.");
+  try { await env.IMAGES.put("img:" + id, data, { metadata: { mime, bytes: data.length } }); }
+  catch (e) { console.error("KV put failed", id, data.length, e && e.message); throw new HttpError(500, "Couldn't save that picture. Please try again."); }
+  return true;
+}
+export function imageInserts(env, id, name, mime, data, now, orIgnore, inKv) {
+  const ins = `INSERT ${orIgnore ? "OR IGNORE " : ""}`;
+  if (inKv) return [env.DB.prepare(`${ins}INTO msg_images (id, name, mime, bytes, data, t) VALUES (?, ?, ?, ?, ?, ?)`).bind(id, name, mime, data.length, new Uint8Array(0), now)];
+  if (data.length > KV_MIN) throw new HttpError(500, "Big picture storage isn't available right now.");
+  return [env.DB.prepare(`${ins}INTO msg_images (id, name, mime, bytes, data, t) VALUES (?, ?, ?, ?, ?, ?)`).bind(id, name, mime, data.length, data, now)];
+}
+export async function deleteImage(env, id) {
+  if (env.IMAGES) { try { await env.IMAGES.delete("img:" + id); } catch {} }
 }
 
 export function decodeImage(v) {
@@ -55,6 +66,8 @@ export async function storeChatImage(env, name, b, now) {
   const hour = await env.DB.prepare("SELECT COUNT(*) AS n FROM msg_images WHERE name = ? COLLATE NOCASE AND t > ?").bind(name, now - 3600e3).first();
   if (hour && hour.n >= 20) throw new HttpError(429, "You can post 20 pictures an hour. Please try again later.");
   const id = "c" + now.toString(36) + crypto.randomUUID().replace(/-/g, "").slice(0, 10);
-  await env.DB.batch(imageInserts(env, id, name, img.mime, img.data, now));
+  const inKv = await putImageKV(env, id, img.mime, img.data);
+  try { await env.DB.batch(imageInserts(env, id, name, img.mime, img.data, now, false, inKv)); }
+  catch (e) { if (inKv) await deleteImage(env, id); throw e; }
   return "[img:" + id + "]";
 }

@@ -7,7 +7,7 @@
 // POST {action:"create", names:[...]} -> {gid}
 // POST {action:"answer", gid, ok}
 // POST {action:"send", gid, kind:text|tts, body} / {action:"audio", gid, kind:clip|live, audio}
-import { storeChatImage } from "../_shared/msgimg.js";
+import { storeChatImage, deleteImage } from "../_shared/msgimg.js";
 import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
 import { normName, tokenName } from "../_shared/pins.js";
 import { known } from "../_shared/chatnames.js";
@@ -80,6 +80,7 @@ async function unsendMsg(env, my, id, where, binds) {   // delete my own message
   const pm = /^\[img:([A-Za-z0-9_-]{6,40})\]$/.exec(row.body || "");
   if (pm) st.push(env.DB.prepare("DELETE FROM msg_images WHERE id = ?").bind(pm[1]), env.DB.prepare("DELETE FROM msg_image_chunks WHERE id = ?").bind(pm[1]));
   try { await env.DB.batch(st); } catch (e) { await st[0].run(); }
+  if (pm) await deleteImage(env, pm[1]);
   return json({ ok: true });
 }
 

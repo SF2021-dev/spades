@@ -9,7 +9,7 @@
 //   PIN-gated like text; rate limits: IMG_PER_HOUR per name, IMG_PER_DAY site-wide.
 // Delete an image: also DELETE FROM msg_images WHERE id='...'
 // Delete a message: wr d1 execute diamondspaders-auth --remote --command "DELETE FROM messages WHERE id='...'"
-import { imageInserts } from "../_shared/msgimg.js";
+import { imageInserts, putImageKV } from "../_shared/msgimg.js";
 import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
 import { checkPin, pinRow, tokenName } from "../_shared/pins.js";
 
@@ -102,8 +102,9 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     if (day && day.n >= IMG_PER_DAY) throw new HttpError(429, "Too many pictures today. Please try again tomorrow.");
     const imgId = m.id.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40).padEnd(6, "0");
     m.message = "[img:" + imgId + "]";
+    const inKv = await putImageKV(env, imgId, img.mime, img.data);
     await env.DB.batch([
-      ...imageInserts(env, imgId, m.name, img.mime, img.data, now, true),
+      ...imageInserts(env, imgId, m.name, img.mime, img.data, now, true, inKv),
       env.DB.prepare("INSERT OR IGNORE INTO messages (id, name, message, t) VALUES (?, ?, ?, ?)").bind(m.id, m.name, m.message, m.t),
     ]);
     return json({ ok: true, ids: [m.id], messages: await list(env) }, 201);

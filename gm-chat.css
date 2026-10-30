@@ -79,3 +79,14 @@ body.gm-dm #ds-chatbox .mb-from{display:none}
 .gm-req .gm-x{position:absolute;right:10px;top:50%;transform:translateY(-50%);display:none;width:26px;height:26px;border:0;border-radius:50%;background:#d93025;color:#fff;font:bold 18px/26px sans-serif;cursor:pointer;padding:0}
 .gm-req:hover .gm-x,.gm-req .gm-x:focus{display:block}
 .gm-req .gm-x:hover{background:#b3261e}
+
+/* 2026-10-30: requests at left-top; main pane blank until a chat is picked */
+body.gm-dm #pick>.note,body.gm-dm #partners,body.gm-dm #pending>b+*:empty{display:none!important}
+body.gm-dm #pick{display:none!important}
+#gm-tools{padding:0 14px 8px}
+#gm-tools .compose{display:flex;gap:6px}
+#gm-tools input{font-size:14px;padding:8px 10px;background:#2a2a2a;color:#e3e3e3;border:1px solid #444;border-radius:18px;min-width:0}
+#gm-tools button{font-size:13px;padding:6px 10px;background:#004a77;color:#c2e7ff;border:0;border-radius:16px}
+#gm-tools .panel{margin-top:8px;border-color:#444;color:#e3e3e3;font-size:13px;padding:8px}
+#gm-tools .note{font-size:13px;color:#f28b82;margin:6px 0}
+#gm-tools #pending .req{font-size:13px}

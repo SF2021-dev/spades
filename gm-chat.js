@@ -4,6 +4,15 @@
   document.body.classList.add("gm", GROUP ? "gm-gc" : "gm-dm");
   var card = document.querySelector(".card"); if (!card) return;
   var side = document.createElement("aside"); side.id = "gm-side"; card.insertBefore(side, card.firstChild);
+  side.innerHTML = '<div id="gm-head"></div><div id="gm-tools"></div><div id="gm-list"></div>';
+  var hd = side.querySelector("#gm-head"), tools = side.querySelector("#gm-tools"), list = side.querySelector("#gm-list");
+  if (!GROUP) { // start-chat request box + incoming requests live at the top of the left sidebar
+    var cmp = document.querySelector("#pick .compose");
+    ["pending"].forEach(function(i){ var e = document.getElementById(i); if (e) tools.appendChild(e); });
+    if (cmp) tools.insertBefore(cmp, tools.firstChild);
+    ["notfound", "perr"].forEach(function(i){ var e = document.getElementById(i); if (e) tools.insertBefore(e, cmp ? cmp.nextSibling : null); });
+    var ri = document.getElementById("rname"); if (ri) ri.placeholder = "Start chat: username";
+  }
   var qs = new URLSearchParams(location.search), selTo = (qs.get("to") || "").toLowerCase(), selG = qs.get("g") || "";
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
   function az(a, b){ return a.toLowerCase().localeCompare(b.toLowerCase()); }
@@ -27,7 +36,7 @@
   }
   function head(){
     return '<div class="gm-brand"><span>' + (GROUP ? "Folders" : "Messages") + '</span><a href="' + (GROUP ? "/chat" : "/group-chat") + '">' + (GROUP ? "Private chat" : "Folders") + ' &raquo;</a></div>' +
-      (GROUP ? '<a class="gm-start" href="/group-chat#new">&#128172; Create folder</a>' : '<a class="gm-start" href="/chat">&#128172; Start chat</a>');
+      (GROUP ? '<a class="gm-start" href="/group-chat#new">&#128172; Create folder</a>' : '');
   }
   function load(){
     var p = GROUP ? get("/api/groupchat?action=rooms").then(function(j){
@@ -37,10 +46,11 @@
           "by " + r.owner + " \u00b7 " + r.count + " in folder", ago(r.last), r.gid === selG); }).join("") : '<div class="gm-empty">No folders yet.</div>');
     }) : get("/api/chat?action=partners").then(function(j){
       var ps = (j.partners || []).slice().sort(az), out = (j.outgoing || []).slice().sort(function(a, b){ return az(a.name, b.name); });
-      return '<div class="gm-sec">Players</div>' + (ps.length ? ps.map(function(n){ return row("/chat?to=" + encodeURIComponent(n), n, n, "", "", n.toLowerCase() === selTo); }).join("") : '<div class="gm-empty">Nobody yet &mdash; Start chat to ask someone.</div>') +
+      return '<div class="gm-sec">Players</div>' + (ps.length ? ps.map(function(n){ return row("/chat?to=" + encodeURIComponent(n), n, n, "", "", n.toLowerCase() === selTo); }).join("") : '<div class="gm-empty">Nobody yet &mdash; enter a username above.</div>') +
         (out.length ? '<div class="gm-sec">Your requests</div>' + out.map(function(o){ return reqRow(o.name, row("/chat?to=" + encodeURIComponent(o.name), o.name, o.name, o.status === "no" ? "declined" : "waiting for approval", "", o.name.toLowerCase() === selTo)); }).join("") : "");
     });
-    p.then(function(h){ side.innerHTML = head() + h; avatars(); }).catch(function(){ side.innerHTML = head(); });
+    hd.innerHTML = head();
+    p.then(function(h){ list.innerHTML = h; avatars(); }).catch(function(){});
   }
   load(); setInterval(load, 15000);
   if (GROUP && location.hash === "#new") setTimeout(function(){ var t = document.getElementById("gtitle"); if (t) t.focus(); }, 800);

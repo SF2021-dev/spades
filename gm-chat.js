@@ -44,9 +44,11 @@
       .then(function(r){ if (!r.ok) throw 0; var w = b.closest(".gm-req"); if (w) w.remove(); if (n.toLowerCase() === selTo) location.href = "/chat"; else load(); })
       .catch(function(){ b.disabled = false; alert("Couldn't delete that request."); });
   });
+  var AVM = null, avP = get("/avatars.json?v=2").then(function(m){ AVM = m || {}; }).catch(function(){ AVM = {}; });
   function avatars(){
-    side.querySelectorAll(".gm-av[data-av]").forEach(function(s){ var n = s.dataset.av; s.removeAttribute("data-av"); if (!n) return;
-      var im = new Image(); im.alt = ""; im.onload = function(){ s.textContent = ""; s.appendChild(im); }; im.src = "/" + encodeURIComponent(n) + "-ava.png"; });
+    avP.then(function(){ side.querySelectorAll(".gm-av[data-av]").forEach(function(s){ var n = s.dataset.av; s.removeAttribute("data-av"); if (!n) return;
+      var f = AVM[n.toLowerCase()] || n;
+      var im = new Image(); im.alt = ""; im.onload = function(){ s.textContent = ""; s.appendChild(im); }; im.src = "/" + encodeURIComponent(f) + "-ava.png"; }); });
   }
   function head(){
     return '<div class="gm-brand"><span>' + (GROUP ? "Folders" : "Messages") + '</span>' + (GROUP ? '<a href="/chat">Private chat &raquo;</a>' : '') + '</div>' +

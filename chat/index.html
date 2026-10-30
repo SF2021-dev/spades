@@ -47,7 +47,7 @@ button:hover{background:#2a1608}
   <!-- step 2: recipient -->
   <div id="pick" class="hide">
     <p class="note">Who do you want to message privately?</p>
-    <div class="compose"><span style="position:relative;flex:1;display:flex"><input id="rname" placeholder="+ member" maxlength="40" autocomplete="off" style="flex:1"><div id="rsug" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:#fff;color:#000;border:1px solid #888;border-radius:6px;max-height:260px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.3)"></div></span><button id="rgo">Add</button></div>
+    <div class="compose"><span style="position:relative;flex:1;display:flex"><input id="rname" name="ds-member-q" type="search" placeholder="+ member" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')" value="" style="flex:1"><div id="rsug" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:#fff;color:#000;border:1px solid #888;border-radius:6px;max-height:260px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.3)"></div></span><button id="rgo">Add</button></div>
     <div id="notfound" class="hide panel">
       <span id="nfmsg"></span>
       <button id="nfretry">Enter a different username</button>
@@ -121,7 +121,8 @@ function afterLogin(){
   loadPending(); loadPartners(); setInterval(loadPending, 15000); setInterval(checkBuzz, 2000); checkBuzz(); addBuzzBtn();
   if (/[?&]buzzed=1/.test(location.search)) setTimeout(function(){ buzzFx(new URLSearchParams(location.search).get("to")); }, 600);
   var to = new URLSearchParams(location.search).get("to");
-  if (to) { $("rname").value = to; pick(to); } else { show($("pick"), true); $("rname").focus(); }
+  $("rname").value = "";
+  if (to) { pick(to); } else { show($("pick"), true); }
 }
 
 // ---- recipient ----
@@ -252,6 +253,6 @@ document.addEventListener("click", function once(){ document.removeEventListener
 start();
 })();
 </script>
-<script src="/gm-chat.js?v=4"></script>
+<script src="/gm-chat.js?v=5"></script>
 <script src="/dmvoice.js?v=1"></script>
 </body></html>

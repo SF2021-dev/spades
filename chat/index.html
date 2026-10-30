@@ -61,7 +61,6 @@ button:hover{background:#2a1608}
   <div id="chat" class="hide">
     <p class="note hide" id="waitmsg"></p>
     <div class="compose" id="composer" style="display:block"><div id="ds-chatbox"></div></div>
-    <p class="note" style="font-size:13px"><button type="button" id="closeChat" style="background:linear-gradient(#f3bf56,#c8922a);color:#1a1206;border:1px solid #8a6418;border-radius:6px;padding:5px 12px;font-weight:700;cursor:pointer;">Close chat</button></p>
   </div>
 </div>
 <script>
@@ -174,14 +173,6 @@ function openChat(name, status){
   setStatus(status);
   poll = setInterval(tick, 2000);
 }
-function closeChat(){
-  if (poll) { clearInterval(poll); poll = null; }
-  WITH = ""; window.DS_DM_WITH = ""; window.__dmClosed = 1;
-  show($("chat"), false); show($("pick"), true);
-  history.replaceState(null, "", "/chat");
-  try { loadPending(); loadPartners(); } catch(e){}
-}
-$("closeChat").onclick = closeChat;
 function setStatus(s){
   var ok = s === "ok"; window.DS_DM_WITH = ok ? WITH : "";
   show($("composer"), ok); show($("waitmsg"), !ok);

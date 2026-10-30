@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diamond Spaders - Private Chat</title>
+<link rel="icon" href="/diamondspaderslogo.jpg">
+<style>
+@font-face{font-family:'DS Coustard';src:url(/fonts/coustard-400-latin.woff2) format('woff2')}
+html,body{margin:0;background:#0a0a0a;color:#f3bf56;font-family:'DS Coustard','Clarendon','Century Schoolbook',Georgia,serif}
+.card{max-width:900px;margin:16px auto;background:#000;border:1px solid #f3bf56;border-radius:10px;padding:10px 12px;box-sizing:border-box}
+.title{display:flex;justify-content:space-between;align-items:baseline;font-size:18px;font-weight:700;margin-bottom:8px}
+.title a{color:#f3bf56;text-decoration:none}.title a:hover{text-decoration:underline}
+.msgs{background:#f3bf56;border:1px solid #cb972e;border-radius:8px;padding:10px 12px;min-height:calc(100dvh - 260px);max-height:calc(100dvh - 220px);overflow:auto;margin-bottom:12px}
+.msgs:empty::before{content:'Messages will show here';color:#666;font-size:14px}
+.line{font-size:20px;color:#000;line-height:1.18;padding:3px 0;border-bottom:1px solid #cb972e;overflow-wrap:anywhere;-webkit-text-stroke:.9px currentColor}
+.line:last-child{border-bottom:0}.line b{color:#4a2a00}.line small{font-size:12px;color:#5c4210;-webkit-text-stroke:0}
+.line audio{vertical-align:middle;height:32px;max-width:100%}
+.compose{display:flex;gap:8px;align-items:center;position:relative}
+.compose .who{white-space:nowrap;font-weight:700}
+textarea,input{flex:1;font:inherit;font-size:18px;background:#f3bf56;color:#000;border:1px solid #cb972e;border-radius:8px;padding:8px;resize:none;box-sizing:border-box}
+button{font:inherit;background:#161616;color:#fbe646;border:1px solid #f3bf56;border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover{background:#2a1608}
+.spk{font-size:24px;padding:4px 10px;line-height:1}
+.menu{position:absolute;bottom:52px;right:0;background:#000;border:1px solid #f3bf56;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.panel{border:1px solid #f3bf56;border-radius:8px;padding:10px;margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.note{color:#fbe646;font-size:15px;margin:8px 0}
+.hide{display:none!important}
+.live{color:#ff5c5c;font-weight:700}
+@keyframes dsbuzz{0%,100%{transform:translate(0)}10%,50%,90%{transform:translate(-8px,2px)}30%,70%{transform:translate(8px,-2px)}}
+#chat.buzzing{animation:dsbuzz .5s 3;box-shadow:0 0 0 4px #f3bf56,0 0 30px #f3bf56;border-radius:10px}
+#buzzBanner{position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:9999;background:#2a1405;color:#f3bf56;border:3px solid #f3bf56;border-radius:12px;padding:12px 24px;font:bold 24px 'Comic Sans MS','Comic Sans',cursive;transition:top .3s;box-shadow:0 6px 24px #000}
+#buzzBanner.on{top:16px}
+#pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
+</style><link rel="stylesheet" href="/gm-chat.css?v=12"></head><body>
+<div class="card">
+  <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
+
+  <!-- step 1: log in with the site account (no PIN) -->
+  <div id="login" class="hide">
+    <p class="note">Log in with your Diamond Spaders Online username (or email) and password.</p>
+    <div class="compose"><input id="lname" placeholder="your username" maxlength="40"><input id="lpin" placeholder="password" type="password" autocomplete="current-password" style="flex:0 0 140px"><button id="lgo">Log in</button></div>
+    <p class="note" id="lerr"></p>
+  </div>
+
+  <!-- chat requests waiting for me (shown at login) -->
+  <div id="pending" class="hide panel" style="flex-direction:column;align-items:flex-start"></div>
+
+  <!-- step 2: recipient -->
+  <div id="pick" class="hide">
+    <p class="note">Who do you want to message privately?</p>
+    <div class="compose" id="raddrow" style="margin-left:60px;max-width:calc(100% - 60px);box-sizing:border-box"><span style="position:relative;flex:0 1 150px;min-width:0;display:flex"><input id="rname" name="ds-member-q" type="search" placeholder="+ member" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')" value="" style="flex:1;min-width:0;width:100%"><div id="rsug" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:#fff;color:#000;border:1px solid #888;border-radius:6px;max-height:260px;overflow:auto;box-shadow:0 4px 12px rgba(0,0,0,.3)"></div></span><button id="rgo">Add</button></div>
+    <div id="notfound" class="hide panel">
+      <span id="nfmsg"></span>
+      <button id="nfretry">Enter a different username</button>
+      <button onclick="location.href='/'">Return to Diamond Spaders Online</button>
+    </div>
+    <p class="note" id="perr"></p>
+    <div id="partners" class="panel" style="flex-direction:column;align-items:flex-start"></div>
+  </div>
+
+  <!-- step 3: chat -->
+  <div id="chat" class="hide">
+    <p class="note hide" id="waitmsg"></p>
+    <div class="compose" id="composer" style="display:block"><div id="ds-chatbox"></div></div>
+  </div>
+</div>
+<script>
+(function(){
+var $ = function(i){ return document.getElementById(i); }, show = function(el, on){ el.classList.toggle("hide", !on); };
+var ME = "", WITH = "", since = 0, seen = {}, poll = null;
+function api(q, body){
+  return fetch("/api/chat" + (body ? "" : "?" + q), body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body), credentials:"same-origin"} : {credentials:"same-origin", cache:"no-store"})
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) { var e = new Error(j.error || ("Error " + r.status)); e.status = r.status; throw e; } return j; }); });
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+// ---- login ----
+function start(){
+  api("action=me").then(function(j){ ME = j.name; afterLogin(); }).catch(function(){ show($("login"), true); $("lname").value = localStorage.getItem("ds-mb-name") || ""; });
+}
+$("lgo").onclick = function(){
+  var n = $("lname").value.trim(), p = $("lpin").value.trim(); $("lerr").textContent = "";
+  fetch("/api/auth/login", {method:"POST", headers:{"Content-Type":"application/json"}, credentials:"same-origin", body:JSON.stringify({login:n, password:p, remember:true})})
+    .then(function(r){ return r.json().then(function(j){ if (!r.ok) throw new Error(j.error || "Login failed"); }); })
+    .then(function(){ show($("login"), false); start(); })
+    .catch(function(e){ $("lerr").textContent = e.message; });
+};
+$("lpin").onkeydown = function(e){ if (e.key === "Enter") $("lgo").click(); };
+
+// ---- permission requests waiting for me ("on next login") ----
+function loadPending(){
+  return api("action=pending").then(function(j){
+    var b = $("pending"); b.innerHTML = "";
+    show(b, j.requests.length > 0);
+    if (j.requests.length) b.insertAdjacentHTML("beforeend", "<b>New messages</b>");
+    j.requests.forEach(function(r){
+      var d = document.createElement("div"); d.className = "req";
+      d.innerHTML = "<span><b>" + esc(r.from) + "</b> messaged you. Allow?</span>";
+      [["Y", true], ["N (block)", false]].forEach(function(o){
+        var bt = document.createElement("button"); bt.textContent = o[0];
+        bt.onclick = function(){ api(null, {action:"answer", from:r.from, ok:o[1]}).then(function(){
+          if (o[1]) location.href = "/chat?to=" + encodeURIComponent(r.from); else if (WITH && WITH.toLowerCase() === String(r.from).toLowerCase()) location.href = "/chat"; else { loadPending(); loadPartners(); } }); };
+        d.appendChild(bt);
+      });
+      b.appendChild(d);
+    });
+  }).catch(function(){});
+}
+function loadPartners(){
+  return api("action=partners").then(function(j){
+    var b = $("partners"), h = "<b>People you may chat with privately</b>";
+    if (!j.partners.length) h += "<span style='font-size:14px'>Nobody yet. Enter a username above to ask permission.</span>";
+    j.partners.forEach(function(n){ h += "<div class='req'><a href='/chat?to=" + encodeURIComponent(n) + "' style='color:#f3bf56;font-size:18px'>" + esc(n) + "</a> <button data-rm='" + esc(n) + "' style='font-size:12px;padding:2px 8px'>Remove</button></div>"; });
+    b.innerHTML = h;
+    b.querySelectorAll("button[data-rm]").forEach(function(bt){ bt.onclick = function(){
+      if (!confirm("Remove " + bt.dataset.rm + " from your private chat list? You'd both need to ask again.")) return;
+      api(null, {action:"remove", with:bt.dataset.rm}).then(loadPartners); }; });
+  }).catch(function(){});
+}
+function afterLogin(){
+  loadPending(); loadPartners(); setInterval(loadPending, 15000); setInterval(checkBuzz, 2000); checkBuzz(); addBuzzBtn();
+  if (/[?&]buzzed=1/.test(location.search)) setTimeout(function(){ buzzFx(new URLSearchParams(location.search).get("to")); }, 600);
+  var to = new URLSearchParams(location.search).get("to");
+  $("rname").value = "";
+  if (to) { pick(to); } else { show($("pick"), true); }
+}
+
+// ---- recipient ----
+function pick(n){
+  n = String(n || "").trim(); $("perr").textContent = ""; show($("notfound"), false); show($("pick"), true);
+  if (!n) return;
+  api("action=check&name=" + encodeURIComponent(n)).then(function(j){
+    if (!j.exists) { $("nfmsg").textContent = "\"" + n + "\" isn't on the Diamond Spaders player list."; show($("notfound"), true); return; }
+    return api(null, {action:"request", to:j.name}).then(function(r){ openChat(j.name, r.status); });
+  }).catch(function(e){ $("perr").textContent = e.message; });
+}
+$("rgo").onclick = function(){ pick($("rname").value); };
+var sugT, sugI = -1;
+function sugItems(){ return $("rsug").querySelectorAll("div[data-n]"); }
+function sugHi(){ sugItems().forEach(function(d,i){ d.style.background = i === sugI ? "#cde" : ""; }); }
+function sugHide(){ $("rsug").style.display = "none"; sugI = -1; }
+$("rname").oninput = function(){
+  clearTimeout(sugT); var v = $("rname").value.trim(); if (!v) return sugHide();
+  sugT = setTimeout(function(){
+    api("action=suggest&q=" + encodeURIComponent(v)).then(function(j){
+      if ($("rname").value.trim() !== v) return;
+      var b = $("rsug"); b.innerHTML = ""; sugI = -1;
+      (j.names || []).forEach(function(x){
+        var d = document.createElement("div"); d.dataset.n = x.name; d.style.cssText = "padding:6px 10px;cursor:pointer";
+        d.textContent = x.name; if (x.src === "member") { var s = document.createElement("small"); s.textContent = "  ✓ member"; s.style.color = "#2a7"; d.appendChild(s); }
+        d.onmousedown = function(e){ e.preventDefault(); $("rname").value = x.name; sugHide(); pick(x.name); };
+        b.appendChild(d);
+      });
+      b.style.display = j.names && j.names.length ? "block" : "none";
+    }).catch(sugHide);
+  }, 150);
+};
+$("rname").onblur = function(){ setTimeout(sugHide, 150); };
+$("rname").onkeydown = function(e){
+  var it = sugItems(), open = $("rsug").style.display !== "none" && it.length;
+  if (open && e.key === "ArrowDown") { e.preventDefault(); sugI = (sugI + 1) % it.length; sugHi(); return; }
+  if (open && e.key === "ArrowUp") { e.preventDefault(); sugI = (sugI - 1 + it.length) % it.length; sugHi(); return; }
+  if (e.key === "Escape") return sugHide();
+  if (e.key === "Enter") { if (open && sugI >= 0) $("rname").value = it[sugI].dataset.n; sugHide(); pick($("rname").value); }
+};
+$("nfretry").onclick = function(){ show($("notfound"), false); $("rname").value = ""; $("rname").focus(); };
+
+// ---- chat ----
+function openChat(name, status){
+  if (window.__dmClosed && window.__mbLoaded) { location.href = "/chat?to=" + encodeURIComponent(name); return; }
+  WITH = name; show($("pick"), false); show($("chat"), true);
+  $("withLbl").textContent = "with " + name;
+  history.replaceState(null, "", "/chat?to=" + encodeURIComponent(name));
+  setStatus(status);
+  poll = setInterval(tick, 2000);
+}
+function askAllow(on){   // first message from someone new: Allow? Y / N (N blocks them)
+  var a = $("allowAsk");
+  if (!on) { if (a) a.remove(); return; }
+  if (a) return;
+  a = document.createElement("div"); a.id = "allowAsk"; a.className = "panel"; a.style.cssText = "display:flex;gap:10px;align-items:center;margin:6px 0;flex-wrap:wrap";
+  a.innerHTML = "<span><b>" + esc(WITH) + "</b> messaged you. Allow?</span>";
+  [["Y", true], ["N (block)", false]].forEach(function(o){ var bt = document.createElement("button"); bt.textContent = o[0];
+    bt.onclick = function(){ api(null, {action:"answer", from:WITH, ok:o[1]}).then(function(){ if (o[1]) { a.remove(); loadPending(); } else location.href = "/chat"; }); };
+    a.appendChild(bt); });
+  $("chat").insertBefore(a, $("chat").firstChild);
+}
+function setStatus(s){
+  var ok = s === "ok"; window.DS_DM_WITH = ok ? WITH : "";
+  show($("composer"), ok); show($("waitmsg"), !ok);
+  $("waitmsg").textContent = s === "no" ? "You can't chat with " + WITH + " (blocked)." :
+    "Waiting for " + WITH + " to allow chatting with you. They'll be asked the next time they log in.";
+}
+function tick(){
+  api("action=status&with=" + encodeURIComponent(WITH)).then(function(s){
+    setStatus(s.status); askAllow(!!s.incoming); if (s.status !== "ok") return;
+    loadMB(chatAdapter(function(){ return "action=list&with=" + encodeURIComponent(WITH); }, function(){ return {to:WITH}; })); return;
+    return api("action=list&with=" + encodeURIComponent(WITH) + "&since=" + since).then(function(j){ j.messages.forEach(render); });
+  }).catch(function(){});
+}
+
+function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=75"; document.body.appendChild(sc); return true; }
+function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "\u00a0"),
+  get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
+    .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },
+  post:function(t, img, imgUrl){ var b = sendBody(); b.action = "send"; b.kind = "text"; b.body = t; if (img) b.image = img; if (imgUrl) b.imageUrl = imgUrl; return api(null, b); },
+  delAny:true, del:function(id){ var b = sendBody(); b.action = "unsend"; b.id = id; return api(null, b); } }; }
+function render(){}
+
+// ---- buzz ----
+var buzzSnd = new Audio("/buzz.wav?v=2"); buzzSnd.preload = "auto";
+var buzzClip = new Audio("/buzz-clip.mp3?v=2"); buzzClip.preload = "auto"; var buzzLast = 0;
+function addBuzzBtn(){
+  var iv = setInterval(function(){
+    var t = $("mb-tools"); if (!t || $("buzzBtn")) return; clearInterval(iv);
+    var b = document.createElement("button"); b.id = "buzzBtn"; b.type = "button"; b.textContent = "🔔 Buzz"; b.title = "Buzz them: plays a sound and pops this chat up on their screen";
+    b.style.cssText = "font:bold 15px 'Comic Sans MS','Comic Sans',cursive;background:#f3bf56;color:#3a1a00;border:2px solid #cb972e;border-radius:8px;padding:2px 10px;cursor:pointer;margin-left:auto";
+    b.onclick = function(){ if (!WITH || b.disabled) return; b.disabled = true; var o = b.textContent; b.textContent = "Buzzing…";
+      api(null, {action:"buzz", to:WITH}).then(function(){ b.textContent = "Buzzed!"; }).catch(function(e){ b.textContent = e.status === 429 ? "Wait…" : "Can't buzz"; })
+        .then(function(){ setTimeout(function(){ b.textContent = o; b.disabled = false; }, 5000); }); };
+    t.appendChild(b);
+  }, 300);
+}
+function checkBuzz(){
+  api("action=buzzes").then(function(j){ var z = (j.buzzes || [])[0]; if (!z) return;
+    playBuzz();
+    if (!WITH || WITH.toLowerCase() !== String(z.from).toLowerCase()) { location.href = "/chat?to=" + encodeURIComponent(z.from) + "&buzzed=1"; return; }
+    buzzFx(z.from);
+  }).catch(function(){});
+}
+function playBuzz(){
+  var now = Date.now(); if (now - buzzLast < 800) return; buzzLast = now;
+  try { buzzSnd.onended = null; buzzSnd.pause(); buzzSnd.currentTime = 0; buzzClip.pause(); buzzClip.currentTime = 0; } catch(e){}
+  var done = false;
+  function clip(){ if (done) return; done = true; buzzSnd.onended = null; try { buzzClip.currentTime = 0; var q = buzzClip.play(); if (q && q.catch) q.catch(function(){}); } catch(e){} }
+  buzzSnd.onended = clip;
+  try { var p = buzzSnd.play(); if (p && p.catch) p.catch(function(){ beep(); setTimeout(clip, 700); }); } catch(e){ beep(); setTimeout(clip, 700); }
+}
+function beep(){ try { var C = window.AudioContext || window.webkitAudioContext, c = new C();
+  [880,1320,880,1320].forEach(function(f,i){ var o = c.createOscillator(), g = c.createGain(); o.type = "square"; o.frequency.value = f; g.gain.value = .08; o.connect(g); g.connect(c.destination); o.start(c.currentTime + i*.16); o.stop(c.currentTime + i*.16 + .12); }); } catch(e){} }
+var titleIv = null, baseTitle = document.title;
+function buzzFx(from){
+  playBuzz(); try { window.focus(); } catch(e){}
+  if (window.Notification && Notification.permission === "granted" && document.hidden) { try { var n = new Notification("BUZZ from " + from, {body:"Diamond Spaders private chat", tag:"ds-buzz"}); n.onclick = function(){ window.focus(); n.close(); }; } catch(e){} }
+  var c = $("chat"); c.scrollIntoView({block:"start"}); c.classList.remove("buzzing"); void c.offsetWidth; c.classList.add("buzzing");
+  var bn = $("buzzBanner"); if (!bn) { bn = document.createElement("div"); bn.id = "buzzBanner"; document.body.appendChild(bn); }
+  bn.textContent = "🔔 " + from + " buzzed you!"; bn.className = "on"; setTimeout(function(){ bn.className = ""; }, 4000);
+  clearInterval(titleIv); var k = 0; titleIv = setInterval(function(){ document.title = (k++ % 2) ? baseTitle : "🔔 BUZZ from " + from + "!"; if (k > 20 && !document.hidden) { clearInterval(titleIv); document.title = baseTitle; } }, 700);
+  if (/[?&]buzzed=1/.test(location.search)) history.replaceState(null, "", "/chat?to=" + encodeURIComponent(from));
+}
+document.addEventListener("visibilitychange", function(){ if (!document.hidden && titleIv) { setTimeout(function(){ clearInterval(titleIv); titleIv = null; document.title = baseTitle; }, 3000); } });
+document.addEventListener("click", function once(){ document.removeEventListener("click", once); if (window.Notification && Notification.permission === "default") try { Notification.requestPermission(); } catch(e){} });
+
+
+start();
+})();
+</script>
+<div id="gmClock" style="position:fixed;top:6px;right:10px;font:11px/1.2 ui-monospace,monospace;color:#888;opacity:.75;z-index:9999;pointer-events:none"></div>
+<script>(function(){var e=document.getElementById('gmClock');function f(z){return new Date().toLocaleTimeString('en-US',Object.assign({hour:'numeric',minute:'2-digit'},z?{timeZone:z}:{}))}function u(){e.textContent=f()+' ('+f('America/New_York')+' EST)'}u();setInterval(u,15000)})();</script>
+<button id="dsgear" title="Options" aria-label="Options" style="position:fixed;top:6px;left:8px;z-index:9999;background:none;border:0;font-size:16px;opacity:.55;cursor:pointer;padding:2px">&#9881;</button>
+<a id="dsgc" href="/group-chat" title="group chat" aria-label="group chat" style="position:fixed;top:5px;left:32px;z-index:9999;text-decoration:none;font-size:15px;opacity:.55;padding:2px;line-height:0"><img src="/chat/group-chat-icon.png?v=20261030addbox" alt="group chat" width="16" height="16" style="display:block;width:16px;height:16px;object-fit:contain"></a>
+<style>#dsgc:hover{opacity:.9!important}#dsgc:hover::after{content:"group chat";position:absolute;top:22px;left:0;background:#333;color:#fff;font:11px system-ui;padding:2px 6px;border-radius:4px;white-space:nowrap}</style>
+<div id="dsopts" style="display:none;position:fixed;top:30px;left:8px;z-index:9999;background:#fff;color:#222;border:1px solid #ccc;border-radius:8px;padding:10px 12px;font:14px system-ui;box-shadow:0 4px 14px rgba(0,0,0,.15)">
+<label style="cursor:pointer"><input type="checkbox" id="dsenter"> Enter sends message</label>
+<div style="font-size:12px;opacity:.65;margin-top:4px">When off: Enter = new line, Shift/Ctrl+Enter or the send arrow sends.</div><div style="margin-top:10px">Font <select id="dsfont" style="font-size:13px"><option value="">Default</option><option value='system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'>System</option><option value='Arial,Helvetica,sans-serif'>Arial</option><option value='Verdana,Geneva,sans-serif'>Verdana</option><option value='Tahoma,Geneva,sans-serif'>Tahoma</option><option value='"Trebuchet MS",sans-serif'>Trebuchet MS</option><option value='Georgia,serif'>Georgia</option><option value='"Times New Roman",Times,serif'>Times New Roman</option><option value='"Courier New",Courier,monospace'>Courier New</option><option value='"Comic Sans MS","Comic Sans",cursive'>Comic Sans</option></select></div>
+<div style="margin-top:6px">Size <select id="dssize" style="font-size:13px"><option value="">Default</option><option>12</option><option>13</option><option>14</option><option>16</option><option>18</option><option>20</option><option>22</option><option>24</option></select></div>
+<button id="dsfontreset" style="margin-top:8px;font-size:12px;padding:3px 10px;cursor:pointer">Default font and font size</button></div>
+<style id="dsfontcss"></style>
+<script>(function(){var f=document.getElementById("dsfont"),z=document.getElementById("dssize"),st=document.getElementById("dsfontcss");
+function ap(){var ff=f.value,sz=z.value,c="";var sel="html body #ds-chatbox .mb-line,html body #ds-chatbox .mb-line *,html body #ds-chatbox .mb-tawrap textarea,html body #ds-chatbox .mb-mirror";
+if(ff)c+=sel+"{font-family:"+ff+" !important}";if(sz)c+=sel+"{font-size:"+sz+"px !important}";st.textContent=c;
+try{ff?localStorage.setItem("ds-font",ff):localStorage.removeItem("ds-font");sz?localStorage.setItem("ds-font-size",sz):localStorage.removeItem("ds-font-size")}catch(e){}}
+try{f.value=localStorage.getItem("ds-font")||"";z.value=localStorage.getItem("ds-font-size")||""}catch(e){}
+f.onchange=ap;z.onchange=ap;document.getElementById("dsfontreset").onclick=function(e){e.stopPropagation();f.value="";z.value="";ap()};ap();})();</script>
+<script>(function(){var g=document.getElementById("dsgear"),o=document.getElementById("dsopts"),c=document.getElementById("dsenter");
+try{c.checked=localStorage.getItem("ds-enter-sends")!=="0"}catch(e){c.checked=true}
+c.onchange=function(){try{localStorage.setItem("ds-enter-sends",c.checked?"1":"0")}catch(e){}};
+g.onclick=function(e){e.stopPropagation();o.style.display=o.style.display==="none"?"block":"none"};
+document.addEventListener("click",function(e){if(!o.contains(e.target)&&e.target!==g)o.style.display="none"});})();</script>
+<script src="/gm-chat.js?v=16"></script>
+<script src="/dmvoice.js?v=1"></script>
+<script src="/voice.js?v=3"></script>
+</body></html>

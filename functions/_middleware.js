@@ -2,7 +2,7 @@
 // except the sign-up/login page, the auth API, and the few assets that page uses.
 import { currentUser } from "./_shared/auth.js";
 
-const OPEN = [/^\/admin\/?$/, /^\/register(\.html)?\/?$/, /^\/api\/auth\//, /^\/dsaltbanner\.png$/, /^\/gc\.js$/, /^\/api\/count/,
+const OPEN = [/^\/admin\/?$/, /^\/register(\.html)?\/?$/, /^\/api\/auth\//, /^\/dsaltbanner\.png$/, /^\/gc\.js$/, /^\/chat\/empty-bg\.jpg$/, /^\/api\/count/,
   /^\/favicon\.ico$/, /^\/fonts\//, /^\/CNAME$/,
   // Public start pages (no login) + the assets they load.
   /^\/start2?(\.html)?\/?$/, /^\/start2\/(index\.html)?$/, /^\/start2\/icons\//, /^\/icons\//,

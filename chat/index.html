@@ -292,7 +292,7 @@ document.addEventListener("click",function(e){var sd=document.getElementById("gm
 setInterval(function(){if(!t0)return;if(ready()||Date.now()-t0>15000)dsLoad(false);},150);})();</script>
 <script>(function(){var bg=document.getElementById("emptyBg"),c=document.getElementById("chat");function u(){var sd=document.getElementById("gm-side");var l=0;if(sd&&innerWidth>700){l=sd.getBoundingClientRect().right;}bg.style.left=l+"px";bg.style.display=(c&&!c.classList.contains("hide"))?"none":"block";}if(c)new MutationObserver(u).observe(c,{attributes:true,attributeFilter:["class"]});addEventListener("resize",u);setInterval(u,1000);u();})();</script>
 <style>body>.card,#gm-side{position:relative;z-index:1}#gm-side{z-index:3}</style>
-<script src="/gm-chat.js?v=20261030nextcolon"></script>
+<script src="/gm-chat.js?v=20261030toolhide"></script>
 <script src="/dmvoice.js?v=20261030nextcolon"></script>
 <script src="/voice.js?v=20261030nextcolon"></script>
 </body></html>

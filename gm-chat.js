@@ -101,6 +101,15 @@
     pl.addEventListener("mousedown", function(e){ e.preventDefault(); });
     pl.onclick = function(){ var on = !c.classList.contains("gm-tools-on"); c.classList.toggle("gm-tools-on", on); pl.setAttribute("aria-expanded", on ? "true" : "false"); };
     c.insertBefore(pl, c.firstChild);
+    // after a tool is used (emoji picked, outline/color finished, picture chosen) collapse back to just "+"
+    function collapse(){ setTimeout(function(){ c.classList.remove("gm-tools-on"); pl.setAttribute("aria-expanded", "false"); }, 0); }
+    document.addEventListener("click", function(e){
+      var b = e.target.closest && e.target.closest("button"); if (!b) return;
+      if (b.closest("#ds-emopick")) { collapse(); return; }
+      var cp = b.closest("#ds-colpick"), h = cp && cp.querySelector(".cp-head");
+      if (h && h.textContent === "outline") collapse();
+    }, true);
+    var fi = document.getElementById("mb-imgfile"); if (fi) fi.addEventListener("change", function(){ if (fi.files && fi.files.length) collapse(); });
     var s = document.createElement("button"); s.type = "button"; s.id = "gm-send"; s.title = "Send"; s.setAttribute("aria-label", "Send");
     s.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 20.5v-17L22 12z"/></svg>';
     s.onclick = function(){ if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event("submit", {cancelable:true})); };

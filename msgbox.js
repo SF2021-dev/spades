@@ -736,7 +736,7 @@
     if (!AD && document.getElementById("mb-hp").value) { st.textContent = "Message not sent (form autofill). Please try again."; document.getElementById("mb-hp").value = ""; return; }   // bot filled the honeypot (private chat is login-gated: skip)
     var pin = getPin();
     if (!pin) { sendAfterPin = true; needPin(); return; }
-    sending = true; ta.readOnly = true; st.textContent = "Sending…"; st.dataset.err = "";
+    sending = true; ta.readOnly = true; st.textContent = ""; st.dataset.err = "";
     var entry = {id: Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8), name: name, message: msg, pin: pin === "*" ? "" : pin, t: Date.now()};
     postShared(entry).then(function(list){
       ta.value = ""; syncRuns(); markHint(); grow();

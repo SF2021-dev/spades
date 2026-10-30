@@ -148,7 +148,7 @@ function tick(){
 }
 
 function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
-  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=66"; document.body.appendChild(sc); return true; }
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=67"; document.body.appendChild(sc); return true; }
 function chatAdapter(listQ, sendBody){ return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "Chat with " + WITH),
   get:function(){ return api(listQ() + "&since=0").then(function(j){ return (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; })
     .map(function(m){ return {id:m.id, name:m.from, message:m.body, t:m.t}; }); }); },

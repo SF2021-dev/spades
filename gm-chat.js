@@ -102,14 +102,31 @@
     pl.onclick = function(){ var on = !c.classList.contains("gm-tools-on"); c.classList.toggle("gm-tools-on", on); pl.setAttribute("aria-expanded", on ? "true" : "false"); };
     c.insertBefore(pl, c.firstChild);
     // after a tool is used (emoji picked, outline/color finished, picture chosen) collapse back to just "+"
-    function collapse(){ setTimeout(function(){ c.classList.remove("gm-tools-on"); pl.setAttribute("aria-expanded", "false"); }, 0); }
-    document.addEventListener("click", function(e){
-      var b = e.target.closest && e.target.closest("button"); if (!b) return;
-      if (b.closest("#ds-emopick")) { collapse(); return; }
+    function doCollapse(){
+      var cc = document.getElementById("mb-compose") || c, pp = document.getElementById("gm-plus") || pl;
+      cc.classList.remove("gm-tools-on"); if (c !== cc) c.classList.remove("gm-tools-on"); pp.setAttribute("aria-expanded", "false");
+    }
+    var ct = 0;
+    function collapse(){ clearTimeout(ct); ct = setTimeout(doCollapse, 20); }
+    var emoUsed = false, cpStep = "";
+    function onUse(e){
+      var t = e.target; if (!t || !t.closest) return;
+      var b = t.closest("button,[role=menuitem],[role=menuitemradio]"); if (!b) return;
+      if (b.closest("#ds-emopick")) { emoUsed = true; collapse(); return; }
       var cp = b.closest("#ds-colpick"), h = cp && cp.querySelector(".cp-head");
-      if (h && h.textContent === "outline") collapse();
-    }, true);
-    var fi = document.getElementById("mb-imgfile"); if (fi) fi.addEventListener("change", function(){ if (fi.files && fi.files.length) collapse(); });
+      if (h && h.textContent.trim().toLowerCase() === "outline") collapse();
+    }
+    document.addEventListener("click", onUse, true);
+    document.addEventListener("pointerup", function(e){ if (e.pointerType && e.pointerType !== "mouse") onUse(e); }, true);
+    // popup watcher: emoji picker dismissed after a pick, or color popup closed from the outline step -> collapse
+    var chk = 0;
+    new MutationObserver(function(){
+      var cp = document.getElementById("ds-colpick"), ep = document.getElementById("ds-emopick");
+      if (cp) { var h = cp.querySelector(".cp-head"); cpStep = h ? h.textContent.trim().toLowerCase() : ""; }
+      else if (cpStep) { var was = cpStep; cpStep = ""; clearTimeout(chk); chk = setTimeout(function(){ if (!document.getElementById("ds-colpick") && was === "outline") collapse(); }, 40); }
+      if (!ep && emoUsed) { emoUsed = false; collapse(); }
+    }).observe(document.body, {childList: true});
+    document.addEventListener("change", function(e){ var f = e.target; if (f && f.id === "mb-imgfile" && f.files && f.files.length) collapse(); }, true);
     var s = document.createElement("button"); s.type = "button"; s.id = "gm-send"; s.title = "Send"; s.setAttribute("aria-label", "Send");
     s.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 20.5v-17L22 12z"/></svg>';
     s.onclick = function(){ if (f.requestSubmit) f.requestSubmit(); else f.dispatchEvent(new Event("submit", {cancelable:true})); };

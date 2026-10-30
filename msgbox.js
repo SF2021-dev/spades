@@ -260,10 +260,29 @@
     v.addEventListener("click", close); document.addEventListener("keydown", esc);
     document.body.appendChild(v);
   }
+  function addUnsend(d, m){   // red X on my latest message: hover (or tap the message on touch) to show, click to remove for everyone
+    d.classList.add("mb-mine"); d.tabIndex = 0;
+    var x = document.createElement("button"); x.type = "button"; x.className = "mb-unsend"; x.textContent = "\u2715";
+    x.title = "Delete this message"; x.setAttribute("aria-label", "Delete your last message");
+    x.addEventListener("click", function(ev){
+      ev.stopPropagation(); if (x.disabled) return; x.disabled = true;
+      AD.del(m.id).then(function(){
+        msgs = msgs.filter(function(o){ return o.id !== m.id; }); render(msgs);
+      }).catch(function(e){ x.disabled = false; alert("Couldn't delete: " + ((e && e.message) || e)); });
+    });
+    d.addEventListener("click", function(){ d.classList.toggle("mb-tap"); });
+    d.appendChild(x);
+  }
+  (function(){ var s = document.createElement("style"); s.textContent =
+    ".mb-msg.mb-mine{position:relative;padding-right:34px}" +
+    ".mb-unsend{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:0;background:#d11;color:#fff;font:700 15px/28px Arial,sans-serif;padding:0;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .12s;box-shadow:0 1px 3px rgba(0,0,0,.4)}" +
+    ".mb-msg.mb-mine:hover .mb-unsend,.mb-msg.mb-mine:focus-within .mb-unsend,.mb-msg.mb-mine.mb-tap .mb-unsend{opacity:1;pointer-events:auto}" +
+    ".mb-unsend:hover{background:#f22}.mb-unsend:disabled{opacity:.5!important}";
+    document.head.appendChild(s); })();
   function render(list){
     var el = document.getElementById("mb-msgs");
     var atEnd = !el.childNodes.length || el.scrollHeight - el.scrollTop - el.clientHeight < 40, keep = el.scrollTop;
-    el.innerHTML = "";
+    el.innerHTML = ""; var lastMine = null;
     list.slice().sort(function(a, b){ return (a.t||0) - (b.t||0); }).slice(-SHOW).forEach(function(m){
       var d = document.createElement("div");
       d.className = "mb-msg";
@@ -276,8 +295,10 @@
         im.src = "/api/img/" + pm[1]; im.addEventListener("click", function(){ viewImg(im.src); });
         d.querySelector(".mb-body").appendChild(im);
       } else fillRich(d.querySelector(".mb-body"), m.message);
+      if (AD && AD.del && m.id && savedName && String(m.name).toLowerCase() === String(savedName).toLowerCase()) lastMine = {el: d, m: m};
       el.appendChild(d);
     });
+    if (lastMine) addUnsend(lastMine.el, lastMine.m);
     el.scrollTop = atEnd ? el.scrollHeight : keep;   // newest at the bottom; scroll up for earlier ones
     if (atEnd) Array.prototype.forEach.call(el.querySelectorAll("img"), function(im){ if (!im.complete) im.addEventListener("load", function(){ el.scrollTop = el.scrollHeight; }, {once: true}); });
   }

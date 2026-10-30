@@ -71,6 +71,18 @@ export const onRequestGet = wrap(async ({ request, env }) => {
   throw new HttpError(400, "Unknown action");
 });
 
+
+async function unsendMsg(env, my, id, where, binds) {   // delete my own message (latest only is offered in the UI); also its stored picture
+  id = String(id || "").slice(0, 80);
+  const row = await env.DB.prepare("SELECT id, body FROM chat_msgs WHERE id = ? AND from_name = ? COLLATE NOCASE AND " + where).bind(id, my, ...binds).first();
+  if (!row) throw new HttpError(404, "Message not found (only your own messages can be removed).");
+  const st = [env.DB.prepare("DELETE FROM chat_msgs WHERE id = ?").bind(id)];
+  const pm = /^\[img:([A-Za-z0-9_-]{6,40})\]$/.exec(row.body || "");
+  if (pm) st.push(env.DB.prepare("DELETE FROM msg_images WHERE id = ?").bind(pm[1]), env.DB.prepare("DELETE FROM msg_image_chunks WHERE id = ?").bind(pm[1]));
+  try { await env.DB.batch(st); } catch (e) { await st[0].run(); }
+  return json({ ok: true });
+}
+
 export const onRequestPost = wrap(async ({ request, env }) => {
   const my = await me(env, request), b = await readJson(request) || {}, now = Date.now(); await migrate(env);
   if (b.action === "room") {
@@ -131,6 +143,7 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     return json({ ok: true });
   }
   await needMember(env, gid, my);
+  if (b.action === "unsend") return unsendMsg(env, my, b.id, "to_name = ?", ["g:" + gid]);
   if (b.action === "send") {
     const kind = b.kind === "tts" ? "tts" : "text", isImg = !!(b.image || b.imageUrl);
     let body = String(b.body ?? "").replace(/\r\n?/g, "\n").trim();

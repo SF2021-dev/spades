@@ -66,6 +66,7 @@
       <div class="small note">Keeps you signed in on this device for 30 days. Uncheck on shared or public computers &mdash; you'll be signed out when you close the browser.</div>
       <button class="go" type="submit">Log in</button>
       <div class="msg" id="li-msg"></div>
+      <div class="small"><button type="button" class="linkbtn" id="forgot">Forgot password?</button></div>
       <div class="small hide" id="resend-wrap"><button type="button" class="linkbtn" id="resend">Resend confirmation email</button></div>
     </form>
   </div>
@@ -121,6 +122,12 @@
     var id = $("li-id").value.trim();
     if (id.indexOf("@") < 0) { say($("li-msg"), "Type your email address above, then click Resend."); return; }
     api("resend", {email:id}).then(function(d){ say($("li-msg"), d.message || "Sent.", true); });
+  };
+  $("forgot").onclick = function(){
+    var id = $("li-id").value.trim();
+    if (!id) { say($("li-msg"), "Type your email or username above, then click Forgot password."); $("li-id").focus(); return; }
+    say($("li-msg"), "Sending...", true);
+    api("forgot", {login:id}).then(function(d){ say($("li-msg"), d.message || d.error || "Sent.", !!d.ok); }, function(){ say($("li-msg"), "Network error. Try again."); });
   };
   $("logout").onclick = function(){
     api("logout", {}).then(function(){ $("me-card").className = "card hide"; $("auth-card").className = "card"; tab("login"); });

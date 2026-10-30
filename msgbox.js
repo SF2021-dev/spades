@@ -281,6 +281,10 @@
     document.head.appendChild(s); })();
   function render(list){
     var el = document.getElementById("mb-msgs");
+    // Skip identical re-renders and reuse <img> nodes: recreating them every poll restarted animated GIFs before they finished.
+    var sig = list.map(function(m){ return m.id + "|" + m.t + "|" + m.message; }).join("\n") + "|" + savedName;
+    if (sig === el.__sig && el.childNodes.length) return; el.__sig = sig;
+    var oldPics = {}; Array.prototype.forEach.call(el.querySelectorAll("img.mb-pic"), function(o){ oldPics[o.getAttribute("src")] = o; });
     var atEnd = !el.childNodes.length || el.scrollHeight - el.scrollTop - el.clientHeight < 40, keep = el.scrollTop;
     el.innerHTML = ""; var lastMine = null;
     list.slice().sort(function(a, b){ return (a.t||0) - (b.t||0); }).slice(-SHOW).forEach(function(m){
@@ -291,8 +295,9 @@
       if (AD && m.t) { var tm = document.createElement("span"); tm.className = "mb-time"; tm.style.cssText = "font-size:12px;color:#5c4210;margin-right:6px;-webkit-text-stroke:0;white-space:nowrap"; tm.textContent = new Date(m.t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); var ln = d.querySelector(".mb-line"); ln.insertBefore(tm, ln.firstChild); }
       var pm = /^\[img:([A-Za-z0-9_-]{6,40})\]$/.exec(m.message);
       if (pm) {
-        var im = document.createElement("img"); im.className = "mb-pic"; im.alt = "picture from " + m.name; im.loading = "lazy";
-        im.src = "/api/img/" + pm[1]; im.addEventListener("click", function(){ viewImg(im.src); });
+        var src = "/api/img/" + pm[1], im = oldPics[src];
+        if (!im) { im = document.createElement("img"); im.className = "mb-pic"; im.alt = "picture from " + m.name; im.loading = "lazy";
+          im.src = src; im.addEventListener("click", function(){ viewImg(im.src); }); }
         d.querySelector(".mb-body").appendChild(im);
       } else fillRich(d.querySelector(".mb-body"), m.message);
       if (AD && AD.del && m.id && savedName && String(m.name).toLowerCase() === String(savedName).toLowerCase()) lastMine = {el: d, m: m};

@@ -40,3 +40,4 @@ $("dsvj").onclick=function(){
 window.addEventListener("pagehide",function(){if(on)navigator.sendBeacon&&navigator.sendBeacon("/api/dmvoice",new Blob([JSON.stringify({action:"leave",with:WITH})],{type:"application/json"}));});
 setInterval(function(){var n=W();$("dsvw").textContent=n;w.style.display=n?"block":"none";if(on&&n!==WITH)$("dsvj").onclick();},1000);
 })();
+;(function(){var s=document.createElement("style");s.textContent="#dsva{display:none!important}";document.head.appendChild(s)})();

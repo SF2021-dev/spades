@@ -147,6 +147,21 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     return json({ ok: true });
   }
   await needMember(env, gid, my);
+  if (b.action === "invite") {
+    const { found, missing } = await check(env, (Array.isArray(b.names) ? b.names : []).slice(0, MAX_MEMBERS));
+    if (missing.length) throw new HttpError(404, "Not found: " + missing.join(", "));
+    const t0 = Date.now(); for (const [i, n] of found.entries()) { if (n.toLowerCase() === my.toLowerCase()) continue;
+      await env.DB.prepare("INSERT OR IGNORE INTO chat_group_members (gid, name, status, t) VALUES (?, ?, 'pending', ?)").bind(gid, n, t0 + i).run();
+      await env.DB.prepare("UPDATE chat_group_members SET status='pending' WHERE gid = ? AND name = ? COLLATE NOCASE AND status = 'no'").bind(gid, n).run(); }
+    return json({ ok: true });
+  }
+  if (b.action === "kick") {
+    const g = await env.DB.prepare("SELECT owner FROM chat_groups WHERE gid = ?").bind(gid).first();
+    if (!g || g.owner.toLowerCase() !== my.toLowerCase()) throw new HttpError(403, "Only the creator can remove members.");
+    const n = normName(String(b.name || "")); if (!n || n.toLowerCase() === my.toLowerCase()) throw new HttpError(400, "Can't remove that member.");
+    await env.DB.prepare("DELETE FROM chat_group_members WHERE gid = ? AND name = ? COLLATE NOCASE").bind(gid, n).run();
+    return json({ ok: true });
+  }
   if (b.action === "unsend") return unsendMsg(env, my, b.id, "to_name = ?", ["g:" + gid]);
   if (b.action === "send") {
     const kind = b.kind === "tts" ? "tts" : "text", isImg = !!(b.image || b.imageUrl);

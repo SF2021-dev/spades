@@ -25,8 +25,28 @@
       '<span class="gm-tx"><div class="gm-nm">' + esc(name) + '</div>' + (snip ? '<div class="gm-sn">' + esc(snip) + '</div>' : '') + '</span>' + (time ? '<span class="gm-tm">' + esc(time) + '</span>' : '') + '</a>';
   }
   function reqRow(name, html){ return '<div class="gm-req">' + html + '<button type="button" class="gm-x" title="Delete request" aria-label="Delete request" data-cancel="' + esc(name) + '">&times;</button></div>'; }
-  function ctRow(n, fav, html){ return '<div class="gm-ct" data-n="' + esc(n) + '">' + html + '<div class="gm-menu"><label><input type="checkbox" class="gm-fav"' + (fav ? ' checked' : '') + '> favorite</label><button type="button" class="gm-del">delete</button><button type="button" class="gm-blk">block</button>' +
+  function ctRow(n, fav, html){ return '<div class="gm-ct" data-n="' + esc(n) + '">' + html + '<button type="button" class="gm-dots" title="Options" aria-label="Options">&#8942;</button><div class="gm-menu"><label><input type="checkbox" class="gm-fav"' + (fav ? ' checked' : '') + '> Favorite</label><button type="button" class="gm-addg">add to group chat</button><button type="button" class="gm-newg">new group chat</button><button type="button" class="gm-remg">remove from group chat</button><button type="button" class="gm-del">delete</button><button type="button" class="gm-blk">block</button>' +
     '<span class="gm-sure">Are you sure? <button type="button" class="gm-y">Y</button> <button type="button" class="gm-n">N</button></span></div></div>'; }
+  function gpost(o){ return fetch("/api/groupchat", {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"}, body: JSON.stringify(o)}).then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) throw new Error(j.error || j.message || "Failed"); return j; }); }); }
+  function pickGroup(gs, label){ if (!gs.length) { alert("No group chats to " + label + "."); return null; }
+    var s = prompt("Pick a group chat to " + label + " (number):\n" + gs.map(function(g, i){ return (i + 1) + ". " + (g.title || g.members.map(function(m){ return m.name; }).join(", ")); }).join("\n"), "1");
+    var k = parseInt(s, 10); return k >= 1 && k <= gs.length ? gs[k - 1] : null; }
+  function myGroups(){ return Promise.all([get("/api/groupchat?action=mine"), get("/api/groupchat?action=rooms").catch(function(){ return {rooms:[]}; })]).then(function(a){
+    var tt = {}; (a[1].rooms || []).forEach(function(r){ tt[r.gid] = r.title; }); return (a[0].groups || []).filter(function(g){ return g.myStatus === "ok"; }).map(function(g){ g.title = tt[g.gid]; return g; }); }); }
+  function closeMenus(x){ side.querySelectorAll(".gm-ct.open").forEach(function(c){ if (c !== x) c.classList.remove("open", "asking"); }); }
+  document.addEventListener("click", function(e){ if (!(e.target.closest && e.target.closest(".gm-ct"))) closeMenus(null); });
+  side.addEventListener("click", function(e){
+    var t = e.target, ct = t.closest && t.closest(".gm-ct"); if (!ct) return; var n = ct.getAttribute("data-n");
+    if (t.classList.contains("gm-dots")) { e.preventDefault(); e.stopPropagation(); closeMenus(ct); ct.classList.toggle("open"); ct.classList.remove("asking"); return; }
+    if (t.classList.contains("gm-addg")) { e.preventDefault(); ct.classList.remove("open"); myGroups().then(function(gs){ var g = pickGroup(gs, "add " + n + " to"); if (!g) return;
+      return gpost({action:"invite", gid:g.gid, names:[n]}).then(function(){ alert(n + " was invited to the group chat."); }); }).catch(function(er){ alert(er.message || "Couldn't add to group chat."); }); return; }
+    if (t.classList.contains("gm-remg")) { e.preventDefault(); ct.classList.remove("open"); myGroups().then(function(gs){ gs = gs.filter(function(g){ return g.members.some(function(m){ return m.name.toLowerCase() === n.toLowerCase(); }); });
+      var g = pickGroup(gs, "remove " + n + " from"); if (!g) return; return gpost({action:"kick", gid:g.gid, name:n}).then(function(){ alert(n + " was removed from the group chat."); }); }).catch(function(er){ alert(er.message || "Couldn't remove from group chat."); }); return; }
+    if (t.classList.contains("gm-newg")) { e.preventDefault(); ct.classList.remove("open"); var title = prompt("Title for the new group chat with " + n + ":", "Chat with " + n); if (title === null) return;
+      var more = prompt("Add more names (comma-separated, optional):", ""); if (more === null) return;
+      var names = [n].concat(more.split(",").map(function(x){ return x.trim(); }).filter(Boolean));
+      gpost({action:"room", title:title || ("Chat with " + n), inviteOnly:true, names:names}).then(function(r){ location.href = "/group-chat?g=" + r.gid; }).catch(function(er){ alert(er.message || "Couldn't create group chat."); }); return; }
+  });
   function post(o){ return fetch("/api/chat", {method:"POST", credentials:"same-origin", headers:{"Content-Type":"application/json"}, body: JSON.stringify(o)}).then(function(r){ if (!r.ok) throw 0; }); }
   side.addEventListener("change", function(e){ var c = e.target; if (!c.classList || !c.classList.contains("gm-fav")) return;
     var n = c.closest(".gm-ct").getAttribute("data-n"); post({action:"fav", with:n, on:c.checked}).then(load).catch(function(){ alert("Couldn't save favorite."); }); });
@@ -69,7 +89,7 @@
         (out.length ? '<div class="gm-sec">Your requests</div>' + out.map(function(o){ return reqRow(o.name, row("/chat?to=" + encodeURIComponent(o.name), o.name, o.name, o.status === "no" ? "declined" : "awaiting approval", "", o.name.toLowerCase() === selTo)); }).join("") : "");
     });
     hd.innerHTML = head();
-    p.then(function(h){ if (list.querySelector('.gm-ct.asking, .gm-ct:hover .gm-menu')) return; list.innerHTML = h; avatars(); }).catch(function(){});
+    p.then(function(h){ if (list.querySelector('.gm-ct.asking, .gm-ct.open')) return; list.innerHTML = h; avatars(); }).catch(function(){});
   }
   load(); setInterval(load, 15000);
   if (GROUP && location.hash === "#new") setTimeout(function(){ var t = document.getElementById("gtitle"); if (t) t.focus(); }, 800);

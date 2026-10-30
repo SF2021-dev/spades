@@ -30,7 +30,7 @@ button:hover{background:#2a1608}
 #buzzBanner{position:fixed;top:-80px;left:50%;transform:translateX(-50%);z-index:9999;background:#2a1405;color:#f3bf56;border:3px solid #f3bf56;border-radius:12px;padding:12px 24px;font:bold 24px 'Comic Sans MS','Comic Sans',cursive;transition:top .3s;box-shadow:0 6px 24px #000}
 #buzzBanner.on{top:16px}
 #pending .req{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
-</style><link rel="stylesheet" href="/gm-chat.css?v=12"></head><body>
+</style><link rel="stylesheet" href="/gm-chat.css?v=13"></head><body>
 <div class="card">
   <div class="title"><span>Diamond Spaders Private Chat</span><span id="withLbl"></span><a href="/">Diamond Spaders Online &raquo;</a></div>
 
@@ -258,8 +258,6 @@ start();
 <div id="gmClock" style="position:fixed;top:6px;right:10px;font:11px/1.2 ui-monospace,monospace;color:#888;opacity:.75;z-index:9999;pointer-events:none"></div>
 <script>(function(){var e=document.getElementById('gmClock');function f(z){return new Date().toLocaleTimeString('en-US',Object.assign({hour:'numeric',minute:'2-digit'},z?{timeZone:z}:{}))}function u(){e.textContent=f()+' ('+f('America/New_York')+' EST)'}u();setInterval(u,15000)})();</script>
 <button id="dsgear" title="Options" aria-label="Options" style="position:fixed;top:6px;left:8px;z-index:9999;background:none;border:0;font-size:16px;opacity:.55;cursor:pointer;padding:2px">&#9881;</button>
-<a id="dsgc" href="/group-chat" title="group chat" aria-label="group chat" style="position:fixed;top:5px;left:32px;z-index:9999;text-decoration:none;font-size:15px;opacity:.55;padding:2px;line-height:0"><img src="/chat/group-chat-icon.png?v=20261030addbox" alt="group chat" width="16" height="16" style="display:block;width:16px;height:16px;object-fit:contain"></a>
-<style>#dsgc:hover{opacity:.9!important}#dsgc:hover::after{content:"group chat";position:absolute;top:22px;left:0;background:#333;color:#fff;font:11px system-ui;padding:2px 6px;border-radius:4px;white-space:nowrap}</style>
 <div id="dsopts" style="display:none;position:fixed;top:30px;left:8px;z-index:9999;background:#fff;color:#222;border:1px solid #ccc;border-radius:8px;padding:10px 12px;font:14px system-ui;box-shadow:0 4px 14px rgba(0,0,0,.15)">
 <label style="cursor:pointer"><input type="checkbox" id="dsenter"> Enter sends message</label>
 <div style="font-size:12px;opacity:.65;margin-top:4px">When off: Enter = new line, Shift/Ctrl+Enter or the send arrow sends.</div><div style="margin-top:10px">Font <select id="dsfont" style="font-size:13px"><option value="">Default</option><option value='system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'>System</option><option value='Arial,Helvetica,sans-serif'>Arial</option><option value='Verdana,Geneva,sans-serif'>Verdana</option><option value='Tahoma,Geneva,sans-serif'>Tahoma</option><option value='"Trebuchet MS",sans-serif'>Trebuchet MS</option><option value='Georgia,serif'>Georgia</option><option value='"Times New Roman",Times,serif'>Times New Roman</option><option value='"Courier New",Courier,monospace'>Courier New</option><option value='"Comic Sans MS","Comic Sans",cursive'>Comic Sans</option></select></div>
@@ -277,7 +275,7 @@ try{c.checked=localStorage.getItem("ds-enter-sends")!=="0"}catch(e){c.checked=tr
 c.onchange=function(){try{localStorage.setItem("ds-enter-sends",c.checked?"1":"0")}catch(e){}};
 g.onclick=function(e){e.stopPropagation();o.style.display=o.style.display==="none"?"block":"none"};
 document.addEventListener("click",function(e){if(!o.contains(e.target)&&e.target!==g)o.style.display="none"});})();</script>
-<script src="/gm-chat.js?v=16"></script>
+<script src="/gm-chat.js?v=17"></script>
 <script src="/dmvoice.js?v=1"></script>
 <script src="/voice.js?v=3"></script>
 </body></html>

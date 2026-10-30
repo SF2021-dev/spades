@@ -106,7 +106,7 @@ body.gm-dm #pick{display:none!important}
 
 .gm-ct{position:relative}
 .gm-ct .gm-menu{display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:20;background:#2d2d2d;border:1px solid #555;border-radius:10px;padding:6px 10px;gap:10px;align-items:center;font-size:13px;color:#e3e3e3;box-shadow:0 3px 10px rgba(0,0,0,.5)}
-.gm-ct:hover .gm-menu,.gm-ct.asking .gm-menu{display:flex}
+.gm-ct.open .gm-menu,.gm-ct.asking .gm-menu{display:flex}
 .gm-ct .gm-menu label{cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .gm-ct .gm-menu button{font-size:12px;padding:2px 8px;border-radius:6px;cursor:pointer}
 .gm-ct .gm-del{background:#d93025;color:#fff;border:0}
@@ -129,3 +129,12 @@ body.gm #ds-chatbox .mb-rich .mb-tawrap textarea,body.gm #ds-chatbox .mb-rich #m
 #ds-chatbox .mb-compose:not(.gm-tools-on) .mb-tools{display:none !important}
 #ds-chatbox .mb-compose.gm-tools-on #gm-plus{transform:rotate(45deg)}
 #ds-chatbox .mb-tawrap{min-width:60px !important}
+
+.gm-ct .gm-dots{display:none;position:absolute;top:4px;right:6px;z-index:21;background:transparent;border:0;color:#ccc;font-size:16px;line-height:1;padding:2px 6px;border-radius:6px;cursor:pointer}
+.gm-ct:hover .gm-dots,.gm-ct.open .gm-dots{display:block}.gm-ct .gm-dots:hover{background:#3a3a3a}
+.gm-ct .gm-menu{flex-direction:column;align-items:stretch;top:26px;right:6px;transform:none;gap:4px;padding:6px}
+.gm-ct .gm-menu button{text-align:left;background:transparent;color:#e3e3e3;border:0}
+.gm-ct .gm-menu button:hover{background:#3a3a3a}
+.gm-ct .gm-menu .gm-del{color:#ff6b6b;background:transparent}.gm-ct .gm-menu .gm-blk{background:transparent}
+.gm-ct.asking .gm-addg,.gm-ct.asking .gm-newg,.gm-ct.asking .gm-remg{display:none}
+.gm-ct .gm-sure button{display:inline;background:#444!important}

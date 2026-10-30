@@ -1,4 +1,4 @@
-import { wrap, readJson, json, HttpError, normEmail, validEmail, validUsername, hashPassword, sendConfirmation } from "../../_shared/auth.js";
+import { wrap, readJson, json, HttpError, normEmail, validEmail, validUsername, hashPassword, sendConfirmation, createSession, publicUser } from "../../_shared/auth.js";
 export const onRequestPost = wrap(async ({ request, env }) => {
   const b = await readJson(request);
   const email = normEmail(b.email), username = String(b.username || "").trim(), password = String(b.password || "");
@@ -18,5 +18,8 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   const user = await env.DB.prepare("INSERT INTO users (email, username, password_hash, verified_at, created_at) VALUES (?, ?, ?, NULL, ?) RETURNING id, email, username")
     .bind(email, username, hash, Date.now()).first();
   const mail = await sendConfirmation(env, request, user);
+  // No email provider configured yet: log the new account straight in so the site gate doesn't lock people out.
+  if (!mail.sent && mail.reason === "no_provider")
+    return json({ ok: true, loggedIn: true, user: publicUser(user) }, 201, { "Set-Cookie": await createSession(env, user.id) });
   return json({ ok: true, emailSent: mail.sent, reason: mail.reason, message: mail.sent ? "Check your email for a confirmation link." : "Account created, but the confirmation email could not be sent yet." }, 201);
 });

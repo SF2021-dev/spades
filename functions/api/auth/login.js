@@ -5,6 +5,6 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   if (!id || !password) throw new HttpError(400, "Enter your email (or username) and password.");
   const u = await env.DB.prepare("SELECT * FROM users WHERE email = ? OR username = ?").bind(normEmail(id), id).first();
   if (!u || !(await verifyPassword(password, u.password_hash))) throw new HttpError(401, "Wrong email/username or password.");
-  if (!u.verified_at) return json({ error: "Please confirm your email first. Check your inbox for the link.", unverified: true }, 403);
+  if (!u.verified_at && env.RESEND_API_KEY) return json({ error: "Please confirm your email first. Check your inbox for the link.", unverified: true }, 403);
   return json({ ok: true, user: publicUser(u) }, 200, { "Set-Cookie": await createSession(env, u.id) });
 });

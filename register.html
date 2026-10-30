@@ -32,12 +32,14 @@
 <div class="wrap">
   <a href="/"><img class="banner" src="/dsaltbanner.png" alt="Diamond Spaders"></a>
 
+  <div class="card" id="gate-note" style="font-size:16px;line-height:1.4">In respect of privacy concerns involving the new chat features, registration is now required to access Diamond Spaders Online.</div>
+
   <div class="card hide" id="me-card">
     <div style="font-size:18px">Logged in as <span class="who" id="me-name"></span></div>
     <div class="small" id="me-email"></div>
     <div class="msg ok" id="me-msg"></div>
     <button class="go" id="logout">Log out</button>
-    <div class="small"><a href="/">← Back to Diamond Spaders</a></div>
+    <div class="small"><a href="/" onclick="event.preventDefault();goNext()">← Back to Diamond Spaders</a></div>
   </div>
 
   <div class="card" id="auth-card">
@@ -81,13 +83,20 @@
     $("me-card").className = "card"; $("auth-card").className = "card hide";
     try { localStorage.setItem("ds-mb-name", u.username); } catch(e){}
   }
+  window.goNext = goNext;
+  function goNext(){
+    var n = new URLSearchParams(location.search).get("next") || "/";
+    if (n.charAt(0) !== "/" || n.charAt(1) === "/") n = "/";
+    location.href = n;
+  }
   function busy(form, on){ form.querySelector("button[type=submit]").disabled = on; }
 
   $("signup").onsubmit = function(e){
     e.preventDefault(); var f = this; busy(f, true); say($("su-msg"), "");
     api("register", {username:$("su-user").value, email:$("su-email").value, password:$("su-pass").value}).then(function(d){
       busy(f, false);
-      if (d.ok && d.emailSent !== false) { say($("su-msg"), "Check your email! We sent a confirmation link to " + $("su-email").value + ".", true); f.reset(); }
+      if (d.ok && d.loggedIn) { showMe(d.user, "Welcome! Taking you in..."); setTimeout(goNext, 600); }
+      else if (d.ok && d.emailSent !== false) { say($("su-msg"), "Check your email! We sent a confirmation link to " + $("su-email").value + ".", true); f.reset(); }
       else if (d.ok) say($("su-msg"), d.reason === "wait" ? "Check your email for the confirmation link (we just sent one)." : "Account created, but we couldn't send the confirmation email yet. Please try \"Resend\" later.", d.reason === "wait");
       else say($("su-msg"), d.error || "Something went wrong.");
     }, function(){ busy(f, false); say($("su-msg"), "Network error. Try again."); });
@@ -96,7 +105,7 @@
     e.preventDefault(); var f = this; busy(f, true); say($("li-msg"), ""); $("resend-wrap").className = "small hide";
     api("login", {login:$("li-id").value, password:$("li-pass").value}).then(function(d){
       busy(f, false);
-      if (d.ok) showMe(d.user, "Welcome back!");
+      if (d.ok) { showMe(d.user, "Welcome back!"); setTimeout(goNext, 600); }
       else { say($("li-msg"), d.error || "Login failed."); if (d.unverified) $("resend-wrap").className = "small"; }
     }, function(){ busy(f, false); say($("li-msg"), "Network error. Try again."); });
   };

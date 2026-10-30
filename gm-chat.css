@@ -19,7 +19,8 @@ body.gm .card>*:not(#gm-side){grid-column:2;padding:0 20px;box-sizing:border-box
 #gm-side .gm-tm{font-size:12px;color:#9aa0a6;flex:none}
 #gm-side .gm-empty{color:#9aa0a6;font-size:14px;padding:6px 20px}
 body.gm .title{font-size:20px !important;font-weight:500 !important;color:#e3e3e3;padding:16px 20px !important;border-bottom:1px solid #2a2a2a;margin:0 0 8px !important;display:flex;gap:12px;align-items:center}
-body.gm .title>span:first-child{flex:1}
+body.gm .title>span:first-child{flex:0 0 auto}
+body.gm .title>a{margin-left:auto}
 body.gm .title a{color:#8ab4f8 !important;font-size:14px;font-weight:400}
 body.gm #withLbl{color:#9aa0a6;font-size:14px}
 body.gm .note{color:#c4c7c5 !important}

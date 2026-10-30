@@ -273,7 +273,7 @@ document.addEventListener("click", function once(){ document.removeEventListener
 start();
 })();
 </script>
-<div id="gmClock" style="position:fixed;top:6px;right:10px;font:600 12px/1.25 ui-monospace,monospace;color:#c8c8c8;opacity:.95;z-index:9999;pointer-events:none;text-align:right;text-shadow:0 1px 2px #000"><div id="gmClockT"></div><div id="gmNext" style="font-size:11px;color:#aaa;font-weight:500"></div></div>
+<div id="gmClock" style="position:fixed;top:6px;right:10px;font:600 12px/1.25 ui-monospace,monospace;color:#c8c8c8;opacity:.95;z-index:9999;pointer-events:none;text-align:right;text-shadow:0 1px 2px #000"><div id="gmClockT"></div><div id="gmNext"></div></div>
 <script>(function(){var e=document.getElementById('gmClockT'),nx=document.getElementById('gmNext'),T=[];function f(z){return new Date().toLocaleTimeString('en-US',Object.assign({hour:'numeric',minute:'2-digit'},z?{timeZone:z}:{}))}function p(n){return(n<10?'0':'')+n}
 function et(){return new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}))}
 function u(){e.textContent=f()+' ('+f('America/New_York')+' EST)';var n=et(),td=n.getFullYear()+'-'+p(n.getMonth()+1)+'-'+p(n.getDate()),b=null;

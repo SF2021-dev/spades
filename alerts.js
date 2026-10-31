@@ -40,10 +40,10 @@
   css.textContent = "#ds-alert{position:relative;display:inline-block;margin-left:12px;vertical-align:middle;z-index:9999;font-family:Arial,Helvetica,sans-serif;color:#fbe646;text-align:left}"
     + "#ds-alert .ck{display:inline-flex;align-items:center;gap:6px;font-size:16px;font-weight:800;cursor:pointer;padding:0}"
     + "#ds-alert .ck input{position:absolute;opacity:0;width:0;height:0}"
-    + "#ds-alert .sw{position:relative;width:46px;height:24px;border-radius:12px;background:#333;border:2px solid #7a5a00;transition:.2s;flex:0 0 auto}"
-    + "#ds-alert .sw:after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#888;transition:.2s}"
+    + "#ds-alert .sw{position:relative;width:30px;height:16px;border-radius:9px;background:#333;border:1px solid #7a5a00;transition:.2s;flex:0 0 auto}"
+    + "#ds-alert .sw:after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#888;transition:.2s}"
     + "#ds-alert .ck input:checked+.sw{background:#3a2a00;border-color:#fbe646;box-shadow:0 0 8px rgba(251,230,70,.5)}"
-    + "#ds-alert .ck input:checked+.sw:after{left:24px;background:#fbe646}"
+    + "#ds-alert .ck input:checked+.sw:after{left:16px;background:#fbe646}"
     + "#ds-alert .st{font-size:12px;min-width:26px}"
     + "#ds-alert .am{display:none;position:absolute;right:0;top:100%;margin-top:6px;background:#120c08;border:2px solid #fbe646;border-radius:10px;padding:10px 12px;min-width:210px;box-shadow:0 4px 18px #000}"
     + "#ds-alert.open .am{display:block}#ds-alert .am b{font-family:'Cinzel Decorative',Georgia,serif;font-size:14px;display:block;margin-bottom:6px}"
@@ -52,7 +52,7 @@
     + "#ds-alert .cn{font-size:12px;opacity:.8;margin-left:24px}";
   document.head.appendChild(css);
   var w = document.createElement("div"); w.id = "ds-alert";
-  var h = '<label class="ck">alert<input type="checkbox" role="switch" id="ds-alert-btn"><span class="sw"></span><span class="st" id="ds-alert-st">OFF</span></label><div class="am"><b>Alert sound</b>';
+  var h = '<label class="ck">alert<input type="checkbox" role="switch" id="ds-alert-btn"><span class="sw"></span></label><div class="am"><b>Alert sound</b>';
   SOUNDS.forEach(function (s) { h += '<label><input type="radio" name="dsas" value="' + s.id + '">' + s.name + '</label>'; });
   h += '<div class="cn" id="ds-alert-cn"></div><input type="file" id="ds-alert-file" accept="audio/*" style="display:none">'
     + '<div style="font-size:13px;margin-top:6px">Play</div><select id="ds-alert-lead" style="width:100%;background:#2a1608;color:#fbe646;border:1px solid #fbe646;border-radius:6px;padding:3px"><option value="1">1 min before start</option><option value="0">when the next tour starts</option><option value="5">5 min before start</option><option value="10">10 min before start</option></select>'
@@ -67,7 +67,7 @@
   var btn = w.querySelector("#ds-alert-btn"), file = w.querySelector("#ds-alert-file"), vol = w.querySelector("#ds-alert-vol"), lead = w.querySelector("#ds-alert-lead");
   function on() { return get(K_ON, "0") === "1"; }
   function refresh() {
-    btn.checked = on(); w.querySelector("#ds-alert-st").textContent = on() ? "ON" : "OFF";
+    btn.checked = on();
     var cur = get(K_SND, "buzz");
     [].forEach.call(w.querySelectorAll("input[name=dsas]"), function (r) { r.checked = r.value === cur; });
     w.querySelector("#ds-alert-cn").textContent = cur === "custom" ? (get(K_CUS, "") ? (get(K_CUS + "Name", "custom sound")) : "no file chosen") : "";

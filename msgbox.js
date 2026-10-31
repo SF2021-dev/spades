@@ -351,7 +351,7 @@
     '<div class="mb-tools" id="mb-tools">' +
     '<button type="button" class="mb-emobtn" id="mb-emobtn" aria-label="Emoji" aria-haspopup="true" aria-expanded="false" title="Emoji">' +
     '<img src="' + EMO_DIR + 'smile.svg?v=' + EMO_V + '" width="24" height="24" alt=""></button>' +
-    '<button type="button" class="mb-emobtn" id="mb-colbtn" aria-label="Text color and outline" aria-haspopup="true" aria-expanded="false" title="Text color and outline"><span class="mb-ball"></span></button><label class="mb-emobtn" id="mb-imgbtn" for="mb-imgfile" role="button" tabindex="0" aria-label="Upload a picture" title="Upload a picture"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="#fff8e6" stroke="#5a3d00" stroke-width="1.6"/><circle cx="8" cy="9.5" r="2" fill="#f3bf56" stroke="#5a3d00" stroke-width="1"/><path d="M4 18l5.5-6 4 4 2.5-2.5L20 18z" fill="#2e8b57" stroke="#5a3d00" stroke-width="1"/></svg></label><input type="file" id="mb-imgfile" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none" tabindex="-1"></div></div>' +
+    '<label class="mb-emobtn" id="mb-imgbtn" for="mb-imgfile" role="button" tabindex="0" aria-label="Upload a picture" title="Upload a picture"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2" fill="#fff8e6" stroke="#5a3d00" stroke-width="1.6"/><circle cx="8" cy="9.5" r="2" fill="#f3bf56" stroke="#5a3d00" stroke-width="1"/><path d="M4 18l5.5-6 4 4 2.5-2.5L20 18z" fill="#2e8b57" stroke="#5a3d00" stroke-width="1"/></svg></label><input type="file" id="mb-imgfile" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none" tabindex="-1"></div></div>' +
     '<input type="text" id="mb-hp" name="ds-hp-nofill" tabindex="-1" autocomplete="new-password" data-lpignore="true" data-1p-ignore style="position:absolute;left:-9999px" aria-hidden="true">' +
     '<div class="mb-status" id="mb-status"></div></form></div>';
   if (AD) {
@@ -723,7 +723,7 @@
     document.addEventListener("keydown", function(ev){ if (ev.key === "Escape" && el) { close(); btn.focus(); } });
     var mn = {close: close}; menus.push(mn); return mn;
   }
-  makeMenu(document.getElementById("mb-colbtn"));
+  // color/outline tool removed 2026-10-30 (existing colored messages still render)
 
   var apiDown = false;
   function refresh(){

@@ -203,7 +203,7 @@ function tick(){
 }
 
 function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
-  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=20261030hide3"; document.body.appendChild(sc); return true; }
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=20261030nocolor"; document.body.appendChild(sc); return true; }
 function chatAdapter(listQ, sendBody){ window.DS_TTS = {send:function(t){ var b = sendBody(); b.action = "send"; b.kind = "tts"; b.body = t; return api(null, b); }}; addSpkBtn(); return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "\u00a0"),
   get:function(){ return api(listQ() + "&since=0").then(function(j){ var L = (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; }); ttsNote(L); return L
     .map(function(m){ return {id:m.id, name:m.from, message:(m.kind === "tts" ? "\uD83D\uDD0A " : "") + m.body, t:m.t}; }); }); },
@@ -215,7 +215,7 @@ var TTS_SEEN = {}, TTS_INIT = false;
 function ttsSay(t){ try { if (!window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(t); speechSynthesis.speak(u); } catch(e){} }
 function ttsNote(list){ list.forEach(function(m){ if (m.kind !== "tts" || TTS_SEEN[m.id]) return; TTS_SEEN[m.id] = 1;
   if (TTS_INIT && String(m.from).toLowerCase() !== String(ME).toLowerCase()) ttsSay(m.body); }); TTS_INIT = true; }
-function addSpkBtn(){ var iv = setInterval(function(){ var t = $("mb-tools"); if (!t || $("dsSpkBtn")) return; clearInterval(iv);
+function addSpkBtn(){ return; /* 2026-10-30 voice/speech tool removed */ var iv = setInterval(function(){ var t = $("mb-tools"); if (!t || $("dsSpkBtn")) return; clearInterval(iv);
   var b = document.createElement("button"); b.id = "dsSpkBtn"; b.type = "button"; b.textContent = "\uD83D\uDD08"; b.title = "Voice: text to speech";
   b.style.cssText = "font:18px sans-serif;background:#f3bf56;border:2px solid #cb972e;border-radius:8px;padding:0 8px;cursor:pointer";
   b.onclick = function(){ if (window.__dsTtsUi) return window.__dsTtsUi(); if (window.__dsTtsLoading) return; window.__dsTtsLoading = 1;
@@ -309,5 +309,5 @@ document.addEventListener("click",function(e){var sd=document.getElementById("gm
 setInterval(function(){if(!t0)return;if(ready()||Date.now()-t0>15000)dsLoad(false);},150);})();</script>
 <script>(function(){var bg=document.getElementById("emptyBg"),c=document.getElementById("chat");function u(){var sd=document.getElementById("gm-side");var l=0;if(sd&&innerWidth>700){l=sd.getBoundingClientRect().right;}bg.style.left=l+"px";bg.style.display=(c&&!c.classList.contains("hide"))?"none":"block";}if(c)new MutationObserver(u).observe(c,{attributes:true,attributeFilter:["class"]});addEventListener("resize",u);setInterval(u,1000);u();})();</script>
 <style>body>.card,#gm-side{position:relative;z-index:1}#gm-side{z-index:3}</style>
-<script src="/gm-chat.js?v=20261030dismiss4"></script>
+<script src="/gm-chat.js?v=20261030nocolor"></script>
 </body></html>

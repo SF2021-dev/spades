@@ -262,6 +262,9 @@ async function build(env, origin) {
     if (mw[t.id]?.length) t.winners = [...mw[t.id]];
     if (mo[t.id]?.length) t.winners = [...mo[t.id]];
 
+    // 2026-10-31: no winner before a tour starts (MyLeague reuses recurring tour ids; old manual entries must not attach to a future slot).
+    if (t.date > today || (t.date === today && et.min < t.h * 60 + t.m)) t.winners = [];
+
     // HARD RULE: singles/CUT/PAB = 1 winner; partners = one team of 2. LadderBux payouts are never winners.
     { const txt = `${t.game || ""} ${t.name || ""} ${(cfg.labels_by_id || {})[t.id] || ""}`;
       const pard = String(t.perteam) === "2" ? true : String(t.perteam) === "1" ? false

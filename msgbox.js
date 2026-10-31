@@ -343,7 +343,7 @@
     '<div class="mb-msgs" id="mb-msgs"></div>' +
     '<div class="mb-compose" id="mb-compose">' +
     '<span class="mb-who" id="mb-who" title="Click to change your name"></span>' +
-    '<span class="mb-tawrap"><div class="mb-mirror" id="mb-mirror" aria-hidden="true"></div><textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message" spellcheck="true" lang="en" autocorrect="on" autocapitalize="sentences"></textarea></span>' +
+    '<span class="mb-tawrap"><div class="mb-mirror" id="mb-mirror" aria-hidden="true"></div><textarea id="mb-text" rows="1" maxlength="1000" aria-label="Message" spellcheck="false" autocorrect="off" autocomplete="off" autocapitalize="sentences"></textarea></span>' +
     '<input type="password" id="mb-pin" inputmode="numeric" maxlength="3" autocomplete="one-time-code" aria-label="3-digit PIN" style="display:none">' +
     '<input type="email" id="mb-email" maxlength="254" autocomplete="email" aria-label="Your email address" placeholder="you@example.com" style="display:none">' +
     '<span class="mb-pinhint" id="mb-pinhint" style="display:none"></span>' +
@@ -362,7 +362,7 @@
 
   var form = document.getElementById("mb-form"), st = document.getElementById("mb-status");
   var ta = document.getElementById("mb-text"), who = document.getElementById("mb-who"), colon = document.getElementById("mb-colon");
-  if (ta) { ta.spellcheck = true; ta.setAttribute("spellcheck", "true"); }
+  if (ta) { ta.spellcheck = false; ta.setAttribute("spellcheck", "false"); ta.setAttribute("autocorrect", "off"); }
   document.getElementById("mb-top").addEventListener("click", function(ev){
     ev.preventDefault();
     try { window.scrollTo({top: 0, behavior: "smooth"}); } catch(e){ window.scrollTo(0, 0); }

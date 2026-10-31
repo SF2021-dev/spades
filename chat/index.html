@@ -203,7 +203,7 @@ function tick(){
 }
 
 function loadMB(ad){ if (window.__mbLoaded) return false; window.__mbLoaded = 1; window.DS_MB_ADAPTER = ad || null;
-  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=20261030nocolor"; document.body.appendChild(sc); return true; }
+  var sc = document.createElement("script"); sc.src = "/msgbox.js?v=20261030nospell"; document.body.appendChild(sc); return true; }
 function chatAdapter(listQ, sendBody){ window.DS_TTS = {send:function(t){ var b = sendBody(); b.action = "send"; b.kind = "tts"; b.body = t; return api(null, b); }}; addSpkBtn(); return {boxId:"ds-chatbox", name:ME, title:(WITH === "the group" ? "Group Chat" : "\u00a0"),
   get:function(){ return api(listQ() + "&since=0").then(function(j){ var L = (j.messages||[]).filter(function(m){ return (m.kind === "text" || m.kind === "tts") && m.body; }); ttsNote(L); return L
     .map(function(m){ return {id:m.id, name:m.from, message:(m.kind === "tts" ? "\uD83D\uDD0A " : "") + m.body, t:m.t}; }); }); },

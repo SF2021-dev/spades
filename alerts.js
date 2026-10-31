@@ -64,11 +64,10 @@
   var cnt = document.getElementById("ds-next-count");
   if (cnt) { var row = document.createElement("div"); row.style.cssText = "display:flex;align-items:center;justify-content:flex-end"; cnt.parentNode.insertBefore(row, cnt); row.appendChild(cnt); cnt.style.marginTop = "0"; row.style.marginTop = "2px"; row.appendChild(w); }
   else document.body.appendChild(w);
-  var now = document.getElementById("ds-now-sub");
-  if (now) { var nr = document.createElement("div"); nr.style.cssText = "display:flex;align-items:baseline;gap:14px;margin-top:2px"; now.parentNode.insertBefore(nr, now); nr.appendChild(now); now.style.marginTop = "0";
-    var ch = document.createElement("a"); ch.id = "ds-chatbtn"; ch.href = "/chat/"; ch.textContent = "chat";
-    ch.style.cssText = "color:#fbe646;font-size:14px;font-weight:800;text-decoration:none;"; ch.onmouseover = function () { ch.style.textDecoration = "underline"; }; ch.onmouseout = function () { ch.style.textDecoration = "none"; };
-    nr.appendChild(ch); }
+  var ch = document.createElement("a"); ch.id = "ds-chatbtn"; ch.href = "/chat/"; ch.innerHTML = "&#128172; Chat";
+  ch.style.cssText = "display:inline-block;margin-left:14px;background:#120c08;color:#fbe646;border:2px solid #fbe646;border-radius:20px;padding:7px 18px;font-size:17px;font-weight:800;text-decoration:none;white-space:nowrap;";
+  ch.onmouseover = function () { ch.style.background = "#2a1608"; }; ch.onmouseout = function () { ch.style.background = "#120c08"; };
+  if (row) row.appendChild(ch); else document.body.appendChild(ch);
 
   var btn = w.querySelector("#ds-alert-btn"), file = w.querySelector("#ds-alert-file"), vol = w.querySelector("#ds-alert-vol"), lead = w.querySelector("#ds-alert-lead");
   function on() { return get(K_ON, "0") === "1"; }

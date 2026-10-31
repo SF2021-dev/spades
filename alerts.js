@@ -45,7 +45,7 @@
     + "#ds-alert .ck input:checked+.sw{background:#3a2a00;border-color:#fbe646;box-shadow:0 0 8px rgba(251,230,70,.5)}"
     + "#ds-alert .ck input:checked+.sw:after{left:16px;background:#fbe646}"
     + "#ds-alert .st{font-size:12px;min-width:26px}"
-    + "#ds-alert .am{display:none;position:absolute;left:0;top:100%;margin-top:6px;background:#120c08;border:2px solid #fbe646;border-radius:10px;padding:10px 12px;min-width:210px;box-shadow:0 4px 18px #000}"
+    + "#ds-alert .am{display:none;position:absolute;right:0;top:100%;margin-top:6px;background:#120c08;border:2px solid #fbe646;border-radius:10px;padding:10px 12px;min-width:210px;box-shadow:0 4px 18px #000}"
     + "#ds-alert.open .am{display:block}#ds-alert .am b{font-family:'Cinzel Decorative',Georgia,serif;font-size:14px;display:block;margin-bottom:6px}"
     + "#ds-alert input[type=radio]{accent-color:#fbe646}#ds-alert input[type=range]{width:100%;accent-color:#fbe646}"
     + "#ds-alert .tb{margin-top:8px;background:#2a1608;color:#fbe646;border:1px solid #fbe646;border-radius:6px;padding:5px 12px;font-weight:800;cursor:pointer}"
@@ -68,8 +68,7 @@
   if (now) { var nr = document.createElement("div"); nr.style.cssText = "display:flex;align-items:baseline;gap:14px;margin-top:2px"; now.parentNode.insertBefore(nr, now); nr.appendChild(now); now.style.marginTop = "0";
     var ch = document.createElement("a"); ch.id = "ds-chatbtn"; ch.href = "/chat/"; ch.textContent = "chat";
     ch.style.cssText = "color:#fbe646;font-size:14px;font-weight:800;text-decoration:none;"; ch.onmouseover = function () { ch.style.textDecoration = "underline"; }; ch.onmouseout = function () { ch.style.textDecoration = "none"; };
-    nr.appendChild(ch);
-    if (row) { row.style.justifyContent = "flex-start"; nr.parentNode.insertBefore(row, nr.nextSibling); } }
+    nr.appendChild(ch); }
 
   var btn = w.querySelector("#ds-alert-btn"), file = w.querySelector("#ds-alert-file"), vol = w.querySelector("#ds-alert-vol"), lead = w.querySelector("#ds-alert-lead");
   function on() { return get(K_ON, "0") === "1"; }

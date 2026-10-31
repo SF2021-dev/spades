@@ -1,4 +1,4 @@
-/* Diamond Spaders tour alerts: bell button on the home page. When alerts are ON, a sound menu appears;
+/* Diamond Spaders tour alerts: "alert" checkbox right of the NEXT countdown. When alerts are ON, a sound menu appears;
    the chosen sound plays when the next tour starts (or N min before).
    Settings live in localStorage (dsAlertOn, dsAlertSound, dsAlertVol, dsAlertCustom, dsAlertLead). */
 (function () {
@@ -37,42 +37,45 @@
   }
   /* UI */
   var css = document.createElement("style");
-  css.textContent = "#ds-alert{position:fixed;left:16px;bottom:16px;z-index:9999;font-family:Arial,Helvetica,sans-serif;color:#fbe646}"
-    + "#ds-alert .ab{background:#120c08;color:#fbe646;border:2px solid #fbe646;border-radius:22px;padding:10px 16px;font-weight:800;font-size:16px;cursor:pointer}"
-    + "#ds-alert .ab.on{background:#3a2a00;box-shadow:0 0 10px rgba(251,230,70,.6)}"
-    + "#ds-alert .am{display:none;margin-bottom:8px;background:#120c08;border:2px solid #fbe646;border-radius:10px;padding:10px 12px;min-width:210px;box-shadow:0 4px 18px #000}"
+  css.textContent = "#ds-alert{position:relative;display:inline-block;margin-left:12px;vertical-align:middle;z-index:9999;font-family:Arial,Helvetica,sans-serif;color:#fbe646;text-align:left}"
+    + "#ds-alert .ck{display:inline-flex;align-items:center;gap:6px;font-size:16px;font-weight:800;cursor:pointer;padding:0}"
+    + "#ds-alert .ck input{width:18px;height:18px;accent-color:#fbe646;cursor:pointer;margin:0}"
+    + "#ds-alert .am{display:none;position:absolute;right:0;top:100%;margin-top:6px;background:#120c08;border:2px solid #fbe646;border-radius:10px;padding:10px 12px;min-width:210px;box-shadow:0 4px 18px #000}"
     + "#ds-alert.open .am{display:block}#ds-alert .am b{font-family:'Cinzel Decorative',Georgia,serif;font-size:14px;display:block;margin-bottom:6px}"
-    + "#ds-alert label{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;padding:3px 0;cursor:pointer}"
     + "#ds-alert input[type=radio]{accent-color:#fbe646}#ds-alert input[type=range]{width:100%;accent-color:#fbe646}"
     + "#ds-alert .tb{margin-top:8px;background:#2a1608;color:#fbe646;border:1px solid #fbe646;border-radius:6px;padding:5px 12px;font-weight:800;cursor:pointer}"
     + "#ds-alert .cn{font-size:12px;opacity:.8;margin-left:24px}";
   document.head.appendChild(css);
   var w = document.createElement("div"); w.id = "ds-alert";
-  var h = '<div class="am"><b>Alert sound</b>';
+  var h = '<label class="ck"><input type="checkbox" id="ds-alert-btn">alert</label><div class="am"><b>Alert sound</b>';
   SOUNDS.forEach(function (s) { h += '<label><input type="radio" name="dsas" value="' + s.id + '">' + s.name + '</label>'; });
   h += '<div class="cn" id="ds-alert-cn"></div><input type="file" id="ds-alert-file" accept="audio/*" style="display:none">'
     + '<div style="font-size:13px;margin-top:6px">Play</div><select id="ds-alert-lead" style="width:100%;background:#2a1608;color:#fbe646;border:1px solid #fbe646;border-radius:6px;padding:3px"><option value="0">when the next tour starts</option><option value="1">1 min before start</option><option value="5">5 min before start</option><option value="10">10 min before start</option></select>'
     + '<div style="font-size:13px;margin-top:6px">Volume</div><input type="range" id="ds-alert-vol" min="0" max="1" step="0.05">'
-    + '<button class="tb" id="ds-alert-test">&#9654; Test</button> <button class="tb" id="ds-alert-off">Turn off</button>'
+    + '<button class="tb" id="ds-alert-test">&#9654; Test</button> <button class="tb" id="ds-alert-close">Close</button>'
     + '<div style="font-size:12px;opacity:.8;margin-top:6px">Keep this page open to hear it.</div></div>'
-    + '<button class="ab" id="ds-alert-btn"></button>';
-  w.innerHTML = h; document.body.appendChild(w);
+    ;
+  w.innerHTML = h;
+  var cnt = document.getElementById("ds-next-count");
+  if (cnt) { var row = document.createElement("div"); row.style.cssText = "display:flex;align-items:center;justify-content:inherit"; cnt.parentNode.insertBefore(row, cnt); row.appendChild(cnt); cnt.style.marginTop = "0"; row.style.marginTop = "2px"; row.appendChild(w); }
+  else document.body.appendChild(w);
   var btn = w.querySelector("#ds-alert-btn"), file = w.querySelector("#ds-alert-file"), vol = w.querySelector("#ds-alert-vol"), lead = w.querySelector("#ds-alert-lead");
   function on() { return get(K_ON, "0") === "1"; }
   function refresh() {
-    btn.innerHTML = on() ? "&#128276; Alerts ON" : "&#128277; Alerts";
-    btn.classList.toggle("on", on());
+    btn.checked = on();
     var cur = get(K_SND, "buzz");
     [].forEach.call(w.querySelectorAll("input[name=dsas]"), function (r) { r.checked = r.value === cur; });
     w.querySelector("#ds-alert-cn").textContent = cur === "custom" ? (get(K_CUS, "") ? (get(K_CUS + "Name", "custom sound")) : "no file chosen") : "";
     vol.value = get(K_VOL, "0.8"); lead.value = get(K_LEAD, "0");
   }
-  btn.onclick = function () {
-    if (!on()) { set(K_ON, "1"); w.classList.add("open"); play(); }
-    else w.classList.toggle("open");
+  btn.onchange = function () {
+    set(K_ON, btn.checked ? "1" : "0");
+    w.classList.toggle("open", btn.checked);
+    if (btn.checked) play();
     refresh();
   };
-  w.querySelector("#ds-alert-off").onclick = function () { set(K_ON, "0"); w.classList.remove("open"); refresh(); };
+  w.querySelector(".ck").addEventListener("click", function (e) { if (on() && e.target === this) { e.preventDefault(); w.classList.toggle("open"); } });
+  w.querySelector("#ds-alert-close").onclick = function () { w.classList.remove("open"); };
   w.querySelector("#ds-alert-test").onclick = play;
   vol.oninput = function () { set(K_VOL, vol.value); };
   lead.onchange = function () { set(K_LEAD, lead.value); };

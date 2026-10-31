@@ -44,6 +44,7 @@
     + "#ds-alert .sw:after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#888;transition:.2s}"
     + "#ds-alert .ck input:checked+.sw{background:#3a2a00;border-color:#fbe646;box-shadow:0 0 8px rgba(251,230,70,.5)}"
     + "#ds-alert .ck input:checked+.sw:after{left:16px;background:#fbe646}"
+    + "#ds-alert .at{padding:1px 6px;border-radius:4px}#ds-alert.on .at{background:#1e5bd8;color:#fff}"
     + "#ds-alert .st{font-size:12px;min-width:26px}"
     + "#ds-alert .am{display:none;position:absolute;right:0;top:100%;margin-top:6px;background:#120c08;border:2px solid #fbe646;border-radius:10px;padding:10px 12px;min-width:210px;box-shadow:0 4px 18px #000}"
     + "#ds-alert.open .am{display:block}#ds-alert .am b{font-family:'Cinzel Decorative',Georgia,serif;font-size:14px;display:block;margin-bottom:6px}"
@@ -52,7 +53,7 @@
     + "#ds-alert .cn{font-size:12px;opacity:.8;margin-left:24px}";
   document.head.appendChild(css);
   var w = document.createElement("div"); w.id = "ds-alert";
-  var h = '<label class="ck">alert<input type="checkbox" role="switch" id="ds-alert-btn"><span class="sw"></span></label><div class="am"><b>Alert sound</b>';
+  var h = '<label class="ck"><span class="at">alert</span><input type="checkbox" role="switch" id="ds-alert-btn"><span class="sw"></span></label><div class="am"><b>Alert sound</b>';
   SOUNDS.forEach(function (s) { h += '<label><input type="radio" name="dsas" value="' + s.id + '">' + s.name + '</label>'; });
   h += '<div class="cn" id="ds-alert-cn"></div><input type="file" id="ds-alert-file" accept="audio/*" style="display:none">'
     + '<div style="font-size:13px;margin-top:6px">Play</div><select id="ds-alert-lead" style="width:100%;background:#2a1608;color:#fbe646;border:1px solid #fbe646;border-radius:6px;padding:3px"><option value="1">1 min before start</option><option value="0">when the next tour starts</option><option value="5">5 min before start</option><option value="10">10 min before start</option></select>'
@@ -72,7 +73,7 @@
   var btn = w.querySelector("#ds-alert-btn"), file = w.querySelector("#ds-alert-file"), vol = w.querySelector("#ds-alert-vol"), lead = w.querySelector("#ds-alert-lead");
   function on() { return get(K_ON, "0") === "1"; }
   function refresh() {
-    btn.checked = on();
+    btn.checked = on(); w.classList.toggle("on", on());
     var cur = get(K_SND, "buzz");
     [].forEach.call(w.querySelectorAll("input[name=dsas]"), function (r) { r.checked = r.value === cur; });
     w.querySelector("#ds-alert-cn").textContent = cur === "custom" ? (get(K_CUS, "") ? (get(K_CUS + "Name", "custom sound")) : "no file chosen") : "";

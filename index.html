@@ -49,13 +49,12 @@
 <img src="https://diamondspaders.online/dsaltbanner.png" alt="Diamond Spaders" style="width:100%;height:auto;max-height:160px;object-fit:contain;display:block;background:#0a0a0a;">
 <div id="ds-clock" style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:#120c08;border-bottom:2px solid #fbe646;padding:12px 16px;">
   <div>
-    <div id="ds-now-label" style="font-size:12px;font-weight:800;letter-spacing:0.16em;color:#c9a227;">NOW</div>
+    <div id="ds-now-label" style="min-height:0;font-size:12px;font-weight:800;letter-spacing:0.16em;color:#c9a227;"></div>
     <div id="ds-now-main" style="font-size:22px;font-weight:800;color:#fff;margin-top:2px;">Board open</div>
     <div id="ds-now-sub" style="font-size:14px;font-weight:700;color:#fbe646;margin-top:2px;">—</div>
   </div>
   <div style="text-align:right;">
-    <div id="ds-next-label" style="font-size:12px;font-weight:800;letter-spacing:0.16em;color:#c9a227;">NEXT</div>
-    <div id="ds-next-main" style="font-size:20px;font-weight:800;color:#fbe646;margin-top:2px;">—</div>
+    <div style="display:flex;align-items:baseline;justify-content:flex-end;gap:8px;"><span id="ds-next-label" style="font-size:12px;font-weight:800;letter-spacing:0.16em;color:#c9a227;">NEXT</span><span id="ds-next-main" style="font-size:20px;font-weight:800;color:#fbe646;">—</span></div>
     <div id="ds-next-count" style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:800;color:#fbe646;margin-top:2px;">--:--:--</div>
   </div>
 </div>
@@ -225,7 +224,7 @@
       document.getElementById("ds-now-label").textContent = "LIVE";
       document.getElementById("ds-now-main").textContent = live.label;
     } else {
-      document.getElementById("ds-now-label").textContent = "NOW";
+      document.getElementById("ds-now-label").textContent = "";
       document.getElementById("ds-now-main").textContent = next ? "Board open" : "Board closed";
     }
     if (next) {
@@ -244,6 +243,6 @@
   setInterval(tick, 1000);
 })();
 </script>
-<script src="/alerts.js?v=9"></script>
+<script src="/alerts.js?v=10"></script>
 </body>
 </html>

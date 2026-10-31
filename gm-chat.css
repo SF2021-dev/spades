@@ -144,3 +144,6 @@ body.gm #ds-chatbox .mb-rich .mb-tawrap textarea,body.gm #ds-chatbox .mb-rich #m
 .gm-ct .gm-sure button{display:inline;background:#444!important}
 
 #dsv,#dsva{display:none!important}
+/* 2026-10-30: no +/× toggle — emoji + picture icons always visible */
+#gm-plus{display:none !important}
+#ds-chatbox .mb-compose:not(.gm-tools-on) .mb-tools{display:flex !important}

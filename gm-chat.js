@@ -141,3 +141,6 @@
     c.appendChild(s);
   }, 250);
 })();
+// 2026-10-30: Buzz sits at the far right of the compose bar
+(function(){ var n = 0, iv = setInterval(function(){ var b = document.getElementById("buzzBtn"), c = document.getElementById("mb-compose");
+  if (b && c) { if (b.parentNode !== c) c.appendChild(b); } if (++n > 100) clearInterval(iv); }, 300); })();

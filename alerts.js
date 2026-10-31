@@ -50,7 +50,7 @@
   var h = '<label class="ck"><input type="checkbox" id="ds-alert-btn">alert</label><div class="am"><b>Alert sound</b>';
   SOUNDS.forEach(function (s) { h += '<label><input type="radio" name="dsas" value="' + s.id + '">' + s.name + '</label>'; });
   h += '<div class="cn" id="ds-alert-cn"></div><input type="file" id="ds-alert-file" accept="audio/*" style="display:none">'
-    + '<div style="font-size:13px;margin-top:6px">Play</div><select id="ds-alert-lead" style="width:100%;background:#2a1608;color:#fbe646;border:1px solid #fbe646;border-radius:6px;padding:3px"><option value="0">when the next tour starts</option><option value="1">1 min before start</option><option value="5">5 min before start</option><option value="10">10 min before start</option></select>'
+    + '<div style="font-size:13px;margin-top:6px">Play</div><select id="ds-alert-lead" style="width:100%;background:#2a1608;color:#fbe646;border:1px solid #fbe646;border-radius:6px;padding:3px"><option value="1">1 min before start</option><option value="0">when the next tour starts</option><option value="5">5 min before start</option><option value="10">10 min before start</option></select>'
     + '<div style="font-size:13px;margin-top:6px">Volume</div><input type="range" id="ds-alert-vol" min="0" max="1" step="0.05">'
     + '<button class="tb" id="ds-alert-test">&#9654; Test</button> <button class="tb" id="ds-alert-close">Close</button>'
     + '<div style="font-size:12px;opacity:.8;margin-top:6px">Keep this page open to hear it.</div></div>'
@@ -60,13 +60,13 @@
   if (cnt) { var row = document.createElement("div"); row.style.cssText = "display:flex;align-items:center;justify-content:inherit"; cnt.parentNode.insertBefore(row, cnt); row.appendChild(cnt); cnt.style.marginTop = "0"; row.style.marginTop = "2px"; row.appendChild(w); }
   else document.body.appendChild(w);
   var btn = w.querySelector("#ds-alert-btn"), file = w.querySelector("#ds-alert-file"), vol = w.querySelector("#ds-alert-vol"), lead = w.querySelector("#ds-alert-lead");
-  function on() { return get(K_ON, "0") === "1"; }
+  function on() { return get(K_ON, "1") === "1"; }
   function refresh() {
     btn.checked = on();
     var cur = get(K_SND, "buzz");
     [].forEach.call(w.querySelectorAll("input[name=dsas]"), function (r) { r.checked = r.value === cur; });
     w.querySelector("#ds-alert-cn").textContent = cur === "custom" ? (get(K_CUS, "") ? (get(K_CUS + "Name", "custom sound")) : "no file chosen") : "";
-    vol.value = get(K_VOL, "0.8"); lead.value = get(K_LEAD, "0");
+    vol.value = get(K_VOL, "0.8"); lead.value = get(K_LEAD, "1");
   }
   btn.onchange = function () {
     set(K_ON, btn.checked ? "1" : "0");
@@ -105,7 +105,7 @@
     var c = document.getElementById("ds-next-count"), m = document.getElementById("ds-next-main");
     if (!c || !m) return;
     var p = c.textContent.split(":"); if (p.length !== 3) return;
-    var secs = (+p[0]) * 3600 + (+p[1]) * 60 + (+p[2]), lead = parseInt(get(K_LEAD, "0"), 10) * 60;
+    var secs = (+p[0]) * 3600 + (+p[1]) * 60 + (+p[2]), lead = parseInt(get(K_LEAD, "1"), 10) * 60;
     var k = m.textContent + "|" + new Date().toDateString();
     if (secs <= lead && secs > lead - 5 && !fired[k] && /\d/.test(m.textContent)) { fired[k] = 1; play(); }
   }, 1000);

@@ -225,7 +225,7 @@
     }
     var h = now.getHours(), ap = h >= 12 ? "PM" : "AM", h12 = h % 12 || 12;
     var days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-    document.getElementById("ds-now-sub").textContent = days[now.getDay()] + "  " + h12 + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()) + " " + ap + " ET";
+    document.getElementById("ds-now-sub").textContent = days[now.getDay()] + "  " + h12 + ":" + pad(now.getMinutes()) + " " + ap + " ET";
     if (live) {
       document.getElementById("ds-now-label").textContent = "LIVE";
       document.getElementById("ds-now-main").textContent = live.label;

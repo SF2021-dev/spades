@@ -65,7 +65,7 @@
   var cnt = document.getElementById("ds-next-count");
   if (cnt) { var row = document.createElement("div"); row.style.cssText = "display:flex;align-items:center;justify-content:flex-end"; cnt.parentNode.insertBefore(row, cnt); row.appendChild(cnt); cnt.style.marginTop = "0"; row.style.marginTop = "2px"; row.appendChild(w); }
   else document.body.appendChild(w);
-  var ch = document.createElement("a"); ch.id = "ds-chatbtn"; ch.href = "/chat/"; ch.innerHTML = "&#128172; Chat";
+  var ch = document.createElement("a"); ch.id = "ds-chatbtn"; ch.href = "/chat/"; ch.innerHTML = '<img src="/chat-icon.png?v=1" alt="" style="width:22px;height:22px;vertical-align:-5px;margin-right:7px">Chat';
   ch.style.cssText = "display:inline-block;margin-left:14px;background:#120c08;color:#fbe646;border:2px solid #fbe646;border-radius:20px;padding:7px 18px;font-size:17px;font-weight:800;text-decoration:none;white-space:nowrap;";
   ch.onmouseover = function () { ch.style.background = "#2a1608"; }; ch.onmouseout = function () { ch.style.background = "#120c08"; };
   if (row) row.appendChild(ch); else document.body.appendChild(ch);

@@ -1,261 +1,366 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diamond Spaders — Nov 1</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
-  <style>
-    html, body { margin: 0; padding: 0; background: #0a0a0a; overflow: auto; }
-    .ds-link { display:flex; flex-direction:column; align-items:center; gap:6px; text-decoration:none; color:#fbe646; padding:10px 6px; border:1px solid #444; border-radius:10px; background:#161616; font-size:11px; font-weight:800; letter-spacing:0.04em; text-align:center; line-height:1.2; }
-    .ds-link:hover { border-color:#fbe646; background:#2a1608; }
-    .ds-ico { width:48px; height:48px; object-fit:cover; border-radius:8px; display:block; }
-    .ds-tour { display:flex; flex-direction:column; gap:8px; background:#ff2ad4; padding:14px 12px; }
-    .ds-tour-item { display:flex; flex-direction:row; justify-content:flex-start; align-items:center; gap:10px; white-space:nowrap; }
-    .ds-join { order:-1; flex:0 0 auto; background:#120c08; color:#fbe646; font-family:Arial,Helvetica,sans-serif; font-weight:800; font-size:18px; text-decoration:none; padding:6px 12px; border-radius:6px; }
-    .ds-join.hide { display:none; }
-    .ds-tour-text { font-family:Arial,Helvetica,sans-serif; font-weight:800; font-size:22px; color:#111; line-height:1.2; white-space:nowrap; }
-    .ds-tour-text a { color:#111; text-decoration:none; }
-    .ds-td { width:28px; height:28px; object-fit:cover; border-radius:6px; border:1px solid #120c08; flex:0 0 auto; }
-    .ds-champ { font-family:'Cinzel Decorative',Georgia,serif; font-weight:900; letter-spacing:0.03em; white-space:nowrap; color:#ffd84a; -webkit-text-stroke:0.4px currentColor; text-shadow:0 0 6px rgba(251,230,70,.55),0 1px 0 #7a5a00; }
-    .ds-tour-item .ds-champ { order:9; font-size:20px; color:#120c08; text-shadow:0 1px 0 rgba(255,255,255,.55); }
-    .ds-tour-item .ds-champ .ca, .ds-tour-item.short .ds-champ .cf { display:none; }
-    .ds-tour-item.short .ds-champ .ca { display:inline; }
-    .ds-tour-item.short2 .ds-champ { font-size:15px; }
-    .rk { position:relative; width:22px; height:22px; flex:0 0 auto; }
-    .rk b { position:absolute; top:-7px; left:-8px; font-size:10px; font-weight:800; color:#fbe646; }
-    .rk img, .rk svg { width:22px; height:22px; display:block; border-radius:4px; }
-  </style>
-<script>
-/* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */
-(function () {
-  function check() {
-    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
-      var lm = new Date(r.headers.get("last-modified")).getTime(), mine = new Date(document.lastModified).getTime();
-      var tag = "stale-" + location.pathname + "-" + lm;
-      if (lm && mine && Math.abs(lm - mine) > 2000 && !sessionStorage.getItem(tag)) { sessionStorage.setItem(tag, "1"); location.reload(); }
-    }).catch(function () {});
-  }
-  check();
-  setInterval(function () { if (!document.hidden) check(); }, 120000);
-  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
-})();
-</script>
-<script data-goatcounter="/api/count" async src="/gc.js"></script><noscript><img src="/api/count?p=/&noscript=1" alt="" width="1" height="1" style="position:absolute;left:-9999px"></noscript>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StartB</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root { --bg: #0a0a0a; --text: #f0f0f0; --accent: #00d4ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg) center/cover no-repeat fixed;
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        .background {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(0, 212, 255, 0.06) 0%, rgba(10, 10, 10, 0.85) 65%);
+            pointer-events: none; z-index: 1;
+        }
+        .search {
+            position: absolute;
+            top: 12px; left: 20px;
+            width: min(520px, calc(100% - 280px)); padding: 0; z-index: 100;
+            user-select: none;
+        }
+        .search.dragging { opacity: 0.85; cursor: grabbing; }
+        .search-input {
+            width: 100%; padding: 14px 40px 14px 24px; font-size: 1.25rem; font-weight: 500;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08);
+            border-radius: 9999px; color: white; outline: none;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .search-input:focus {
+            border-color: var(--accent); background: rgba(255,255,255,0.11);
+            box-shadow: 0 0 0 14px rgba(0,212,255,0.18);
+        }
+        .search-dots {
+            position: absolute; top: 4px; right: 10px; width: 28px; height: 28px;
+            display: none; align-items: center; justify-content: center;
+            cursor: pointer; border-radius: 50%; color: rgba(255,255,255,0.7);
+            font-size: 18px; line-height: 1; z-index: 101;
+        }
+        .search:hover .search-dots { display: flex; }
+        .search-dots:hover { background: rgba(255,255,255,0.15); color: #fff; }
+        .search-menu {
+            position: absolute; top: 36px; right: 0; background: #1a1a1a; border: 1px solid #444;
+            border-radius: 8px; padding: 6px 0; min-width: 120px; display: none; z-index: 102;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .search-menu.show { display: block; }
+        .search-menu div {
+            padding: 8px 14px; cursor: pointer; font-size: 0.9rem;
+        }
+        .search-menu div:hover { background: #2a2a2a; }
+        .clock {
+            position: absolute; top: 8px; right: 24px; font-size: 1.15rem; font-weight: 500;
+            color: rgba(255,255,255,0.85); z-index: 30; text-align: right;
+            line-height: 1.35;
+        }
+        .clock .est { font-size: 0.95rem; color: rgba(255,255,255,0.7); margin-top: 2px; }
+        .icons-area {
+            position: absolute;
+            left: 16px; right: 16px; top: 90px; bottom: 40px;
+            display: flex; flex-direction: column; gap: 10px;
+            z-index: 20; overflow: auto;
+        }
+        .icon-row {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+            gap: 10px; flex: 1; min-height: 0;
+        }
+        .icon-wrapper {
+            height: var(--icon-size, 80px); width: var(--icon-size, 80px);
+            border-radius: 12px; overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.7); transition: transform 0.2s, box-shadow 0.2s;
+            cursor: grab; flex: 0 0 auto; background: rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .icon-wrapper:hover { transform: scale(1.06); box-shadow: 0 12px 32px rgba(0,212,255,0.25); }
+        .icon-wrapper.dragging { opacity: 0.7; cursor: grabbing; z-index: 50; }
+        .icon-wrapper img { height: 100%; width: 100%; object-fit: contain; display: block; pointer-events: none; }
+        .icon-remove {
+            position: absolute; top: 2px; right: 2px; width: 20px; height: 20px;
+            background: rgba(0,0,0,0.6); color: #fff; border-radius: 50%;
+            display: none; align-items: center; justify-content: center;
+            font-size: 14px; cursor: pointer; line-height: 1;
+        }
+        .icon-wrapper:hover .icon-remove { display: flex; }
+        .hint {
+            position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+            font-size: 0.8rem; color: rgba(255,255,255,0.25); z-index: 15;
+            white-space: nowrap;
+        }
+        .add-btn {
+            position: fixed; bottom: 16px; right: 16px; width: 48px; height: 48px;
+            background: var(--accent); color: #000; border-radius: 50%; border: none;
+            font-size: 28px; cursor: pointer; z-index: 40; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .add-btn:hover { transform: scale(1.1); }
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none;
+            align-items: center; justify-content: center; z-index: 200;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: #1a1a1a; padding: 20px; border-radius: 12px; width: 320px;
+            border: 1px solid #444;
+        }
+        .modal-content input, .modal-content button {
+            width: 100%; margin: 8px 0; padding: 10px; border-radius: 6px; border: 1px solid #444;
+            background: #222; color: #fff;
+        }
+        .modal-content button { background: var(--accent); color: #000; font-weight: 600; cursor: pointer; }
+    </style>
 </head>
 <body>
-<div style="width:100%;max-width:1100px;margin:0 auto;background:#0a0a0a;font-family:Arial,Helvetica,sans-serif;color:#fbe646;">
-<img src="https://diamondspaders.online/dsaltbanner.png" alt="Diamond Spaders" style="width:100%;height:auto;max-height:160px;object-fit:contain;display:block;background:#0a0a0a;">
-<div id="ds-clock" style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:#120c08;border-bottom:2px solid #fbe646;padding:12px 16px;">
-  <div>
-    <div id="ds-now-label" style="min-height:0;font-size:12px;font-weight:800;letter-spacing:0.16em;color:#c9a227;"></div>
-    <div id="ds-now-main" style="font-size:22px;font-weight:800;color:#fff;margin-top:2px;">Board open</div>
-    <div id="ds-now-sub" style="font-size:14px;font-weight:700;color:#fbe646;margin-top:2px;">—</div>
-  </div>
-  <div style="text-align:right;">
-    <div style="display:flex;align-items:baseline;justify-content:flex-end;gap:8px;"><span id="ds-next-label" style="font-size:12px;font-weight:800;letter-spacing:0.16em;color:#c9a227;">NEXT</span><span id="ds-next-main" style="font-size:20px;font-weight:800;color:#fbe646;">—</span></div>
-    <div id="ds-next-count" style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:800;color:#fbe646;margin-top:2px;">--:--:--</div>
-  </div>
-</div>
-<div id="ds-winners-today" style="display:grid;grid-template-columns:1fr 1fr 1fr;">
-<div style="grid-column:1/-1;padding:12px 10px 4px;font-size:15px;font-weight:800;letter-spacing:0.14em;color:#fbe646;">YESTERDAY</div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/Huskernut50265" title="Huskernut50265" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/huskernut50265-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">10:15 AM CUT</div><div style="font-size:18px;font-weight:800;">Huskernut50265</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">12:15 PM REG PARTNERS</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">muziklvr &amp; Untouchable_One</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/muziklvr" title="muziklvr" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/muziklvr-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">muziklvr</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/Untouchable_One" title="Untouchable_One" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/Untouchable_One-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">Untouchable_One</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/MaKinpa" title="MaKinpa" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/makinpa-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">1:15 PM CUT</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">2:15 PM SUI PASS 2</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">13</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/illbid13" title="illbid13" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/illbid13-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">illbid13</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/XSuicide_BlondeX" title="XSuicide_BlondeX" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/xsuicide_blondex-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">XSuicide_BlondeX</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/1jimbeam" title="1jimbeam" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/1jimbeam-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">3:15 PM CUT</div><div style="font-size:22px;font-weight:800;">1jimbeam</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">4:15 PM SUI PASS 2 RANDOM</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">EgammeR &amp; Untouchable_One</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/EgammeR" title="EgammeR" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/EgammeR-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">EgammeR</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/Untouchable_One" title="Untouchable_One" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/Untouchable_One-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">Untouchable_One</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">5:15 PM REG PARTNERS</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">Northern Exposure</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/Ochwiay" title="Ochwiay" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/ochwiay-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:15px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">Ochwiay</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/EgammeR" title="EgammeR" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/EgammeR-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:15px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">EgammeR</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/DiamondsLGirl" title="DiamondsLGirl" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/diamondslgirl-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">6:15 PM CUT</div><div style="font-size:18px;font-weight:800;">DiamondsLGirl</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">7:15 PM SUI PASS 2</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">13</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/illbid13" title="illbid13" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/illbid13-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">illbid13</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/XSuicide_BlondeX" title="XSuicide_BlondeX" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/xsuicide_blondex-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">XSuicide_BlondeX</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/Eager_1" title="Eager_1" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/Eager_1-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">8:15 PM CUT</div><div style="font-size:22px;font-weight:800;">Eager_1</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">9:15 PM REG PARTNERS</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">lets win</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/MEL1c1ous_1" title="MEL1c1ous_1" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/MEL1c1ous_1-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:13px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">Melicious_1</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/Jays26" title="Jays26" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/Jays_26-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:13px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">Jays_26</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/MyBagsRGucci" title="MyBagsRGucci" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/MyBagsRGucci-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">11:15 PM CUT</div><div style="font-size:20px;font-weight:800;">MyBagsRGucci</div></div></div></div>
-</div>
-<div id="ds-tours" class="ds-tour"></div>
+    <div class="background"></div>
+    <div class="clock">
+        <div class="time" id="time">12:00 PM</div>
+        <div class="date" id="date">Tue, Apr 21</div>
+        <div class="est" id="est">EST 12:00 PM</div>
+    </div>
 
-<div id="ds-winners-yesterday" style="border-top:3px solid #fbe646;display:grid;grid-template-columns:1fr 1fr 1fr;">
-<div style="grid-column:1/-1;padding:12px 10px 4px;font-size:15px;font-weight:800;letter-spacing:0.14em;color:#fbe646;">FRIDAY</div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/TATSUJIN" title="TATSUJIN" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/TATSUJIN-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 8:15 AM CUT</div><div style="font-size:22px;font-weight:800;">TATSUJIN</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/3Bid3Bags" title="3Bid3Bags" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/3Bid3Bags-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 9:15 AM IND TO NBN CDO</div><div style="font-size:22px;font-weight:800;">3Bid3Bags</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/MaKinpa" title="MaKinpa" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/makinpa-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 10:15 AM CUT</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/Gryzzlybear" title="Gryzzlybear" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/Gryzzlybear-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 11:15 AM CUT</div><div style="font-size:20px;font-weight:800;">Gryzzlybear</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/Maggie_May" title="Maggie_May" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/maggie_may-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 12:15 PM SUI PASS 2 PAB</div><div style="font-size:20px;font-weight:800;">Maggie_May</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/MEL1c1ous_1" title="MEL1c1ous_1" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/MEL1c1ous_1-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 1:15 PM CUT</div><div style="font-size:20px;font-weight:800;">Melicious_1</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/Ellisandrew80" title="Ellisandrew80" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/Ellisandrew80-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 2:15 PM CUT</div><div style="font-size:18px;font-weight:800;">Ellisandrew80</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/MaKinpa" title="MaKinpa" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/makinpa-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 3:15 PM CUT</div><div style="font-size:22px;font-weight:800;">MaKinpa</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">FRIDAY 4:15 PM SUI PASS 2 RANDOM</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">AngelJoyXO &amp; Melicious_1</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/AngelJoyXO" title="AngelJoyXO" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/AngelJoyXO-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:13px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">AngelJoyXO</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/MEL1c1ous_1" title="MEL1c1ous_1" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/MEL1c1ous_1-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:13px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">Melicious_1</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">FRIDAY 5:15 PM REG PARTNERS</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">In2win</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/Tokeey1974" title="Tokeey1974" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><svg width="44" height="44" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">Tokeey1974</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/DevilsNiteBaby" title="DevilsNiteBaby" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/DevilsNiteBaby-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">DevilsNiteBaby</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">FRIDAY 7:15 PM SUI PASS 2</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">Girlz Rule</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/MEL1c1ous_1" title="MEL1c1ous_1" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/MEL1c1ous_1-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">Melicious_1</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/XSuicide_BlondeX" title="XSuicide_BlondeX" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/xsuicide_blondex-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">XSuicide_BlondeX</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/REALLY_WHY" title="REALLY_WHY" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/REALLY_WHY-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 8:15 PM SINGLES</div><div style="font-size:20px;font-weight:800;">REALLY_WHY</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200;"><div style="font-size:13px;font-weight:700;margin-bottom:2px;">FRIDAY 9:15 PM REG PARTNERS</div><div style="font-size:14px;font-weight:600;color:#fbe646;margin-bottom:6px;text-align:center;">Girlz Rule</div><div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/MEL1c1ous_1" title="MEL1c1ous_1" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/MEL1c1ous_1-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">Melicious_1</div></div><div style="display:flex;align-items:center;gap:6px;min-width:0;"><a href="https://www.myleague.com/diamondspaders/profile/XSuicide_BlondeX" title="XSuicide_BlondeX" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/xsuicide_blondex-ava.png" width="44" height="44" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div style="font-size:12px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;">XSuicide_BlondeX</div></div></div></div>
-<div style="padding:14px 10px;background:#000;"><div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;"><a href="https://www.myleague.com/diamondspaders/profile/Ellisandrew80" title="Ellisandrew80" style="display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;"><img src="https://diamondspaders.online/Ellisandrew80-ava.png" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;"></a><div><div style="font-size:13px;font-weight:700;">FRIDAY 11:15 PM CUT</div><div style="font-size:18px;font-weight:800;">Ellisandrew80</div></div></div></div>
-<div style="padding:14px 10px;background:#1a1200; display:flex;align-items:center;"><a href="https://diamondspaders.online/october2026/" style="color:#fbe646;font-size:22px;font-weight:800;text-decoration:underline;">more</a></div>
-</div>
-<div style="padding:16px;border-top:3px solid #fbe646;border-bottom:3px solid #fbe646;">
-<div style="font-size:14px;font-weight:800;letter-spacing:0.14em;margin-bottom:10px;">TOP 25 RANKED PLAYERS</div>
-<div id="ds-rank" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;"></div>
-</div>
-<script src="/chatnotify.js?v=2" defer></script>
-<script src="https://diamondspaders.online/live.js?v=1" defer></script>
-<img src="https://diamondspaders.online/diamondspaderslogo.jpg" alt="Diamond Spaders" style="width:100%;height:auto;display:block;">
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:16px 10px 12px;">
-<a class="ds-link" href="https://www.myleague.com/diamondspaders/" target="_blank"><img class="ds-ico" src="https://diamondspaders.online/home.jpg" alt="">HOME</a>
-<a class="ds-link" href="https://diamondspaders.online/howtoplayinadiamondstournament/"><img class="ds-ico" src="https://diamondspaders.online/sign%20up.jpg" alt="">NEW PLAYER GUIDE</a>
-<a class="ds-link" href="https://tourneyking.com/app/home/" target="_blank"><img class="ds-ico" src="https://diamondspaders.online/tourney%20king.jpg" alt="">TOURNEYKING</a>
-<a class="ds-link" href="https://diamondspaders.online/how-to-create-a-myleague-tournament/"><img class="ds-ico" src="https://diamondspaders.online/how%20to%20create%20a%20tour.jpg" alt="">HOW TO CREATE A TOURNAMENT</a>
-<a class="ds-link" href="https://diamondspaders.online/windows-clipboard/"><img class="ds-ico" src="https://diamondspaders.online/windows%20cliopboard.jpg" alt="">COPY &amp; PASTE, WINDOWS CLIPBOARD</a>
-<a class="ds-link" href="https://diamondspaders.online/ask/"><img class="ds-ico" src="https://diamondspaders.online/diamondspaderslogo.jpg" alt="">ASK</a>
-<a class="ds-link" href="https://diamondspaders.online/snoop/"><img class="ds-ico" src="https://diamondspaders.online/diamondspaderslogo.jpg" alt="">SNOOP</a>
-<a class="ds-link" href="https://diamondspaders.online/stats/"><img class="ds-ico" src="https://diamondspaders.online/diamondspaderslogo.jpg" alt="">STATS</a>
-</div>
-<img src="https://diamondspaders.online/antifascist.jpg" alt="" style="display:block;margin:12px auto 8px;max-width:120px;width:66%;height:auto;">
-<div style="text-align:center;padding:16px 10px 24px;color:#c9a227;font-size:13px;font-weight:700;">©copyright 2026 Diamond Spaders, Wayward Cats &amp; Ochwiay</div>
-</div>
-<script>
-(function () {
-  var U1 = "https://diamondspaders.online/Untouchable_One-ava.png";
-  var FETCH = "https://diamondspaders.online/fetch_it_up-ava.png";
-  var BLU = "https://diamondspaders.online/bluangel1953-ava.png";
-  var SOLO = "https://diamondspaders.online/SOLORYDER-ava.png";
-  var SPADE = '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#fbe646"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg>';
-  var SPADE_TD = '<svg class="ds-td" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10" fill="#2a1608" stroke="#120c08"/><path d="M11 4 C8 8 6 10 6 13 C6 16 8.5 17.5 11 16 C13.5 17.5 16 16 16 13 C16 10 14 8 11 4 Z" fill="#fbe646"/></svg>';
-  var RANK = [
-    { n:"Looks__", a:"https://diamondspaders.online/Looks__-ava.png" },
-    { n:"MyBagsRGucci", a:"https://diamondspaders.online/MyBagsRGucci-ava.png" },
-    { n:"Ochwiay", a:"https://diamondspaders.online/ochwiay-ava.png" },
-    { n:"MsZigs", a:"https://diamondspaders.online/MsZigs-ava.png" },
-    { n:"Melicious_1", a:"https://diamondspaders.online/MEL1c1ous_1-ava.png" },
-    { n:"illbid13", a:"https://diamondspaders.online/illbid13-ava.png" },
-    { n:"EgammeR", a:"https://diamondspaders.online/EgammeR-ava.png" },
-    { n:"XSuicide_BlondeX", a:"https://diamondspaders.online/xsuicide_blondex-ava.png" },
-    { n:"Jays_26", a:"https://diamondspaders.online/Jays_26-ava.png" },
-    { n:"Huskernut50265", a:"https://diamondspaders.online/huskernut50265-ava.png" },
-    { n:"Jbmusket42", a:"https://diamondspaders.online/jbmusket42-ava.png" },
-    { n:"muziklvr", a:"https://diamondspaders.online/muziklvr-ava.png" },
-    { n:"Ellisandrew80", a:"https://diamondspaders.online/Ellisandrew80-ava.png" },
-    { n:"slovell_too", a:"https://diamondspaders.online/slovell_too-ava.png" },
-    { n:"Untouchable_One", a:U1 },
-    { n:"deaddly", a:"https://diamondspaders.online/deaddly-ava.png" },
-    { n:"K3ssy", a:"https://diamondspaders.online/k3ssy-ava.png" },
-    { n:"DetroitLionsRule", a:"https://diamondspaders.online/DetroitLionsRule-ava.png" },
-    { n:"trifolium", a:"https://diamondspaders.online/trifolium-ava.png" },
-    { n:"MaKinpa", a:"https://diamondspaders.online/makinpa-ava.png" },
-    { n:"gooneybird", a:"https://diamondspaders.online/gooneybird-ava.png" },
-    { n:"SILKROLLZ", a:"https://diamondspaders.online/SILK%20ROLLZ-ava.png" },
-    { n:"OuT1AnDeR" },
-    { n:"SpadeLadyLuck" },
-    { n:"booradly", a:"https://diamondspaders.online/booradly-ava.png" }
-  ];
-  var border = ["#fbe646","#c0c0c0","#cd7f32"];
-  var rh = "";
-  for (var i = 0; i < RANK.length; i++) {
-    var r = RANK[i];
-    rh += '<a href="https://www.myleague.com/diamondspaders/profile/'+encodeURIComponent(r.n)+'" title="'+r.n+' on MyLeague" style="display:block;color:inherit;text-decoration:none;cursor:pointer;"><div style="background:#161616;border:1px solid '+(border[i]||"#444")+';border-radius:8px;padding:12px 6px 10px;"><div style="display:flex;align-items:center;justify-content:center;gap:6px;"><div class="rk">'+(r.a?'<img src="'+r.a+'" alt="">':SPADE)+'<b>#'+(i+1)+'</b></div><div style="color:#fff;font-size:13px;font-weight:700;">'+r.n+'</div></div></div></a>';
-  }
-  document.getElementById("ds-rank").innerHTML = rh;
-  var TOURS = [
-    { dt: "2026-11-01", h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11956421/", ava: U1 },
-    { dt: "2026-11-01", h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11953636/", ava: U1 },
-    { dt: "2026-11-01", h: 12, m: 15, game: "REG PARTNERS", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11957213/", ava: U1 },
-    { dt: "2026-11-01", h: 19, m: 15, game: "SUI PASS 2", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournament/11955146/", ava: "https://diamondspaders.online/REALLY_WHY-ava.png" },
-    { dt: "2026-11-01", h: 20, m: 15, game: "SINGLES", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournament/11955147/", ava: "https://diamondspaders.online/REALLY_WHY-ava.png" },
-    { dt: "2026-11-01", h: 21, m: 15, game: "REG PARTNERS", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournament/11955148/", ava: "https://diamondspaders.online/REALLY_WHY-ava.png" },
-    { dt: "2026-11-01", h: 22, m: 15, game: "LOSER WINS", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournament/11955149/", ava: "https://diamondspaders.online/REALLY_WHY-ava.png" },
-    { dt: "2026-11-01", h: 23, m: 15, game: "CUT", td: "REALLY_WHY", url: "https://www.myleague.com/diamondspaders/tournament/11955150/", ava: "https://diamondspaders.online/REALLY_WHY-ava.png" }
-  ];
-  function mkGames(list) {
-    return list.map(function (t) {
-      var ap = t.h >= 12 ? "PM" : "AM";
-      var h12 = t.h % 12 || 12;
-      return { dt: t.dt, h: t.h, m: t.m, label: h12 + ":" + pad(t.m) + " " + ap + "  " + t.game };
-    });
-  }
-  var GAMES = mkGames(TOURS);
-  /* live.js (always-on Cloudflare /api/live) swaps in the current tour list when the feed has news */
-  window.dsSetTours = function (list) { TOURS = list; GAMES = mkGames(TOURS); tick(); };
-  function pad(n) { return (n < 10 ? "0" : "") + n; }
-  function etDate(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
-  function etNow() { return new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" })); }
-  function amp(h, m) { return (h % 12 || 12) + ":" + pad(m == null ? 15 : m) + " " + (h >= 12 ? "PM" : "AM"); }
-  function drawTours() {
-    var now = etNow();
-    var box = document.getElementById("ds-tours");
-    var html = "";
-    var todayStr = etDate(now);
-    for (var i = 0; i < TOURS.length; i++) {
-      var t = TOURS[i];
-      var later = t.dt && t.dt > todayStr;
-      if (t.dt && t.dt < todayStr) continue;
-      var start = new Date(now.getTime());
-      start.setHours(t.h, t.m, 0, 0);
-      /* no time cutoff: TOURS already drops finished/not-started tours; in-progress ones stay until a winner posts */
-      var gone = !later && now.getTime() >= start.getTime() + 15 * 60 * 1000;
-      var dayTag = later ? ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(t.dt + "T12:00:00").getDay()] + " " : "";
-      html += '<div class="ds-tour-item' + (t.sub ? ' champ' : '') + '">';
-      html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
-      html += '<div class="ds-tour-text">' + dayTag + amp(t.h, t.m) + '</div>';
-      html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + t.game + " w/ " + t.td + "</a></div>";
-      html += '<span style="margin-left:-6px;display:flex;">' + (t.ava ? '<img class="ds-td" src="' + t.ava + '" alt="">' : SPADE_TD) + '</span>';
-      if (t.sub) {
-        var sub = String(t.sub).replace(/&/g, "&amp;").replace(/</g, "&lt;");
-        var ab = String(t.sub).split(/\s+/).filter(Boolean).map(function (w) { return w[0]; }).join("").toUpperCase();
-        html += '<span class="ds-champ" title="' + sub.replace(/"/g, "&quot;") + '"><span class="cf">' + sub + '</span><span class="ca">' + ab + '</span></span>';
-      }
-      html += "</div>";
-    }
-    if (box.getAttribute('data-h') !== html) { box.setAttribute('data-h', html); box.innerHTML = html; fitChamp(); }
-  }
-  /* tour subtitle on the same line: full text if it fits, else the abbreviation (TOC), else a smaller TOC */
-  function fitChamp() {
-    var items = document.querySelectorAll("#ds-tours .ds-tour-item.champ");
-    for (var i = 0; i < items.length; i++) {
-      var it = items[i];
-      it.classList.remove("short", "short2");
-      if (it.scrollWidth > it.clientWidth + 1) it.classList.add("short");
-      if (it.scrollWidth > it.clientWidth + 1) it.classList.add("short2");
-    }
-  }
-  window.addEventListener("resize", fitChamp);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitChamp);
-  function tick() {
-    var now = etNow();
-    var live = null, next = null, i;
-    for (i = 0; i < GAMES.length; i++) {
-      if (GAMES[i].dt && GAMES[i].dt !== etDate(now)) continue;
-      var start = new Date(now.getTime());
-      start.setHours(GAMES[i].h, GAMES[i].m, 0, 0);
-      var end = new Date(start.getTime() + 50 * 60 * 1000);
-      if (now >= start && now < end) live = { start: start, label: GAMES[i].label };
-      if (now < start && !next) next = { start: start, label: GAMES[i].label };
-    }
-    var h = now.getHours(), ap = h >= 12 ? "PM" : "AM", h12 = h % 12 || 12;
-    var days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-    document.getElementById("ds-now-sub").textContent = days[now.getDay()] + "  " + h12 + ":" + pad(now.getMinutes()) + " " + ap + " ET";
-    if (live) {
-      document.getElementById("ds-now-label").textContent = "LIVE";
-      document.getElementById("ds-now-main").textContent = live.label;
-    } else {
-      document.getElementById("ds-now-label").textContent = "";
-      document.getElementById("ds-now-main").textContent = next ? "Board open" : "Board closed";
-    }
-    if (next) {
-      document.getElementById("ds-next-main").textContent = next.label;
-      var ms = next.start - now; if (ms < 0) ms = 0;
-      var s = Math.floor(ms / 1000), hh = Math.floor(s / 3600); s -= hh * 3600;
-      var mm = Math.floor(s / 60); s -= mm * 60;
-      document.getElementById("ds-next-count").textContent = pad(hh) + ":" + pad(mm) + ":" + pad(s);
-    } else {
-      document.getElementById("ds-next-main").textContent = live ? "Last game of the day" : "See you tomorrow";
-      document.getElementById("ds-next-count").textContent = "00:00:00";
-    }
-    drawTours();
-  }
-  tick();
-  setInterval(tick, 1000);
-})();
-</script>
-<script src="/alerts.js?v=13"></script>
+    <div class="search" id="search-wrap">
+        <form id="search-form" action="https://www.google.com/search" method="get">
+            <input type="text" id="search-input" class="search-input" name="q"
+                   placeholder="Search Google or ask anything..." autofocus autocomplete="off">
+        </form>
+        <div class="search-dots" id="search-dots">⋮</div>
+        <div class="search-menu" id="search-menu">
+            <div id="remove-search">Remove search bar</div>
+        </div>
+    </div>
+
+    <div class="icons-area" id="icons-area"></div>
+
+    <button class="add-btn" id="add-btn" title="Add icon">+</button>
+
+    <div class="hint">
+        Right-click + drag search bar to move • Hover search for ⋮ menu • Drag icons to reorder • Hover icon to remove
+    </div>
+
+    <div class="modal" id="add-modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:12px;">Add Icon</h3>
+            <input type="text" id="add-url" placeholder="URL (https://...)">
+            <input type="text" id="add-title" placeholder="Title (optional)">
+            <button id="add-confirm">Add</button>
+            <button id="add-cancel" style="background:#444;color:#fff;">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // Default icons from original start page
+        const DEFAULT_ICONS = [
+            { url: "https://diamondspaders.online/", title: "Diamond Spaders", img: "/icons/ds-site-shot.jpg" },
+            { url: "https://www.igl.net/tk/headtd/", title: "HTD Login", img: "/icons/htd-login.jpg" },
+            { url: "https://www.igl.net/tk/", title: "TD Login", img: "/icons/td-login.jpg" },
+            { url: "https://tourneyking.com/app/home/", title: "Tourney King", img: "/icons/tk-crown.jpg" },
+            { url: "https://www.myleague.com/allspaders/admin.html", title: "All Spaders admin", img: "/icons/admin.png" },
+            { url: "https://www.myleague.com/diamondspaders/", title: "Diamond Spaders", img: "/icons/ds.png" },
+            { url: "https://www.myleague.com/allspaders/", title: "All Spaders", img: "/icons/as.png" },
+            { url: "https://www.myleague.com/dagreathoudini/", title: "houdini", img: "/icons/houdini.png" },
+            { url: "https://www.myleague.com/fantasyspaders/", title: "fantasy", img: "/icons/fantasy.png" },
+            { url: "https://www.myleague.com/teamtfriends/index.php/", title: "Team T Friends", img: "/icons/tfs.png" },
+            { url: "https://www.giphy.com", title: "Giphy", img: "/icons/giphy.png" },
+            { url: "https://www.pexels.com/", title: "Pexels", img: "/icons/pexels2.png" },
+            { url: "https://www.azlyrics.com/", title: "AZLyrics", img: "/icons/azlyrics.png" },
+            { url: "https://notepad.uk.com/", title: "online notepad", img: "/icons/np-online.png" },
+            { url: "https://mail.google.com", title: "Gmail", img: "/icons/gmail.png" },
+            { url: "https://outlook.live.com/mail/", title: "Hotmail", img: "/icons/hotmail.png" },
+            { url: "https://www.youtube.com", title: "YouTube", img: "/icons/youtube.png" },
+            { url: "https://messages.google.com/web/", title: "Messages", img: "/icons/messages.png" },
+            { url: "https://docs.google.com/document/u/0/", title: "google docs", img: "/icons/gdocs2.png" },
+            { url: "https://drive.google.com/drive/quota", title: "Google Drive", img: "/icons/gdrive.png" },
+            { url: "https://www.merriam-webster.com/", title: "Merriam-Webster", img: "/icons/merriam2.png" },
+            { url: "https://www.wikipedia.org/", title: "Wikipedia", img: "/icons/wikipedia2.png" },
+            { url: "https://www.webmd.com/", title: "WebMD", img: "/icons/webmd.png" },
+            { url: "https://www.petmd.com/", title: "Pet MD", img: "/icons/petmd.png" }
+        ];
+
+        let icons = JSON.parse(localStorage.getItem('startb-icons') || 'null') || DEFAULT_ICONS;
+        let searchPos = JSON.parse(localStorage.getItem('startb-search-pos') || 'null') || { top: 12, left: 20 };
+        let searchVisible = localStorage.getItem('startb-search-visible') !== 'false';
+
+        function save() {
+            localStorage.setItem('startb-icons', JSON.stringify(icons));
+            localStorage.setItem('startb-search-pos', JSON.stringify(searchPos));
+            localStorage.setItem('startb-search-visible', searchVisible);
+        }
+
+        function resizeIcons() {
+            const area = document.getElementById('icons-area');
+            const rows = Math.ceil(icons.length / 8) || 1;
+            const availH = area.clientHeight - (rows - 1) * 10;
+            const availW = area.clientWidth - 32;
+            const size = Math.max(48, Math.min(180, Math.floor(Math.min(availH / rows - 10, availW / 8 - 10))));
+            document.documentElement.style.setProperty('--icon-size', size + 'px');
+        }
+
+        function render() {
+            const area = document.getElementById('icons-area');
+            area.innerHTML = '';
+            const perRow = 8;
+            for (let r = 0; r < Math.ceil(icons.length / perRow); r++) {
+                const row = document.createElement('div');
+                row.className = 'icon-row';
+                for (let i = r * perRow; i < Math.min((r + 1) * perRow, icons.length); i++) {
+                    const ic = icons[i];
+                    const wrap = document.createElement('a');
+                    wrap.className = 'icon-wrapper';
+                    wrap.href = ic.url;
+                    wrap.title = ic.title || ic.url;
+                    wrap.draggable = true;
+                    wrap.dataset.idx = i;
+                    wrap.innerHTML = `<img src="${ic.img || ''}" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=${encodeURIComponent(new URL(ic.url).hostname)}&sz=128'" alt="">
+                        <div class="icon-remove" data-idx="${i}">×</div>`;
+                    row.appendChild(wrap);
+                }
+                area.appendChild(row);
+            }
+            resizeIcons();
+            attachDrag();
+        }
+
+        function attachDrag() {
+            let dragIdx = null;
+            document.querySelectorAll('.icon-wrapper').forEach(el => {
+                el.addEventListener('dragstart', e => {
+                    dragIdx = +el.dataset.idx;
+                    el.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                el.addEventListener('dragend', () => el.classList.remove('dragging'));
+                el.addEventListener('dragover', e => e.preventDefault());
+                el.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const target = +el.dataset.idx;
+                    if (dragIdx !== null && dragIdx !== target) {
+                        const item = icons.splice(dragIdx, 1)[0];
+                        icons.splice(target, 0, item);
+                        save();
+                        render();
+                    }
+                });
+                el.querySelector('.icon-remove').addEventListener('click', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    icons.splice(+e.target.dataset.idx, 1);
+                    save();
+                    render();
+                });
+            });
+        }
+
+        // Search bar drag (right-click + drag)
+        const searchWrap = document.getElementById('search-wrap');
+        let draggingSearch = false, startX, startY, startLeft, startTop;
+        searchWrap.addEventListener('contextmenu', e => e.preventDefault());
+        searchWrap.addEventListener('mousedown', e => {
+            if (e.button === 2) { // right click
+                draggingSearch = true;
+                searchWrap.classList.add('dragging');
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = searchPos.left;
+                startTop = searchPos.top;
+                e.preventDefault();
+            }
+        });
+        document.addEventListener('mousemove', e => {
+            if (!draggingSearch) return;
+            searchPos.left = Math.max(0, Math.min(window.innerWidth - searchWrap.offsetWidth, startLeft + e.clientX - startX));
+            searchPos.top = Math.max(0, Math.min(window.innerHeight - searchWrap.offsetHeight, startTop + e.clientY - startY));
+            searchWrap.style.left = searchPos.left + 'px';
+            searchWrap.style.top = searchPos.top + 'px';
+        });
+        document.addEventListener('mouseup', () => {
+            if (draggingSearch) {
+                draggingSearch = false;
+                searchWrap.classList.remove('dragging');
+                save();
+            }
+        });
+
+        // Search dots menu
+        const dots = document.getElementById('search-dots');
+        const menu = document.getElementById('search-menu');
+        dots.addEventListener('click', e => {
+            e.stopPropagation();
+            menu.classList.toggle('show');
+        });
+        document.addEventListener('click', () => menu.classList.remove('show'));
+        document.getElementById('remove-search').addEventListener('click', () => {
+            searchVisible = false;
+            searchWrap.style.display = 'none';
+            menu.classList.remove('show');
+            save();
+        });
+
+        // Add modal
+        document.getElementById('add-btn').addEventListener('click', () => document.getElementById('add-modal').classList.add('show'));
+        document.getElementById('add-cancel').addEventListener('click', () => document.getElementById('add-modal').classList.remove('show'));
+        document.getElementById('add-confirm').addEventListener('click', () => {
+            const url = document.getElementById('add-url').value.trim();
+            const title = document.getElementById('add-title').value.trim();
+            if (url) {
+                try {
+                    new URL(url);
+                    icons.push({ url, title: title || url, img: '' });
+                    save();
+                    render();
+                    document.getElementById('add-url').value = '';
+                    document.getElementById('add-title').value = '';
+                    document.getElementById('add-modal').classList.remove('show');
+                } catch (e) { alert('Invalid URL'); }
+            }
+        });
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            document.getElementById('time').textContent = hours + ':' + minutes + ' ' + ampm;
+            document.getElementById('date').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            document.getElementById('est').textContent = 'EST ' + now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Bing background
+        (function () {
+            var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+            document.body.style.backgroundImage = 'url(/bing-today.jpg?d=' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + ')';
+        })();
+
+        // Search form
+        const form = document.getElementById('search-form');
+        const input = document.getElementById('search-input');
+        form.addEventListener('submit', function (e) {
+            const query = input.value.trim();
+            if (!query) { e.preventDefault(); return; }
+            setTimeout(function () { input.value = ''; }, 300);
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { input.value = ''; input.focus(); }
+        });
+
+        // Init
+        if (!searchVisible) searchWrap.style.display = 'none';
+        else {
+            searchWrap.style.left = searchPos.left + 'px';
+            searchWrap.style.top = searchPos.top + 'px';
+        }
+        render();
+        window.addEventListener('resize', resizeIcons);
+    </script>
 </body>
 </html>

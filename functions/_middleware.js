@@ -6,7 +6,7 @@ const OPEN = [/^\/admin\/?$/, /^\/register(\.html)?\/?$/, /^\/api\/auth\//, /^\/
   /^\/favicon\.ico$/, /^\/fonts\//, /^\/CNAME$/,
   // Public start pages (no login) + the assets they load.
   /^\/start2?(\.html)?\/?$/, /^\/start2\/(index\.html)?$/, /^\/start2\/icons\//, /^\/icons\//,
-   /^\/startb(\.html)?\/?$/, /^\/startb\/(index\.html)?$/,
+    /^\/startb(\.html)?\/?$/, /^\/startb\/(index\.html)?$/,
   /^\/startmenu\.js$/, /^\/start-bg\.jpg$/, /^\/bing-today\.jpg$/];
 // MAINTENANCE: set to false (or env MAINTENANCE="off") to restore the normal site.
 const MAINTENANCE = false;

@@ -107,7 +107,7 @@
     <div class="clock">
         <div class="time" id="pct">12:00 PCT</div>
         <div class="time" id="est">12:00 EST</div>
-        <div class="time" id="pst">12:00 PST</div>
+        <div class="time" id="pst">(12:00 PST)</div>
         <a href="https://diamondspaders.online/" class="icon-wrapper clock-icon" title="Diamond Spaders site">
             <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'" src="/icons/ds-site-shot.jpg" alt="Diamond Spaders">
         </a>
@@ -219,7 +219,7 @@
             const fmt = (tz) => now.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true }).replace(/\s?[AP]M$/, '');
             document.getElementById('pct').textContent = fmt('Etc/GMT+7') + ' PCT';
             document.getElementById('est').textContent = fmt('America/New_York') + ' EST';
-            document.getElementById('pst').textContent = fmt('America/Los_Angeles') + ' PST';
+            document.getElementById('pst').textContent = '(' + fmt('America/Los_Angeles') + ' PST)';
         }
         setInterval(updateClock, 1000);
         updateClock();

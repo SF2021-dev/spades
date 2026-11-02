@@ -105,9 +105,9 @@
 <body>
     <div class="background"></div>
     <div class="clock">
-        <div class="time" id="time">12:00 PM</div>
-        <div class="date" id="date">Tue, Apr 21</div>
-        <div class="est" id="est">EST 12:00 PM</div>
+        <div class="time" id="pct">12:00 PCT</div>
+        <div class="time" id="est">12:00 EST</div>
+        <div class="time" id="pst">12:00 PST</div>
         <a href="https://diamondspaders.online/" class="icon-wrapper clock-icon" title="Diamond Spaders site">
             <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'" src="/icons/ds-site-shot.jpg" alt="Diamond Spaders">
         </a>
@@ -216,20 +216,10 @@
 
         function updateClock() {
             const now = new Date();
-            let hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
-            document.getElementById('time').textContent = hours + ':' + minutes + ' ' + ampm;
-            const options = { weekday: 'short', month: 'short', day: 'numeric' };
-            document.getElementById('date').textContent = now.toLocaleDateString('en-US', options);
-            const estOptions = {
-                timeZone: 'America/New_York',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            };
-            document.getElementById('est').textContent = 'EST ' + now.toLocaleTimeString('en-US', estOptions);
+            const fmt = (tz) => now.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true }).replace(/\s?[AP]M$/, '');
+            document.getElementById('pct').textContent = fmt('Etc/GMT+7') + ' PCT';
+            document.getElementById('est').textContent = fmt('America/New_York') + ' EST';
+            document.getElementById('pst').textContent = fmt('America/Los_Angeles') + ' PST';
         }
         setInterval(updateClock, 1000);
         updateClock();

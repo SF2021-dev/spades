@@ -56,9 +56,11 @@
             position: absolute;
             left: 24px;
             right: 320px;
-            bottom: 56px;
+            top: 72px;
+            bottom: 36px;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             gap: 12px;
             z-index: 20;
             pointer-events: none;
@@ -66,12 +68,13 @@
         .icon-row {
             display: flex;
             flex-wrap: wrap;
+            justify-content: center;
             align-items: center;
             gap: 12px;
             pointer-events: auto;
         }
         .icon-wrapper {
-            height: clamp(56px, min(calc((100vw - 150px) / 9), calc((100vh - 225px) / 3), 180px), 180px); width: clamp(56px, min(calc((100vw - 150px) / 9), calc((100vh - 225px) / 3), 180px), 180px); border-radius: 10px; overflow: hidden;
+            height: clamp(70px, min(calc((100vw - 460px) / 9 * 1.25), calc((100vw - 440px) / 9), calc((100vh - 200px) / 3 * 1.25), calc((100vh - 140px) / 3), 225px), 225px); width: clamp(70px, min(calc((100vw - 460px) / 9 * 1.25), calc((100vw - 440px) / 9), calc((100vh - 200px) / 3 * 1.25), calc((100vh - 140px) / 3), 225px), 225px); border-radius: 10px; overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.75); transition: all 0.35s;
             cursor: pointer;
             flex: 0 0 auto;
@@ -286,5 +289,15 @@
         });
     </script>
 <script src="/startmenu.js"></script>
+<script>
+/* balance icons: near-equal counts per row, shorter rows on top (re-runs after saved layouts load) */
+(function(){var area=document.querySelector('.icons-area'),busy=false;
+function bal(){if(busy||!area)return;var rs=[].slice.call(area.querySelectorAll('.icon-row')).filter(function(r){return r.querySelector(':scope > a');});
+var all=[];rs.forEach(function(r){[].slice.call(r.children).forEach(function(e){if(e.tagName==='A')all.push(e);});});
+var n=rs.length;if(n<2)return;var base=Math.floor(all.length/n),extra=all.length%n,want=[];for(var i=0;i<n;i++)want.push(base+(i>=n-extra?1:0));
+var ok=rs.every(function(r,i){return r.querySelectorAll(':scope > a').length===want[i];});if(ok)return;
+busy=true;var k=0;rs.forEach(function(r,i){for(var j=0;j<want[i];j++){r.appendChild(all[k++]);}});setTimeout(function(){busy=false;},0);}
+bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,{childList:true,subtree:true});})();
+</script>
 </body>
 </html>>

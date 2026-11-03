@@ -119,6 +119,7 @@
         <circle cx="50" cy="50" r="2.5" fill="#00d4ff"/></svg>
         <div class="tz" id="est">--:-- EST</div>
         <div class="tz" id="pct">--:-- PCT</div>
+        <div class="tz" id="cst">--:-- CST</div>
         <div class="tz last" id="cet">--:-- CET</div>
         <div class="lbl">next Diamond Spaders tour</div>
         <div class="big" id="nextName">&mdash;</div>
@@ -248,7 +249,7 @@
         function updateClock(){
             var v=tzParts('America/Los_Angeles');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
             var e=tzParts('America/New_York'),ab=estAbbr();
-            document.getElementById('est').textContent=hm(+e.hour,+e.minute)+' '+ab;document.getElementById('pct').textContent=hm(+v.hour,+v.minute)+' PCT';var z=tzParts('Europe/Zurich');document.getElementById('cet').textContent=hm(+z.hour,+z.minute)+' '+cetAbbr();
+            document.getElementById('est').textContent=hm(+e.hour,+e.minute)+' '+ab;document.getElementById('pct').textContent=hm(+v.hour,+v.minute)+' PCT';var c=tzParts('America/Chicago'),ca=(new Date().toLocaleTimeString('en-US',{timeZone:'America/Chicago',timeZoneName:'short'}).match(/C[SD]T/)||['CST'])[0];document.getElementById('cst').textContent=hm(+c.hour,+c.minute)+' '+ca;var z=tzParts('Europe/Zurich');document.getElementById('cet').textContent=hm(+z.hour,+z.minute)+' '+cetAbbr();
             var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
             var up=TOURS.filter(function(t){return (!t.dt||t.dt===today)&&(+t.h)*60+(+t.m)>nowMin;}).sort(function(a,b){return (a.h*60+ +a.m)-(b.h*60+ +b.m);});
             var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');

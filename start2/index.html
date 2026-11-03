@@ -46,7 +46,7 @@
         .clock .big { font-weight:600; }
         .clock .host { color:#ffd54a; font-weight:700; }
         .clock .more { font-size:0.8rem; color:rgba(255,255,255,0.75); }
-        .clock .temp { color:var(--accent); font-weight:600; margin-top:8px; }
+        .temp { position:absolute; left:16px; bottom:10px; z-index:30; text-shadow:0 1px 4px #000; font-size:0.95rem; color:var(--accent); font-weight:600; margin-top:8px; }
         .icons-area {
             position: absolute;
             left: 24px;
@@ -121,7 +121,6 @@
         <div class="host" id="hostName">&mdash;</div>
         <div class="host" id="hostTime"></div>
         <div class="more" id="more"></div>
-        <div class="temp" id="temp">Vancouver B.C. --&deg;F</div>
     </div>
 
     <div class="search">
@@ -220,6 +219,7 @@
         </div>
     </div>
 
+    <div class="temp" id="temp">--&deg; Vancouver B.C.</div>
     <div class="hint">
         Press <span style="color:var(--accent)">Enter</span> to search Google •
         <span style="color:var(--accent)">Esc</span> to clear
@@ -254,7 +254,7 @@
             mo.innerHTML=mine.slice(1).map(function(t){return esc(hh(+t.h,+t.m)+' '+ab+' '+t.game);}).join('<br>');
         }
         function loadTours(){fetch('/api/live',{credentials:'same-origin',cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){TOURS=j.tours||[];TERR=false;updateClock();}).catch(function(){TERR=true;updateClock();});}
-        function loadTemp(){fetch('https://api.open-meteo.com/v1/forecast?latitude=49.28&longitude=-123.12&current=temperature_2m&temperature_unit=fahrenheit&timezone=America/Vancouver').then(function(r){return r.json();}).then(function(j){document.getElementById('temp').textContent='Vancouver B.C. '+Math.round(j.current.temperature_2m)+'\u00b0F';}).catch(function(){});}
+        function loadTemp(){fetch('https://api.open-meteo.com/v1/forecast?latitude=49.28&longitude=-123.12&current=temperature_2m&temperature_unit=fahrenheit&timezone=America/Vancouver').then(function(r){return r.json();}).then(function(j){document.getElementById('temp').textContent=Math.round(j.current.temperature_2m)+'\u00b0 Vancouver B.C.';}).catch(function(){});}
         setInterval(updateClock,1000);updateClock();loadTours();setInterval(loadTours,300000);loadTemp();setInterval(loadTemp,900000);
 
         const form = document.getElementById('search-form');

@@ -7,7 +7,7 @@ const OPEN = [/^\/admin\/?$/, /^\/register(\.html)?\/?$/, /^\/api\/auth\//, /^\/
   // Public start pages (no login) + the assets they load.
   /^\/start2?(\.html)?\/?$/, /^\/start2\/(index\.html)?$/, /^\/start2\/icons\//, /^\/icons\//,
     /^\/startb(\.html)?\/?$/, /^\/startb\/(index\.html)?$/,
-  /^\/api\/live\/?$/, /^\/startmenu\.js$/, /^\/start-bg\.jpg$/, /^\/start2-bg\.jpg$/, /^\/bing-today\.jpg$/];
+  /^\/api\/live\/?$/, /^\/startmenu\.js$/, /^\/wxloc\.js$/, /^\/start-bg\.jpg$/, /^\/start2-bg\.jpg$/, /^\/bing-today\.jpg$/];
 // MAINTENANCE: set to false (or env MAINTENANCE="off") to restore the normal site.
 const MAINTENANCE = false;
 const MAINT_HTML = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Diamond Spaders Online - Maintenance</title></head><body style="margin:0;background:#111;color:#eee;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center"><h1 style="font-weight:normal;padding:20px">site closed for maintenance... estimated return  2:00 AM EST</h1></body></html>`;

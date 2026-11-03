@@ -50,8 +50,9 @@
         .icons-area {
             position: absolute;
             left: 24px;
-            right: 24px;
-            bottom: 56px;
+            right: 300px;
+            top: 84px;
+            bottom: 40px;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -66,7 +67,7 @@
             pointer-events: auto;
         }
         .icon-wrapper {
-            height: clamp(56px, min(calc((100vw - 150px) / 9), calc((100vh - 225px) / 3), 180px), 180px); width: clamp(56px, min(calc((100vw - 150px) / 9), calc((100vh - 225px) / 3), 180px), 180px); border-radius: 10px; overflow: hidden;
+            height: clamp(56px, min(calc((100vw - 420px) / 9), calc((100vh - 200px) / 3), 180px), 180px); width: clamp(56px, min(calc((100vw - 420px) / 9), calc((100vh - 200px) / 3), 180px), 180px); border-radius: 10px; overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.75); transition: all 0.35s;
             cursor: pointer;
             flex: 0 0 auto;
@@ -110,8 +111,6 @@
         <line id="sh" x1="50" y1="55" x2="50" y2="10" stroke="#00d4ff" stroke-width="1"/>
         <circle cx="50" cy="50" r="2.5" fill="#00d4ff"/></svg>
         <div class="est" id="est">--:-- EST</div>
-        <div class="lbl">next tournament:</div>
-        <div class="big" id="nextT">&mdash;</div>
         <div class="lbl">your next tour as host</div>
         <div class="host" id="hostName">&mdash;</div>
         <div class="host" id="hostTime"></div>
@@ -239,13 +238,12 @@
             document.getElementById('est').textContent=hh(e.hour,+e.minute)+' '+ab;
             var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
             var up=TOURS.filter(function(t){return (!t.dt||t.dt===today)&&(+t.h)*60+(+t.m)>nowMin;}).sort(function(a,b){return (a.h*60+ +a.m)-(b.h*60+ +b.m);});
-            var nt=document.getElementById('nextT'),hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
-            if(TERR){nt.textContent='sign in for tours';hn.textContent='\u2014';ht.textContent='';mo.innerHTML='';return;}
-            if(!up.length){nt.textContent='done for today';hn.textContent='none';ht.textContent='';mo.innerHTML='';return;}
-            nt.textContent=hm(+up[0].h,+up[0].m)+' '+ab+' \u00b7 '+up[0].game;
-            var host=up.filter(function(t){return /^fetch_?it_?up$/i.test(String(t.td||'').trim());})[0];
-            if(host){hn.textContent=host.game;ht.textContent=hh(+host.h,+host.m)+' '+ab;}else{hn.textContent='none today';ht.textContent='';}
-            mo.innerHTML=up.slice(1).map(function(t){return esc(hm(+t.h,+t.m)+' '+t.game+' \u00b7 '+(t.td||''));}).join('<br>');
+            var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
+            if(TERR){hn.textContent='sign in for tours';ht.textContent='';mo.innerHTML='';return;}
+            var mine=up.filter(function(t){return /^fetch_?it_?up$/i.test(String(t.td||'').trim());});
+            if(!mine.length){hn.textContent='none today';ht.textContent='';mo.innerHTML='';return;}
+            hn.textContent=mine[0].game;ht.textContent=hh(+mine[0].h,+mine[0].m)+' '+ab;
+            mo.innerHTML=mine.slice(1).map(function(t){return esc(hh(+t.h,+t.m)+' '+ab+' '+t.game);}).join('<br>');
         }
         function loadTours(){fetch('/api/live',{credentials:'same-origin',cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){TOURS=j.tours||[];TERR=false;updateClock();}).catch(function(){TERR=true;updateClock();});}
         function loadTemp(){fetch('https://api.open-meteo.com/v1/forecast?latitude=49.28&longitude=-123.12&current=temperature_2m&temperature_unit=fahrenheit&timezone=America/Vancouver').then(function(r){return r.json();}).then(function(j){document.getElementById('temp').textContent='Vancouver B.C. '+Math.round(j.current.temperature_2m)+'\u00b0F';}).catch(function(){});}

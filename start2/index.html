@@ -111,6 +111,9 @@
         <line id="sh" x1="50" y1="55" x2="50" y2="10" stroke="#00d4ff" stroke-width="1"/>
         <circle cx="50" cy="50" r="2.5" fill="#00d4ff"/></svg>
         <div class="est" id="est">--:-- EST</div>
+        <div class="lbl">next Diamond Spaders tour</div>
+        <div class="big" id="nextName">&mdash;</div>
+        <div class="big" id="nextTime"></div>
         <div class="lbl">your next tour as host</div>
         <div class="host" id="hostName">&mdash;</div>
         <div class="host" id="hostTime"></div>
@@ -238,6 +241,8 @@
             document.getElementById('est').textContent=hh(e.hour,+e.minute)+' '+ab;
             var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
             var up=TOURS.filter(function(t){return (!t.dt||t.dt===today)&&(+t.h)*60+(+t.m)>nowMin;}).sort(function(a,b){return (a.h*60+ +a.m)-(b.h*60+ +b.m);});
+            var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');
+            if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!up.length){nn.textContent='done for today';nx.textContent='';}else{nn.textContent=up[0].game;nx.textContent=hh(+up[0].h,+up[0].m)+' '+ab;}
             var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
             if(TERR){hn.textContent='sign in for tours';ht.textContent='';mo.innerHTML='';return;}
             var mine=up.filter(function(t){return /^fetch_?it_?up$/i.test(String(t.td||'').trim());});

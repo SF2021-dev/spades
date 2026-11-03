@@ -24,8 +24,8 @@
         }
         .search {
             position: absolute;
-            top: 12px; left: 20px;
-            width: calc(100% - 320px); max-width: 520px; padding: 0; z-index: 10;
+            top: 12px;
+            right: 320px; left: 24px; padding: 0; z-index: 10;
         }
         .search-input {
             width: 100%; padding: 14px 24px; font-size: 1.25rem; font-weight: 500;
@@ -86,6 +86,8 @@
             font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15;
             white-space: nowrap;
         }
+            .search form { max-width: 520px; margin: 0 auto; }
+        .hint { left: 24px !important; right: 320px; transform: none !important; text-align: center; }
     </style>
 <script>
 /* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */

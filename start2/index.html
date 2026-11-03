@@ -88,7 +88,7 @@
         }
             .search form { max-width: 520px; margin: 0 auto; }
         .hint { left: 24px !important; right: 320px; transform: none !important; text-align: center; }
-            .wx { position:absolute; right:20px; bottom:34px; z-index:30; width:240px; padding:8px 10px; border-radius:10px;
+            .wx { position:absolute; right:20px; bottom:12px; z-index:30; width:250px; padding:8px 10px; border-radius:10px;
             background:rgba(0,0,0,0.5); font-size:0.8rem; color:rgba(255,255,255,0.85); text-align:right; }
         .wx .now { font-size:0.95rem; font-weight:600; margin-bottom:4px; }
         .wx .d { display:flex; justify-content:space-between; gap:6px; }
@@ -224,7 +224,6 @@
     </div>
 
     <div class="wx" id="wx"></div>
-    <div class="temp" id="temp">--&deg; Vancouver B.C.</div>
     <div class="hint">
         Press <span style="color:var(--accent)">Enter</span> to search Google •
         <span style="color:var(--accent)">Esc</span> to clear
@@ -259,7 +258,7 @@
             mo.innerHTML=mine.slice(1).map(function(t){return esc(hh(+t.h,+t.m)+' '+ab+' '+t.game);}).join('<br>');
         }
         function loadTours(){fetch('/api/live',{credentials:'same-origin',cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){TOURS=j.tours||[];TERR=false;updateClock();}).catch(function(){TERR=true;updateClock();});}
-        function loadTemp(){fetch('https://api.open-meteo.com/v1/forecast?latitude=49.28&longitude=-123.12&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=America/Vancouver').then(function(r){return r.json();}).then(function(j){document.getElementById('temp').textContent=Math.round(j.current.temperature_2m)+'\u00b0 Vancouver B.C.';try{var W=function(c){return c==0?'\u2600\ufe0f Clear':c<=2?'\u26c5 Partly cloudy':c==3?'\u2601\ufe0f Cloudy':c<=48?'\ud83c\udf2b\ufe0f Fog':c<=67||(c>=80&&c<=82)?'\ud83c\udf27\ufe0f Rain':c<=77||c==85||c==86?'\u2744\ufe0f Snow':'\u26c8\ufe0f Storm';};var d=j.daily,h='<div class="now">'+W(j.current.weather_code)+' \u00b7 wind '+Math.round(j.current.wind_speed_10m)+' mph</div>';for(var i=0;i<d.time.length;i++){var dn=i?new Date(d.time[i]+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today';h+='<div class="d"><span>'+dn+'</span><span>'+W(d.weather_code[i]).split(' ')[0]+'</span><span>'+Math.round(d.temperature_2m_max[i])+'\u00b0 / '+Math.round(d.temperature_2m_min[i])+'\u00b0</span></div>';}document.getElementById('wx').innerHTML=h;}catch(e){}}).catch(function(){});}
+        function loadTemp(){fetch('https://api.open-meteo.com/v1/forecast?latitude=49.28&longitude=-123.12&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=America/Vancouver').then(function(r){return r.json();}).then(function(j){try{var W=function(c){return c==0?'\u2600\ufe0f Clear':c<=2?'\u26c5 Partly cloudy':c==3?'\u2601\ufe0f Cloudy':c<=48?'\ud83c\udf2b\ufe0f Fog':c<=67||(c>=80&&c<=82)?'\ud83c\udf27\ufe0f Rain':c<=77||c==85||c==86?'\u2744\ufe0f Snow':'\u26c8\ufe0f Storm';};var d=j.daily,h='<div class="now">Vancouver B.C. '+Math.round(j.current.temperature_2m)+'\u00b0 '+W(j.current.weather_code)+' \u00b7 wind '+Math.round(j.current.wind_speed_10m)+' mph</div>';for(var i=0;i<d.time.length;i++){var dn=i?new Date(d.time[i]+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today';h+='<div class="d"><span>'+dn+'</span><span>'+W(d.weather_code[i]).split(' ')[0]+'</span><span>'+Math.round(d.temperature_2m_max[i])+'\u00b0 / '+Math.round(d.temperature_2m_min[i])+'\u00b0</span></div>';}document.getElementById('wx').innerHTML=h;}catch(e){}}).catch(function(){});}
         setInterval(updateClock,1000);updateClock();loadTours();setInterval(loadTours,300000);loadTemp();setInterval(loadTemp,900000);
 
         const form = document.getElementById('search-form');

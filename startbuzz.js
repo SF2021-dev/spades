@@ -24,7 +24,11 @@
     var o2 = document.getElementById("dsBuzzOv");
     if (!o2) { o2 = document.createElement("div"); o2.id = "dsBuzzOv"; o2.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);color:#f3bf56;font:bold 48px sans-serif;text-align:center;padding:20px;text-shadow:0 0 20px #000"; document.body.appendChild(o2); }
     var who = to.charAt(0).toUpperCase() + to.slice(1);
-    o2.textContent = who + " is buzzing you"; o2.style.display = "flex";
+    o2.innerHTML = ""; var t = document.createElement("div"); t.textContent = who + " is buzzing you"; o2.appendChild(t);
+    var GM = "https://messages.google.com/web/conversations", w = null;
+    try { w = window.open(GM, "dsGoogleMessages"); } catch (e) {}
+    if (!w) { var a = document.createElement("a"); a.href = GM; a.target = "dsGoogleMessages"; a.textContent = "Open Google Messages"; a.style.cssText = "display:block;margin-top:18px;font-size:24px;color:#fff;text-decoration:underline"; t.appendChild(a); }
+    o2.style.flexDirection = "column"; o2.style.display = "flex";
     clearTimeout(o2._t); o2._t = setTimeout(function () { o2.style.display = "none"; }, 5000);
   }
   function poll() {

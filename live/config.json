@@ -45,6 +45,8 @@
 "11955135": "Girlz Rule",
 "11955137": "Okie Dokie",
 "11955140": "Old pw",
+"11955146": "13",
+"11955148": "Nighters",
 "11955496": "Nighters",
 "11955499": "Wild and Wonderful",
 "11955564": "Ace In BlackBirthday",
@@ -70,7 +72,13 @@
 "11956987": "muziklvrUntouchabl",
 "11957098": "Northern Exposure",
 "11957111": "13",
-"11957143": "lets win"
+"11957143": "lets win",
+"11957213": "In2win",
+"11957323": "X",
+"11957368": "Plan9fromOuterSpace",
+"11957412": "13",
+"11957414": "DementedSpades",
+"11957416": "ShadowBrookRoad"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png"
@@ -678,6 +686,7 @@
 "11952441": "CUT MIRRORS",
 "11952446": "CUT",
 "11952466": "CUT",
+"11952467": "SINGLES",
 "11952478": "CUT",
 "11952484": "CUT",
 "11952499": "REG PARTNERS",
@@ -983,35 +992,72 @@
 "11956202": "CUT",
 "11956203": "PASS 2",
 "11956207": "SUI PASS 2 PAB",
+"11956208": "CUT",
 "11956371": "CUT",
 "11956382": "CUT",
 "11956383": "CUT",
 "11956384": "PASS 2",
 "11956421": "CUT",
+"11956423": "CUT",
 "11956513": "CUT",
 "11956596": "REG PARTNERS",
 "11956614": "CUT",
 "11956615": "CUT",
 "11956668": "SUI PASS 2",
+"11956781": "CUT",
 "11956782": "CUT",
 "11956783": "CUT",
 "11956794": "CUT",
 "11956799": "REG PARTNERS",
 "11956852": "REG PARTNERS",
 "11956894": "IND TO NBN CDO",
+"11956895": "SINGLES",
 "11956896": "CUT",
 "11956897": "CUT",
+"11956903": "CUT",
 "11956913": "CUT",
 "11956987": "REG PARTNERS",
 "11957041": "CUT",
 "11957048": "SUI PASS 2 RANDOM",
 "11957050": "CUT",
+"11957056": "CUT",
 "11957082": "CUT",
+"11957090": "SUI PASS 2 PAB",
 "11957098": "REG PARTNERS",
 "11957111": "SUI PASS 2",
 "11957143": "REG PARTNERS",
+"11957174": "SINGLES",
 "11957200": "CUT",
 "11957213": "REG PARTNERS",
+"11957270": "CUT",
+"11957271": "SINGLES",
+"11957321": "CUT",
+"11957323": "SUI PASS 2",
+"11957326": "CUT",
+"11957335": "SUI PASS 2",
+"11957361": "CUT",
+"11957368": "REG PARTNERS",
+"11957412": "REG PARTNERS",
+"11957413": "CUT",
+"11957414": "SUI PASS 2",
+"11957415": "CUT",
+"11957416": "REG PARTNERS",
+"11957417": "LOSER WINS",
+"11957418": "CUT",
+"11957480": "CUT",
+"11957484": "SUI PASS 2 RANDOM",
+"11957488": "CUT",
+"11957524": "CUT",
+"11957531": "SUI PASS 2 RANDOM",
+"11957566": "CUT",
+"11957567": "CUT",
+"11957571": "CUT",
+"11957599": "SUI PASS 2 PAB",
+"11957650": "REG PARTNERS",
+"11957651": "CUT",
+"11957652": "SUI PASS 2",
+"11957653": "CUT",
+"11957654": "REG PARTNERS",
 "manual-20261021-1015": "CUT",
 "manual-20261021-1115": "CUT",
 "manual-20261021-1315": "CUT",
@@ -1248,6 +1294,23 @@
 "booradly",
 "poppsv"
 ],
+"11955146": [
+"illbid13",
+"DementedWench"
+],
+"11955147": [
+"REALLY_WHY"
+],
+"11955148": [
+"Ellisandrew80",
+"MEL1c1ous_1"
+],
+"11955149": [
+"BluAngel1950"
+],
+"11955150": [
+"poppsv"
+],
 "11955204": [
 "Treco521"
 ],
@@ -1473,6 +1536,12 @@
 "11956384": [
 "MyBagsRGucci"
 ],
+"11956421": [
+"MaKinpa"
+],
+"11956423": [
+"Lookslikeapickel"
+],
 "11956513": [
 "SoloRyder"
 ],
@@ -1510,6 +1579,9 @@
 "11956894": [
 "3Bid3Bags"
 ],
+"11956895": [
+"Lookslikeapickel"
+],
 "11956896": [
 "MaKinpa"
 ],
@@ -1533,8 +1605,14 @@
 "11957050": [
 "Eager_1"
 ],
+"11957056": [
+"Ochwiay"
+],
 "11957082": [
 "MaKinpa"
+],
+"11957090": [
+"Ochwiay"
 ],
 "11957098": [
 "Ochwiay",
@@ -1550,6 +1628,77 @@
 ],
 "11957200": [
 "MyBagsRGucci"
+],
+"11957213": [
+"Tokeey1974",
+"MyBagsRGucci"
+],
+"11957270": [
+"O_SIRIS"
+],
+"11957271": [
+"DementedWench"
+],
+"11957321": [
+"MaKinpa"
+],
+"11957323": [
+"Lookslikeapickel",
+"DiamondsLGirl"
+],
+"11957326": [
+"PAIN419"
+],
+"11957335": [
+"Lookslikeapickel",
+"EgammeR"
+],
+"11957361": [
+"Untouchable_One"
+],
+"11957368": [
+"Ochwiay",
+"MsZigs"
+],
+"11957412": [
+"illbid13",
+"Ellisandrew80"
+],
+"11957413": [
+"Lookslikeapickel"
+],
+"11957414": [
+"DementedWench",
+"EgammeR"
+],
+"11957415": [
+"EgammeR"
+],
+"11957416": [
+"Ochwiay",
+"Fetch_it_up"
+],
+"11957417": [
+"poppsv"
+],
+"11957418": [
+"BluAngel1950"
+],
+"11957524": [
+"Lookslikeapickel"
+],
+"11957531": [
+"Sumpin2du",
+"EgammeR"
+],
+"11957566": [
+"MaKinpa"
+],
+"11957567": [
+"MaKinpa"
+],
+"11957571": [
+"Lookslikeapickel"
 ]
 },
 "subtitles": {

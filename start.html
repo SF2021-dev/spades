@@ -248,7 +248,7 @@
         function updateClock(){
             var v=tzParts('America/Los_Angeles');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
             var e=tzParts('America/New_York'),ab=estAbbr();
-            document.getElementById('est').textContent=hh(e.hour,+e.minute)+' '+ab;document.getElementById('pct').textContent=hh(v.hour,+v.minute)+' PCT';var z=tzParts('Europe/Zurich');document.getElementById('cet').textContent=hh(z.hour,+z.minute)+' '+cetAbbr();
+            document.getElementById('est').textContent=hm(+e.hour,+e.minute)+' '+ab;document.getElementById('pct').textContent=hm(+v.hour,+v.minute)+' PCT';var z=tzParts('Europe/Zurich');document.getElementById('cet').textContent=hm(+z.hour,+z.minute)+' '+cetAbbr();
             var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
             var up=TOURS.filter(function(t){return (!t.dt||t.dt===today)&&(+t.h)*60+(+t.m)>nowMin;}).sort(function(a,b){return (a.h*60+ +a.m)-(b.h*60+ +b.m);});
             var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');

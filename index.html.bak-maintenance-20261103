@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diamond Spaders — Undergoing maintenance</title>
+<style>
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background: #120c08; color: #fbe646;
+    font-family: Georgia, "Times New Roman", serif; text-align: center;
+  }
+  main { padding: 24px; }
+  h1 { font-weight: normal; font-size: 2rem; letter-spacing: 0.04em; margin: 0 0 12px; }
+  p { margin: 0; font-size: 1.15rem; color: #fff; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Undergoing maintenance</h1>
+  <p>Diamond Spaders will be back shortly.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root { --bg: #0a0a0a; --text: #f0f0f0; --accent: #00d4ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg) center/cover no-repeat fixed;
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background-image 0.8s ease;
+        }
+        .background {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(0, 212, 255, 0.06) 0%, rgba(10, 10, 10, 0.85) 65%);
+            pointer-events: none; z-index: 1;
+        }
+        .search {
+            position: absolute;
+            top: 12px; left: 20px;
+            width: calc(100% - 280px); max-width: 520px; padding: 0; z-index: 10;
+        }
+        .search-input {
+            width: 100%; padding: 14px 24px; font-size: 1.25rem; font-weight: 500;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08);
+            border-radius: 9999px; color: white; outline: none;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .search-input:focus {
+            border-color: var(--accent); background: rgba(255,255,255,0.11);
+            box-shadow: 0 0 0 14px rgba(0,212,255,0.18); transform: scale(1.015);
+        }
+        .clock {
+            position: absolute; top: 8px; right: 24px; font-size: 1.15rem; font-weight: 500;
+            color: rgba(255,255,255,0.85); z-index: 30; text-align: right;
+            line-height: 1.35;
+        }
+        .clock .pct, .clock .est {
+            margin-right: 0.6em; /* shift top two one space left */
+        }
+        .clock .pst {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.7);
+            margin-top: 2px;
+        }
+        .temp-vancouver {
+            position: absolute;
+            top: 92px;
+            right: 24px;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #00d4ff;
+            z-index: 30;
+            text-align: right;
+            pointer-events: none;
+        }
+        .icons-area {
+            position: absolute;
+            left: 24px;
+            right: 24px;
+            bottom: 56px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .icon-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+        }
+        .icon-wrapper {
+            height: clamp(56px, min(calc((100vw - 150px) / 9), calc((100vh - 225px) / 3), 180px), 180px); width: clamp(56px, min(calc((100vw - 150px) / 9), calc((100vh - 225px) / 3), 180px), 180px); border-radius: 10px; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.75); transition: all 0.35s;
+            cursor: pointer;
+            flex: 0 0 auto;
+            background: rgba(0,0,0,0.25);
+        }
+        .icon-wrapper:hover {
+            transform: scale(1.08) translateY(-6px);
+            box-shadow: 0 16px 40px rgba(0,212,255,0.28);
+        }
+        .icon-wrapper img {
+            height: 100%; width: 100%; object-fit: contain; display: block;
+        }
+        .hint {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);

@@ -69,7 +69,7 @@
             pointer-events: auto;
         }
         .icon-wrapper {
-            height: clamp(56px, min(calc((100vw - 460px) / 9), calc((100vh - 200px) / 3), 180px), 180px); width: clamp(56px, min(calc((100vw - 420px) / 9), calc((100vh - 200px) / 3), 180px), 180px); border-radius: 10px; overflow: hidden;
+            height: clamp(70px, min(calc((100vw - 460px) / 9 * 1.25), calc((100vw - 440px) / 9), calc((100vh - 200px) / 3 * 1.25), calc((100vh - 140px) / 3), 225px), 225px); width: clamp(70px, min(calc((100vw - 460px) / 9 * 1.25), calc((100vw - 440px) / 9), calc((100vh - 200px) / 3 * 1.25), calc((100vh - 140px) / 3), 225px), 225px); border-radius: 10px; overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.75); transition: all 0.35s;
             cursor: pointer;
             flex: 0 0 auto;
@@ -93,7 +93,7 @@
             background:rgba(0,0,0,0.5); font-size:0.8rem; color:rgba(255,255,255,0.85); text-align:right; }
         .wx .now { font-size:0.95rem; font-weight:600; margin-bottom:4px; }
         .wx .d { display:flex; justify-content:space-between; gap:6px; }
-            .clock .dslink { display:block; width:84px; height:84px; margin:10px auto 0; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.7); transition:transform .3s; }
+            .clock .dslink { display:block; width:105px; height:105px; margin:10px 0 0 auto; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.7); transition:transform .3s; }
         .clock .dslink:hover { transform:scale(1.08); }
         .clock .dslink img { width:100%; height:100%; object-fit:contain; display:block; background:rgba(0,0,0,0.25); }
     </style>

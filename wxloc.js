@@ -10,7 +10,7 @@ var p=document.createElement('div');p.className='wxp';
 p.innerHTML='<div>Show weather for:</div><form><input type="text" placeholder="City, e.g. Chicago"><button>Go</button><label><input type="checkbox" checked> revert after 5 minutes</label></form><div class="m"></div>';
 wrap.appendChild(p);
 var f=p.querySelector('form'),inp=p.querySelector('input[type=text]'),cb=p.querySelector('input[type=checkbox]'),m=p.querySelector('.m');
-function upd(){var o=get();m.innerHTML=o?'Showing '+o.name+(o.until?' until '+new Date(o.until).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'')+' · <a>back to '+D.name+'</a>':'Default: '+D.name;var a=m.querySelector('a');if(a)a.onclick=function(){localStorage.removeItem(K);clearTimeout(tmr);upd();loadTemp();};}
+function upd(){var o=get();m.innerHTML=o?'Showing '+o.name+(o.until?' until '+new Date(o.until).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}):'')+' · <a>back to '+D.name+'</a>':'Default: '+D.name;var a=m.querySelector('a');if(a)a.onclick=function(){localStorage.removeItem(K);clearTimeout(tmr);upd();loadTemp();};}
 f.onsubmit=function(e){e.preventDefault();var q=inp.value.trim();if(!q)return;m.textContent='Searching…';
 fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=en&name='+encodeURIComponent(q.split(',')[0].trim())).then(function(r){return r.json();}).then(function(j){var r=j.results&&j.results[0];if(!r){m.textContent='Not found: '+q;return;}
 var o={lat:r.latitude,lon:r.longitude,name:r.name+(r.admin1?', '+r.admin1:(r.country?', '+r.country:''))};if(cb.checked)o.until=Date.now()+300000;

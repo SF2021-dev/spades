@@ -240,7 +240,7 @@
         (function(){var g=document.getElementById('ticks'),h='';for(var i=0;i<12;i++){var a=i*Math.PI/6;h+='<line x1="'+(50+40*Math.sin(a))+'" y1="'+(50-40*Math.cos(a))+'" x2="'+(50+45*Math.sin(a))+'" y2="'+(50-45*Math.cos(a))+'" stroke="#ccc" stroke-width="'+(i%3?1.5:3)+'"/>';}g.innerHTML=h;})();
         function tzParts(tz){var p={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(new Date()).forEach(function(x){p[x.type]=x.value;});p.hour=(+p.hour)%24;return p;}
         function hm(h,m){return (h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');}
-        function hh(h,m){return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
+        function hh(h,m){return hm(+h,+m);}
         function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return '&#'+c.charCodeAt(0)+';';});}
         function estAbbr(){var t=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',timeZoneName:'short'});return (t.match(/E[SD]T/)||['EST'])[0];}
         function cetAbbr(){var t=new Date().toLocaleTimeString('en-GB',{timeZone:'Europe/Zurich',timeZoneName:'short'});return /CEST|GMT\+2/.test(t)?'CEST':'CET';}

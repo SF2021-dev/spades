@@ -93,6 +93,9 @@
             background:rgba(0,0,0,0.5); font-size:0.8rem; color:rgba(255,255,255,0.85); text-align:right; }
         .wx .now { font-size:0.95rem; font-weight:600; margin-bottom:4px; }
         .wx .d { display:flex; justify-content:space-between; gap:6px; }
+            .clock .dslink { display:block; width:84px; height:84px; margin:10px auto 0; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.7); transition:transform .3s; }
+        .clock .dslink:hover { transform:scale(1.08); }
+        .clock .dslink img { width:100%; height:100%; object-fit:contain; display:block; background:rgba(0,0,0,0.25); }
     </style>
 <script>
 /* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */
@@ -126,6 +129,7 @@
         <div class="host" id="hostName">&mdash;</div>
         <div class="host" id="hostTime"></div>
         <div class="more" id="more"></div>
+        <a href="https://diamondspaders.online/" class="dslink" title="Diamond Spaders site"><img src="/icons/dsalt.jpg" alt="Diamond Spaders" onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'"></a>
     </div>
 
     <div class="search">
@@ -154,9 +158,6 @@
             </a>
             <a href="https://sf2021-dev.github.io/spades/" class="icon-wrapper" title="tours">
                 <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=sf2021-dev.github.io&sz=128'" src="/icons/tours.png" alt="tours">
-            </a>
-            <a href="https://diamondspaders.online/" class="icon-wrapper" title="Diamond Spaders site">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'" src="/icons/dsalt.jpg" alt="dsalt">
             </a>
             <a href="https://ochwiay.goatcounter.com" class="icon-wrapper" title="GoatCounter visitors">
                 <img src="/icons/goatcounter.svg" alt="GoatCounter">

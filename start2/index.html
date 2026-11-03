@@ -245,7 +245,7 @@
         var TOURS=[],TERR=false;
         function rot(id,deg){document.getElementById(id).setAttribute('transform','rotate('+deg+' 50 50)');}
         function updateClock(){
-            var v=tzParts('America/Vancouver');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
+            var v=tzParts('America/Los_Angeles');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
             var e=tzParts('America/New_York'),ab=estAbbr();
             document.getElementById('est').textContent=hh(e.hour,+e.minute)+' '+ab;
             var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);

@@ -52,7 +52,7 @@
         .icons-area {
             position: absolute;
             left: 24px;
-            right: 24px;
+            right: 180px;
             bottom: 56px;
             display: flex;
             flex-direction: column;
@@ -82,6 +82,23 @@
             height: 100%; width: 100%; object-fit: contain; display: block;
         }
         .clock-icon { display: block; margin: 10px 0 0 auto; }
+        .weather {
+            margin-top: 12px;
+            background: rgba(0,0,0,0.45);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 0.88rem;
+            line-height: 1.35;
+            text-align: right;
+            min-width: 130px;
+            backdrop-filter: blur(4px);
+            color: rgba(255,255,255,0.9);
+            display: inline-block;
+        }
+        .weather .temp { font-size: 1.35rem; font-weight: 600; color: #00d4ff; }
+        .weather .loc { font-size: 0.78rem; opacity: 0.7; margin-bottom: 2px; }
+        .weather .cond { opacity: 0.85; }
         .hint {
             position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
             font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15;
@@ -112,15 +129,18 @@
         <a href="https://diamondspaders.online/" class="icon-wrapper clock-icon" title="Diamond Spaders site">
             <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'" src="/icons/ds-site-shot.jpg" alt="Diamond Spaders">
         </a>
+        <div class="weather" id="weather">
+            <div class="loc">Vancouver, BC</div>
+            <div class="temp">—</div>
+            <div class="cond">Loading…</div>
+        </div>
     </div>
-
     <div class="search">
         <form id="search-form" action="https://www.google.com/search" method="get">
             <input type="text" id="search-input" class="search-input" name="q"
                    placeholder="Search Google or ask anything..." autofocus autocomplete="off">
         </form>
     </div>
-
     <div class="icons-area">
         <div class="icon-row">
             <a href="https://diamondspaders.online/" class="icon-wrapper" title="Diamond Spaders site">
@@ -139,7 +159,6 @@
                 <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="/icons/admin.png" alt="All Spaders admin">
             </a>
         </div>
-
         <div class="icon-row">
             <a href="https://www.myleague.com/diamondspaders/" class="icon-wrapper" title="Diamond Spaders">
                 <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="/icons/ds.png" alt="Diamond Spaders">
@@ -169,7 +188,6 @@
                 <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=notepad.uk.com&sz=128'" src="/icons/np-online.png" alt="online notepad">
             </a>
         </div>
-
         <div class="icon-row">
             <a href="https://mail.google.com" class="icon-wrapper" title="Gmail">
                 <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=mail.google.com&sz=128'" src="/icons/gmail.png" alt="Gmail">
@@ -203,18 +221,15 @@
             </a>
         </div>
     </div>
-
     <div class="hint">
         Press <span style="color:var(--accent)">Enter</span> to search Google •
         <span style="color:var(--accent)">Esc</span> to clear
     </div>
-
     <script>
         (function () {
             var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
             document.body.style.backgroundImage = 'url(/bing-today.jpg?d=' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + ')';
         })();
-
         function updateClock() {
             const now = new Date();
             const fmt = (tz) => now.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true }).replace(/\s?[AP]M$/, '');
@@ -224,6 +239,24 @@
         }
         setInterval(updateClock, 1000);
         updateClock();
+
+        // Weather for Vancouver, BC
+        async function updateWeather() {
+            try {
+                const lat = 49.2827, lon = -123.1207;
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&temperature_unit=celsius&timezone=auto`);
+                const data = await res.json();
+                const c = data.current;
+                const codes = {0:"Clear",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Icy fog",51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",71:"Light snow",73:"Snow",75:"Heavy snow",80:"Showers",81:"Mod showers",82:"Heavy showers",95:"Thunderstorm"};
+                const cond = codes[c.weather_code] || "—";
+                document.querySelector("#weather .temp").textContent = `${Math.round(c.temperature_2m)}°C`;
+                document.querySelector("#weather .cond").textContent = `${cond} · ${Math.round(c.relative_humidity_2m)}% · ${Math.round(c.wind_speed_10m)} km/h`;
+            } catch (e) {
+                document.querySelector("#weather .cond").textContent = "Weather unavailable";
+            }
+        }
+        updateWeather();
+        setInterval(updateWeather, 15 * 60 * 1000);
 
         const form = document.getElementById('search-form');
         const input = document.getElementById('search-input');
@@ -235,14 +268,12 @@
             }
             setTimeout(function () { input.value = ''; }, 300);
         });
-
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 input.value = '';
                 input.focus();
             }
         });
-
         document.body.addEventListener('click', function(e) {
             if (e.target === document.body || e.target.classList.contains('background')) {
                 input.focus();
@@ -251,4 +282,4 @@
     </script>
 <script src="/startmenu.js"></script>
 </body>
-</html>>
+</html>

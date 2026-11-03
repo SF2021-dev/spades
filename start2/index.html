@@ -43,16 +43,29 @@
             color: rgba(255,255,255,0.85); z-index: 30; text-align: right;
             line-height: 1.35;
         }
-        #pct::after, #est::after { content: ")"; visibility: hidden; }
-        .clock .est {
+        .clock .pct, .clock .est {
+            margin-right: 0.6em; /* shift top two one space left */
+        }
+        .clock .pst {
             font-size: 0.95rem;
             color: rgba(255,255,255,0.7);
             margin-top: 2px;
         }
+        .temp-vancouver {
+            position: absolute;
+            top: 92px;
+            right: 24px;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #00d4ff;
+            z-index: 30;
+            text-align: right;
+            pointer-events: none;
+        }
         .icons-area {
             position: absolute;
             left: 24px;
-            right: 180px;
+            right: 24px;
             bottom: 56px;
             display: flex;
             flex-direction: column;
@@ -68,7 +81,7 @@
             pointer-events: auto;
         }
         .icon-wrapper {
-            height: clamp(56px, min(calc((100vw - 160px) / 10), calc((100vh - 225px) / 3), 180px), 180px); width: clamp(56px, min(calc((100vw - 160px) / 10), calc((100vh - 225px) / 3), 180px), 180px); border-radius: 10px; overflow: hidden;
+            height: clamp(56px, min(calc((100vw - 150px) / 9), calc((100vh - 225px) / 3), 180px), 180px); width: clamp(56px, min(calc((100vw - 150px) / 9), calc((100vh - 225px) / 3), 180px), 180px); border-radius: 10px; overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.75); transition: all 0.35s;
             cursor: pointer;
             flex: 0 0 auto;
@@ -81,205 +94,5 @@
         .icon-wrapper img {
             height: 100%; width: 100%; object-fit: contain; display: block;
         }
-        .clock-icon { display: block; margin: 10px 0 0 auto; }
-        .weather {
-            margin-top: 12px;
-            background: rgba(0,0,0,0.45);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 12px;
-            padding: 8px 12px;
-            font-size: 0.88rem;
-            line-height: 1.35;
-            text-align: right;
-            min-width: 130px;
-            backdrop-filter: blur(4px);
-            color: rgba(255,255,255,0.9);
-            display: inline-block;
-        }
-        .weather .temp { font-size: 1.35rem; font-weight: 600; color: #00d4ff; }
-        .weather .loc { font-size: 0.78rem; opacity: 0.7; margin-bottom: 2px; }
-        .weather .cond { opacity: 0.85; }
         .hint {
             position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-            font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15;
-            white-space: nowrap;
-        }
-    </style>
-<script>
-/* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */
-(function () {
-  function check() {
-    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
-      var lm = new Date(r.headers.get("last-modified")).getTime(), mine = new Date(document.lastModified).getTime();
-      var tag = "stale-" + location.pathname + "-" + lm;
-      if (lm && mine && Math.abs(lm - mine) > 2000 && !sessionStorage.getItem(tag)) { sessionStorage.setItem(tag, "1"); location.reload(); }
-    }).catch(function () {});
-  }
-  check();
-  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
-})();
-</script>
-</head>
-<body>
-    <div class="background"></div>
-    <div class="clock">
-        <div class="time" id="pct">12:00 PCT</div>
-        <div class="time" id="est">12:00 EST</div>
-        <div class="time" id="pst">(12:00 PST)</div>
-        <a href="https://diamondspaders.online/" class="icon-wrapper clock-icon" title="Diamond Spaders site">
-            <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'" src="/icons/ds-site-shot.jpg" alt="Diamond Spaders">
-        </a>
-        <div class="weather" id="weather">
-            <div class="loc">Vancouver, BC</div>
-            <div class="temp">—</div>
-            <div class="cond">Loading…</div>
-        </div>
-    </div>
-    <div class="search">
-        <form id="search-form" action="https://www.google.com/search" method="get">
-            <input type="text" id="search-input" class="search-input" name="q"
-                   placeholder="Search Google or ask anything..." autofocus autocomplete="off">
-        </form>
-    </div>
-    <div class="icons-area">
-        <div class="icon-row">
-            <a href="https://diamondspaders.online/" class="icon-wrapper" title="Diamond Spaders site">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'" src="/icons/ds-site-shot.jpg" alt="Diamond Spaders">
-            </a>
-            <a href="https://www.igl.net/tk/headtd/" class="icon-wrapper" title="HTD Login">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.igl.net&sz=128'" src="/icons/htd-login.jpg" alt="HTD Login">
-            </a>
-            <a href="https://www.igl.net/tk/" class="icon-wrapper" title="TD Login">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.igl.net&sz=128'" src="/icons/td-login.jpg" alt="TD Login">
-            </a>
-            <a href="https://tourneyking.com/app/home/" class="icon-wrapper" title="Tourney King">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=tourneyking.com&sz=128'" src="/icons/tk-crown.jpg" alt="Tourney King">
-            </a>
-            <a href="https://www.myleague.com/allspaders/admin.html" class="icon-wrapper" title="All Spaders admin">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="/icons/admin.png" alt="All Spaders admin">
-            </a>
-        </div>
-        <div class="icon-row">
-            <a href="https://www.myleague.com/diamondspaders/" class="icon-wrapper" title="Diamond Spaders">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="/icons/ds.png" alt="Diamond Spaders">
-            </a>
-            <a href="https://www.myleague.com/allspaders/" class="icon-wrapper" title="All Spaders">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="/icons/as.png" alt="All Spaders">
-            </a>
-            <a href="https://www.myleague.com/dagreathoudini/" class="icon-wrapper" title="houdini">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="/icons/houdini.png" alt="houdini">
-            </a>
-            <a href="https://www.myleague.com/fantasyspaders/" class="icon-wrapper" title="fantasy">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="/icons/fantasy.png" alt="fantasy">
-            </a>
-            <a href="https://www.myleague.com/teamtfriends/index.php/" class="icon-wrapper" title="Team T Friends">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.myleague.com&sz=128'" src="/icons/tfs.png" alt="Team T Friends">
-            </a>
-            <a href="https://www.giphy.com" class="icon-wrapper" title="Giphy">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.giphy.com&sz=128'" src="/icons/giphy.png" alt="Giphy">
-            </a>
-            <a href="https://www.pexels.com/" class="icon-wrapper" title="Pexels" style="background:#0f2a12">
-                <img src="/icons/pexels2.png" alt="Pexels">
-            </a>
-            <a href="https://www.azlyrics.com/" class="icon-wrapper" title="AZLyrics">
-                <img src="/icons/azlyrics.png" alt="AZLyrics">
-            </a>
-            <a href="https://notepad.uk.com/" class="icon-wrapper" title="online notepad">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=notepad.uk.com&sz=128'" src="/icons/np-online.png" alt="online notepad">
-            </a>
-        </div>
-        <div class="icon-row">
-            <a href="https://mail.google.com" class="icon-wrapper" title="Gmail">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=mail.google.com&sz=128'" src="/icons/gmail.png" alt="Gmail">
-            </a>
-            <a href="https://outlook.live.com/mail/" class="icon-wrapper" title="Hotmail">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=outlook.live.com&sz=128'" src="/icons/hotmail.png" alt="Hotmail">
-            </a>
-            <a href="https://www.youtube.com" class="icon-wrapper" title="YouTube">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.youtube.com&sz=128'" src="/icons/youtube.png" alt="YouTube">
-            </a>
-            <a href="https://messages.google.com/web/" class="icon-wrapper" title="Messages">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=messages.google.com&sz=128'" src="/icons/messages.png" alt="Messages">
-            </a>
-            <a href="https://docs.google.com/document/u/0/" class="icon-wrapper" title="google docs" style="background:#fff">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=docs.google.com&sz=128'" src="/icons/gdocs2.png" alt="google docs">
-            </a>
-            <a href="https://drive.google.com/drive/quota" class="icon-wrapper" title="Google Drive" style="background:#fff">
-                <img src="/icons/gdrive.png" alt="Google Drive">
-            </a>
-            <a href="https://www.merriam-webster.com/" class="icon-wrapper" title="Merriam-Webster" style="background:#fff">
-                <img src="/icons/merriam2.png" alt="Merriam-Webster">
-            </a>
-            <a href="https://www.wikipedia.org/" class="icon-wrapper" title="Wikipedia">
-                <img onerror="this.onerror=null;this.src='https://www.google.com/s2/favicons?domain=www.wikipedia.org&sz=128'" src="/icons/wikipedia2.png" alt="Wikipedia">
-            </a>
-            <a href="https://www.webmd.com/" class="icon-wrapper" title="WebMD" style="background:#fff">
-                <img src="/icons/webmd.png" alt="WebMD">
-            </a>
-            <a href="https://www.petmd.com/" class="icon-wrapper" title="Pet MD" style="background:#fff">
-                <img src="/icons/petmd.png" alt="Pet MD">
-            </a>
-        </div>
-    </div>
-    <div class="hint">
-        Press <span style="color:var(--accent)">Enter</span> to search Google •
-        <span style="color:var(--accent)">Esc</span> to clear
-    </div>
-    <script>
-        (function () {
-            var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
-            document.body.style.backgroundImage = 'url(/bing-today.jpg?d=' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + ')';
-        })();
-        function updateClock() {
-            const now = new Date();
-            const fmt = (tz) => now.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true }).replace(/\s?[AP]M$/, '');
-            document.getElementById('pct').textContent = fmt('Etc/GMT+7') + ' PCT';
-            document.getElementById('est').textContent = fmt('America/New_York') + ' EST';
-            document.getElementById('pst').textContent = '(' + fmt('America/Los_Angeles') + ' PST)';
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // Weather for Vancouver, BC
-        async function updateWeather() {
-            try {
-                const lat = 49.2827, lon = -123.1207;
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&temperature_unit=celsius&timezone=auto`);
-                const data = await res.json();
-                const c = data.current;
-                const codes = {0:"Clear",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Icy fog",51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",71:"Light snow",73:"Snow",75:"Heavy snow",80:"Showers",81:"Mod showers",82:"Heavy showers",95:"Thunderstorm"};
-                const cond = codes[c.weather_code] || "—";
-                document.querySelector("#weather .temp").textContent = `${Math.round(c.temperature_2m)}°C`;
-                document.querySelector("#weather .cond").textContent = `${cond} · ${Math.round(c.relative_humidity_2m)}% · ${Math.round(c.wind_speed_10m)} km/h`;
-            } catch (e) {
-                document.querySelector("#weather .cond").textContent = "Weather unavailable";
-            }
-        }
-        updateWeather();
-        setInterval(updateWeather, 15 * 60 * 1000);
-
-        const form = document.getElementById('search-form');
-        const input = document.getElementById('search-input');
-        form.addEventListener('submit', function (e) {
-            const query = input.value.trim();
-            if (!query) {
-                e.preventDefault();
-                return;
-            }
-            setTimeout(function () { input.value = ''; }, 300);
-        });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                input.value = '';
-                input.focus();
-            }
-        });
-        document.body.addEventListener('click', function(e) {
-            if (e.target === document.body || e.target.classList.contains('background')) {
-                input.focus();
-            }
-        });
-    </script>
-<script src="/startmenu.js"></script>
-</body>
-</html>

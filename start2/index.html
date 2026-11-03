@@ -282,5 +282,16 @@
         });
     </script>
 <script src="/startmenu.js"></script>
+<script>
+/* balance icons: near-equal counts per row, shorter rows on top (re-runs after saved layouts load) */
+(function(){var area=document.querySelector('.icons-area'),busy=false;
+function bal(){if(busy||!area)return;var rs=[].slice.call(area.querySelectorAll('.icon-row')).filter(function(r){return r.querySelector(':scope > a');});
+var all=[];rs.forEach(function(r){[].slice.call(r.children).forEach(function(e){if(e.tagName==='A')all.push(e);});});
+var n=rs.length;if(n<2)return;var base=Math.floor(all.length/n),extra=all.length%n,want=[];for(var i=0;i<n;i++)want.push(base+(i>=n-extra?1:0));
+var ok=rs.every(function(r,i){return r.querySelectorAll(':scope > a').length===want[i];});if(ok)return;
+busy=true;var k=0;rs.forEach(function(r,i){for(var j=0;j<want[i];j++){r.appendChild(all[k++]);}});setTimeout(function(){busy=false;},0);}
+bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,{childList:true,subtree:true});})();
+</script>
+
 </body>
 </html>>

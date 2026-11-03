@@ -119,7 +119,8 @@
         <circle cx="50" cy="50" r="2.5" fill="#00d4ff"/></svg>
         <div class="tz" id="est">--:-- EST</div>
         <div class="tz" id="pct">--:-- PCT</div>
-        <div class="tz last" id="cst">--:-- CST</div>
+        <div class="tz" id="cst">--:-- CST</div>
+        <div class="tz last" id="cet">--:-- CET</div>
         <div class="lbl">next Diamond Spaders tour</div>
         <div class="big" id="nextName">&mdash;</div>
         <div class="big" id="nextTime"></div>
@@ -242,13 +243,14 @@
         function hh(h,m){return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
         function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return '&#'+c.charCodeAt(0)+';';});}
         function estAbbr(){var t=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',timeZoneName:'short'});return (t.match(/E[SD]T/)||['EST'])[0];}
+        function cetAbbr(){var t=new Date().toLocaleTimeString('en-GB',{timeZone:'Europe/Zurich',timeZoneName:'short'});return /CEST|GMT\+2/.test(t)?'CEST':'CET';}
         function cstAbbr(){var t=new Date().toLocaleTimeString('en-US',{timeZone:'America/Chicago',timeZoneName:'short'});return (t.match(/C[SD]T/)||['CST'])[0];}
         var TOURS=[],TERR=false;
         function rot(id,deg){document.getElementById(id).setAttribute('transform','rotate('+deg+' 50 50)');}
         function updateClock(){
             var v=tzParts('America/Los_Angeles');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
             var e=tzParts('America/New_York'),ab=estAbbr();
-            document.getElementById('est').textContent=hh(e.hour,+e.minute)+' '+ab;document.getElementById('pct').textContent=hh(v.hour,+v.minute)+' PCT';var c=tzParts('America/Chicago');document.getElementById('cst').textContent=hh(c.hour,+c.minute)+' '+cstAbbr();
+            document.getElementById('est').textContent=hh(e.hour,+e.minute)+' '+ab;document.getElementById('pct').textContent=hh(v.hour,+v.minute)+' PCT';var c=tzParts('America/Chicago');document.getElementById('cst').textContent=hh(c.hour,+c.minute)+' '+cstAbbr();var z=tzParts('Europe/Zurich');document.getElementById('cet').textContent=hh(z.hour,+z.minute)+' '+cetAbbr();
             var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
             var up=TOURS.filter(function(t){return (!t.dt||t.dt===today)&&(+t.h)*60+(+t.m)>nowMin;}).sort(function(a,b){return (a.h*60+ +a.m)-(b.h*60+ +b.m);});
             var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');

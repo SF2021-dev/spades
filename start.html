@@ -25,7 +25,7 @@
         .search {
             position: absolute;
             top: 12px; left: 20px;
-            width: calc(100% - 280px); max-width: 520px; padding: 0; z-index: 10;
+            right: 320px; max-width: 520px; padding: 0; z-index: 10;
         }
         .search-input {
             width: 100%; padding: 14px 24px; font-size: 1.25rem; font-weight: 500;
@@ -38,20 +38,24 @@
             border-color: var(--accent); background: rgba(255,255,255,0.11);
             box-shadow: 0 0 0 14px rgba(0,212,255,0.18); transform: scale(1.015);
         }
-        .clock {
-            position: absolute; top: 8px; right: 24px; font-size: 1.15rem; font-weight: 500;
-            color: rgba(255,255,255,0.85); z-index: 30; text-align: right;
-            line-height: 1.35;
-        }
-        .clock .est {
-            font-size: 0.95rem;
-            color: rgba(255,255,255,0.7);
-            margin-top: 2px;
-        }
+        .clock { position:absolute; top:10px; right:20px; z-index:30; text-align:right; width:260px;
+            color:rgba(255,255,255,0.88); font-size:0.95rem; line-height:1.35; text-shadow:0 1px 4px #000; }
+        .clock svg { width:110px; height:110px; display:block; margin-left:auto; }
+        .clock .tz { font-size:1.15rem; font-weight:600; margin:2px 0; }
+        .clock .tz:first-of-type { margin-top:4px; }
+        .clock .tz.last { margin-bottom:6px; }
+        .clock .lbl { font-size:0.8rem; color:rgba(255,255,255,0.6); margin-top:6px; }
+        .clock .big { font-weight:600; }
+        .clock .host { color:#ffd54a; font-weight:700; }
+        .clock .more { font-size:0.8rem; color:rgba(255,255,255,0.75); }
+        .wx { position:absolute; right:20px; bottom:12px; z-index:30; width:250px; padding:8px 10px; border-radius:10px;
+            background:rgba(0,0,0,0.5); font-size:0.8rem; color:rgba(255,255,255,0.85); text-align:right; }
+        .wx .now { font-size:0.95rem; font-weight:600; margin-bottom:4px; }
+        .wx .d { display:flex; justify-content:space-between; gap:6px; }
         .icons-area {
             position: absolute;
             left: 24px;
-            right: 24px;
+            right: 320px;
             bottom: 56px;
             display: flex;
             flex-direction: column;
@@ -104,9 +108,22 @@
 <body>
     <div class="background"></div>
     <div class="clock">
-        <div class="time" id="time">12:00 PM</div>
-        <div class="date" id="date">Tue, Apr 21</div>
-        <div class="est" id="est">EST 12:00:00</div>
+        <svg viewBox="0 0 100 100" aria-label="Pacific time"><circle cx="50" cy="50" r="47" fill="rgba(0,0,0,0.55)" stroke="#ddd" stroke-width="2"/>
+        <g id="ticks"></g>
+        <line id="hh" x1="50" y1="50" x2="50" y2="27" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+        <line id="mh" x1="50" y1="50" x2="50" y2="14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="sh" x1="50" y1="55" x2="50" y2="10" stroke="#00d4ff" stroke-width="1"/>
+        <circle cx="50" cy="50" r="2.5" fill="#00d4ff"/></svg>
+        <div class="tz" id="est">--:-- EST</div>
+        <div class="tz" id="pct">--:-- PCT</div>
+        <div class="tz last" id="cst">--:-- CST</div>
+        <div class="lbl">next Diamond Spaders tour</div>
+        <div class="big" id="nextName">&mdash;</div>
+        <div class="big" id="nextTime"></div>
+        <div class="lbl">Judy&rsquo;s tours</div>
+        <div class="host" id="hostName">&mdash;</div>
+        <div class="host" id="hostTime"></div>
+        <div class="more" id="more"></div>
     </div>
 
     <div class="search">
@@ -205,6 +222,7 @@
         </div>
     </div>
 
+    <div class="wx" id="wx"></div>
     <div class="hint">
         Press <span style="color:var(--accent)">Enter</span> to search Google •
         <span style="color:var(--accent)">Esc</span> to clear
@@ -215,25 +233,33 @@
             document.body.style.backgroundImage = 'url(start-bg.jpg?v=20261026-mtshasta)';
         })();
 
-        function updateClock() {
-            const now = new Date();
-            let hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
-            document.getElementById('time').textContent = hours + ':' + minutes + ' ' + ampm;
-            const options = { weekday: 'short', month: 'short', day: 'numeric' };
-            document.getElementById('date').textContent = now.toLocaleDateString('en-US', options);
-            const estOptions = {
-                timeZone: 'America/New_York',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            };
-            document.getElementById('est').textContent = 'EST ' + now.toLocaleTimeString('en-US', estOptions);
+        (function(){var g=document.getElementById('ticks'),h='';for(var i=0;i<12;i++){var a=i*Math.PI/6;h+='<line x1="'+(50+40*Math.sin(a))+'" y1="'+(50-40*Math.cos(a))+'" x2="'+(50+45*Math.sin(a))+'" y2="'+(50-45*Math.cos(a))+'" stroke="#ccc" stroke-width="'+(i%3?1.5:3)+'"/>';}g.innerHTML=h;})();
+        function tzParts(tz){var p={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(new Date()).forEach(function(x){p[x.type]=x.value;});p.hour=(+p.hour)%24;return p;}
+        function hm(h,m){return (h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');}
+        function hh(h,m){return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
+        function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return '&#'+c.charCodeAt(0)+';';});}
+        function estAbbr(){var t=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',timeZoneName:'short'});return (t.match(/E[SD]T/)||['EST'])[0];}
+        function cstAbbr(){var t=new Date().toLocaleTimeString('en-US',{timeZone:'America/Chicago',timeZoneName:'short'});return (t.match(/C[SD]T/)||['CST'])[0];}
+        var TOURS=[],TERR=false;
+        function rot(id,deg){document.getElementById(id).setAttribute('transform','rotate('+deg+' 50 50)');}
+        function updateClock(){
+            var v=tzParts('America/Los_Angeles');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
+            var e=tzParts('America/New_York'),ab=estAbbr();
+            document.getElementById('est').textContent=hh(e.hour,+e.minute)+' '+ab;document.getElementById('pct').textContent=hh(v.hour,+v.minute)+' PCT';var c=tzParts('America/Chicago');document.getElementById('cst').textContent=hh(c.hour,+c.minute)+' '+cstAbbr();
+            var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
+            var up=TOURS.filter(function(t){return (!t.dt||t.dt===today)&&(+t.h)*60+(+t.m)>nowMin;}).sort(function(a,b){return (a.h*60+ +a.m)-(b.h*60+ +b.m);});
+            var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');
+            if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!up.length){nn.textContent='done for today';nx.textContent='';}else{nn.textContent=up[0].game+(up[0].td?' w/ '+up[0].td:'');nx.textContent=hh(+up[0].h,+up[0].m)+' '+ab;}
+            var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
+            if(TERR){hn.textContent='sign in for tours';ht.textContent='';mo.innerHTML='';return;}
+            var mine=up.filter(function(t){return /^fetch_?it_?up$/i.test(String(t.td||'').trim());});
+            if(!mine.length){hn.textContent='none today';ht.textContent='';mo.innerHTML='';return;}
+            hn.textContent=mine[0].game;ht.textContent=hh(+mine[0].h,+mine[0].m)+' '+ab;
+            mo.innerHTML=mine.slice(1).map(function(t){return esc(hh(+t.h,+t.m)+' '+ab+' '+t.game);}).join('<br>');
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+        function loadTours(){fetch('/api/live',{credentials:'same-origin',cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){TOURS=j.tours||[];TERR=false;updateClock();}).catch(function(){TERR=true;updateClock();});}
+        function loadTemp(){fetch('https://api.open-meteo.com/v1/forecast?latitude=40.5865&longitude=-122.3917&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=America/Los_Angeles').then(function(r){return r.json();}).then(function(j){try{var W=function(c){return c==0?'\u2600\ufe0f Clear':c<=2?'\u26c5 Partly cloudy':c==3?'\u2601\ufe0f Cloudy':c<=48?'\ud83c\udf2b\ufe0f Fog':c<=67||(c>=80&&c<=82)?'\ud83c\udf27\ufe0f Rain':c<=77||c==85||c==86?'\u2744\ufe0f Snow':'\u26c8\ufe0f Storm';};var d=j.daily,h='<div class="now">Redding, CA '+Math.round(j.current.temperature_2m)+'\u00b0 '+W(j.current.weather_code)+' \u00b7 wind '+Math.round(j.current.wind_speed_10m)+' mph</div>';for(var i=0;i<d.time.length;i++){var dn=i?new Date(d.time[i]+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today';h+='<div class="d"><span>'+dn+'</span><span>'+W(d.weather_code[i]).split(' ')[0]+'</span><span>'+Math.round(d.temperature_2m_max[i])+'\u00b0 / '+Math.round(d.temperature_2m_min[i])+'\u00b0</span></div>';}document.getElementById('wx').innerHTML=h;}catch(e){}}).catch(function(){});}
+        setInterval(updateClock,1000);updateClock();loadTours();setInterval(loadTours,300000);loadTemp();setInterval(loadTemp,900000);
 
         const form = document.getElementById('search-form');
         const input = document.getElementById('search-input');

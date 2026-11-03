@@ -21,7 +21,11 @@
   function fx() {
     try { snd.currentTime = 0; snd.volume = 1; snd.play(); } catch (e) {}
     try { var ac = new (window.AudioContext || window.webkitAudioContext)(), o = ac.createOscillator(), g = ac.createGain(); o.type = "sawtooth"; o.frequency.value = 110; g.gain.value = 0.6; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 1.2); } catch (e) {}
-    var d = document.documentElement; d.style.transition = "filter .1s"; d.style.filter = "invert(1)"; setTimeout(function () { d.style.filter = ""; }, 300);
+    var o2 = document.getElementById("dsBuzzOv");
+    if (!o2) { o2 = document.createElement("div"); o2.id = "dsBuzzOv"; o2.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);color:#f3bf56;font:bold 48px sans-serif;text-align:center;padding:20px;text-shadow:0 0 20px #000"; document.body.appendChild(o2); }
+    var who = to.charAt(0).toUpperCase() + to.slice(1);
+    o2.textContent = who + " is buzzing you"; o2.style.display = "flex";
+    clearTimeout(o2._t); o2._t = setTimeout(function () { o2.style.display = "none"; }, 5000);
   }
   function poll() {
     fetch("/api/startbuzz?for=" + me, { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (j) {

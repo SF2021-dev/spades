@@ -1,7 +1,7 @@
 // Lower-left "buzz X" button; this page listens for buzzes aimed at its own owner.
 (function () {
   var s = document.currentScript, to = s.getAttribute("data-to"), me = s.getAttribute("data-me");
-  var snd = new Audio("/buzz.wav?v=2"); snd.preload = "auto"; snd.volume = 1;
+  var snd = new Audio("/buzz.mp3?v=3"); snd.preload = "auto"; snd.volume = 1;
   var b = document.createElement("button"); b.type = "button"; b.id = "dsBuzzBtn";
   b.innerHTML = "&#128264; buzz " + to.charAt(0).toUpperCase() + to.slice(1);
   b.title = "Play a loud buzz on " + to + "'s screen (their start page must be open)";
@@ -20,7 +20,6 @@
   var last = null;
   function fx(from) {
     try { snd.currentTime = 0; snd.volume = 1; snd.play(); } catch (e) {}
-    try { var ac = new (window.AudioContext || window.webkitAudioContext)(), o = ac.createOscillator(), g = ac.createGain(); o.type = "sawtooth"; o.frequency.value = 110; g.gain.value = 0.6; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 1.2); } catch (e) {}
     var o2 = document.getElementById("dsBuzzOv");
     if (!o2) { o2 = document.createElement("div"); o2.id = "dsBuzzOv"; o2.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);color:#f3bf56;font:bold 48px sans-serif;text-align:center;padding:20px;text-shadow:0 0 20px #000"; document.body.appendChild(o2); }
     var w0 = from || to, who = w0.charAt(0).toUpperCase() + w0.slice(1);
@@ -28,8 +27,11 @@
     var GM = "https://messages.google.com/web/conversations", w = null;
     try { w = window.open(GM, "dsGoogleMessages"); } catch (e) {}
     if (!w) { var a = document.createElement("a"); a.href = GM; a.target = "dsGoogleMessages"; a.textContent = "Open Google Messages"; a.style.cssText = "display:block;margin-top:18px;font-size:24px;color:#fff;text-decoration:underline"; t.appendChild(a); }
-    o2.style.flexDirection = "column"; o2.style.display = "flex";
-    clearTimeout(o2._t); o2._t = setTimeout(function () { o2.style.display = "none"; }, 5000);
+    var sb = document.createElement("button"); sb.type = "button"; sb.innerHTML = "&#128263; Silence";
+    sb.style.cssText = "margin-top:30px;font:bold 30px sans-serif;padding:16px 50px;border:0;border-radius:14px;background:#f3bf56;color:#000;cursor:pointer";
+    function hide() { try { snd.pause(); snd.currentTime = 0; } catch (e) {} o2.style.display = "none"; }
+    sb.onclick = hide; snd.onended = function () { o2.style.display = "none"; }; o2.appendChild(sb);
+    o2.style.flexDirection = "column"; o2.style.display = "flex"; clearTimeout(o2._t);
   }
   function poll() {
     fetch("/api/startbuzz?for=" + me, { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (j) {

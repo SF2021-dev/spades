@@ -80,7 +80,8 @@
 "11957414": "DementedSpades",
 "11957416": "ShadowBrookRoad",
 "11957650": "Wayward Cats",
-"11957821": "13"
+"11957821": "13",
+"11957854": "Nighters"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png"
@@ -116,7 +117,7 @@
 "easyone23": "https://diamondspaders.online/EasyOne23-ava.png",
 "egammer": "https://diamondspaders.online/EgammeR-ava.png",
 "ellisandrew80": "https://diamondspaders.online/Ellisandrew80-ava.png",
-"fetch_it_up": "https://diamondspaders.online/fetch_it_up-ava.png",
+"fetch_it_up": "https://diamondspaders.online/Fetch_it.png",
 "flipflopgirlsc": "https://diamondspaders.online/flipflopgirlsc-ava.png",
 "flowerbill2": "https://diamondspaders.online/flowerbill2-ava.png",
 "foreverblessed": "https://diamondspaders.online/ForeverBlessed-ava.png",
@@ -589,6 +590,7 @@
 "11950421": "CUT",
 "11950443": "LOSER WINS",
 "11950448": "LOSER WINS",
+"11950450": "REG PARTNERS",
 "11950575": "SINGLES",
 "11950592": "CUT",
 "11950604": "CUT",
@@ -706,6 +708,7 @@
 "11952814": "CUT MIRRORS",
 "11952823": "SINGLES",
 "11952842": "CUT",
+"11952848": "CUT",
 "11952876": "REG SPADES RANDOM",
 "11952897": "CUT",
 "11952901": "REG PARTNERS",
@@ -907,6 +910,8 @@
 "11955140": "SUI PASS 2",
 "11955141": "SINGLES",
 "11955142": "REG PARTNERS",
+"11955143": "LOSER WINS",
+"11955144": "CUT",
 "11955145": "CUT",
 "11955146": "SUI PASS 2",
 "11955147": "SINGLES",
@@ -1015,6 +1020,7 @@
 "11956783": "CUT",
 "11956794": "CUT",
 "11956799": "REG PARTNERS",
+"11956800": "SUI PASS 2",
 "11956852": "REG PARTNERS",
 "11956894": "IND TO NBN CDO",
 "11956895": "SINGLES",
@@ -1027,6 +1033,7 @@
 "11957048": "SUI PASS 2 RANDOM",
 "11957050": "CUT",
 "11957056": "CUT",
+"11957081": "CUT",
 "11957082": "CUT",
 "11957090": "SUI PASS 2 PAB",
 "11957098": "REG PARTNERS",
@@ -1043,6 +1050,7 @@
 "11957335": "SUI PASS 2",
 "11957361": "CUT",
 "11957368": "REG PARTNERS",
+"11957393": "SUI PASS 2 RANDOM",
 "11957412": "REG PARTNERS",
 "11957413": "CUT",
 "11957414": "SUI PASS 2",
@@ -1050,6 +1058,8 @@
 "11957416": "REG PARTNERS",
 "11957417": "LOSER WINS",
 "11957418": "CUT",
+"11957419": "CUT",
+"11957420": "CUT",
 "11957480": "CUT",
 "11957484": "SUI PASS 2 RANDOM",
 "11957488": "CUT",
@@ -1059,12 +1069,14 @@
 "11957567": "CUT",
 "11957571": "CUT",
 "11957599": "SUI PASS 2 PAB",
+"11957600": "SINGLES",
 "11957650": "REG PARTNERS",
 "11957727": "CUT",
 "11957813": "CUT",
 "11957821": "SUI PASS 2",
 "11957848": "CUT",
 "11957854": "REG PARTNERS",
+"11957894": "CUT MIRRORS",
 "manual-20261021-1015": "CUT",
 "manual-20261021-1115": "CUT",
 "manual-20261021-1315": "CUT",
@@ -1648,6 +1660,9 @@
 "MEL1c1ous_1",
 "Jays26"
 ],
+"11957174": [
+"loneranger11452"
+],
 "11957200": [
 "MyBagsRGucci"
 ],
@@ -1713,6 +1728,9 @@
 "EgammeR",
 "MEL1c1ous_1"
 ],
+"11957488": [
+"Zappycow"
+],
 "11957524": [
 "Lookslikeapickel"
 ],
@@ -1748,6 +1766,10 @@
 ],
 "11957848": [
 "SoloRyder"
+],
+"11957854": [
+"Ellisandrew80",
+"MEL1c1ous_1"
 ]
 },
 "subtitles": {

@@ -443,5 +443,114 @@ bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,
 })();
 </script>
 
+
+<script>
+(function(){
+  var dragging = null;
+  var placeholder = null;
+
+  document.querySelectorAll('.icon-wrapper').forEach(function(icon){
+    icon.setAttribute('draggable', 'true');
+
+    icon.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+      icon.classList.add('drag-ready');
+    });
+
+    icon.addEventListener('dragstart', function(e){
+      if (!icon.classList.contains('drag-ready') && !e.ctrlKey) {
+        // allow drag only after right-click or with ctrl
+        e.preventDefault();
+        return;
+      }
+      dragging = icon;
+      e.dataTransfer.effectAllowed = 'move';
+      icon.style.opacity = '0.5';
+      placeholder = document.createElement('div');
+      placeholder.className = 'icon-placeholder';
+      placeholder.style.width = icon.offsetWidth + 'px';
+      placeholder.style.height = icon.offsetHeight + 'px';
+    });
+
+    icon.addEventListener('dragend', function(){
+      icon.style.opacity = '';
+      icon.classList.remove('drag-ready');
+      if (placeholder && placeholder.parentNode) placeholder.remove();
+      dragging = null;
+    });
+
+    icon.addEventListener('dragover', function(e){
+      e.preventDefault();
+      if (!dragging || dragging === icon) return;
+      var row = icon.parentNode;
+      var rect = icon.getBoundingClientRect();
+      var mid = rect.left + rect.width / 2;
+      if (e.clientX < mid) {
+        row.insertBefore(dragging, icon);
+      } else {
+        row.insertBefore(dragging, icon.nextSibling);
+      }
+    });
+
+    icon.addEventListener('drop', function(e){
+      e.preventDefault();
+      if (!dragging || dragging === icon) return;
+      // If dropped directly on top, swap
+      var parent = icon.parentNode;
+      var next = icon.nextSibling;
+      if (dragging.parentNode === parent) {
+        parent.insertBefore(dragging, next);
+        // simple swap behavior when directly over
+        var temp = document.createElement('div');
+        parent.insertBefore(temp, icon);
+        parent.insertBefore(icon, dragging);
+        parent.insertBefore(dragging, temp);
+        temp.remove();
+      }
+    });
+  });
+
+  // Between-icon insertion: if dropped in the gap, insert and move last icon
+  document.querySelectorAll('.icon-row').forEach(function(row){
+    row.addEventListener('dragover', function(e){
+      e.preventDefault();
+      if (!dragging) return;
+      var after = null;
+      var children = Array.from(row.querySelectorAll('.icon-wrapper'));
+      for (var i = 0; i < children.length; i++) {
+        var r = children[i].getBoundingClientRect();
+        if (e.clientX < r.left + r.width / 2) {
+          after = children[i];
+          break;
+        }
+      }
+      if (after) {
+        row.insertBefore(dragging, after);
+      } else {
+        row.appendChild(dragging);
+      }
+    });
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  function sortRows(){
+    var area = document.querySelector('.icons-area');
+    if (!area) return;
+    var rows = Array.from(area.querySelectorAll('.icon-row'));
+    rows.sort(function(a, b){
+      return a.querySelectorAll('.icon-wrapper').length - b.querySelectorAll('.icon-wrapper').length;
+    });
+    rows.forEach(function(r){ area.appendChild(r); });
+  }
+  sortRows();
+  // re-sort after any drag/drop that might change counts
+  document.addEventListener('dragend', function(){ setTimeout(sortRows, 50); });
+})();
+</script>
+
 </body>
 </html>>

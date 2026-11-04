@@ -484,7 +484,9 @@ bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,
     icon.addEventListener('mousedown', function(e){
       if (e.button !== 0) return;
       e.preventDefault();
+      e.stopPropagation();
       dragging = icon;
+      console.log('drag start');
       startX = e.clientX;
       startY = e.clientY;
       var rect = icon.getBoundingClientRect();
@@ -525,8 +527,10 @@ bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,
     }
   });
 
-  document.addEventListener('mouseup', function(){
+  document.addEventListener('mouseup', function(e){
     if (dragging) {
+      e.preventDefault();
+      e.stopPropagation();
       dragging.style.opacity = '';
       dragging.style.cursor = 'grab';
       dragging = null;

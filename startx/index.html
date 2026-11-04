@@ -80,8 +80,8 @@
             width: 100%;
         }
         .icon-sq {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             background: transparent;
             border-radius: 10px;
             flex: 0 0 auto;
@@ -211,7 +211,7 @@
         function hh(h,m){return hm(+h,+m);}
         function esc(x){return String(x==null?'':x).replace(/[&<>\"]/g,function(c){return '&#'+c.charCodeAt(0)+';';});}
         function estAbbr(){var t=SNOW().toLocaleTimeString('en-US',{timeZone:'America/New_York',timeZoneName:'short'});return (t.match(/E[SD]T/)||['EST'])[0];}
-        function cetAbbr(){var t=SNOW().toLocaleTimeString('en-GB',{timeZone:'Europe/Zurich',timeZoneName:'short'});return /CEST|GMT\\+2/.test(t)?'CEST':'CET';}
+        function cetAbbr(){var t=SNOW().toLocaleTimeString('en-GB',{timeZone:'Europe/Zurich',timeZoneName:'short'});return /CEST|GMT\+2/.test(t)?'CEST':'CET';}
         var TOURS=[],TERR=false;
         function rot(id,deg){document.getElementById(id).setAttribute('transform','rotate('+deg+' 50 50)');}
         function updateClock(){
@@ -244,7 +244,7 @@
   TERR = false;
   updateClock();
 }
-        function loadTemp(){var L=(window.wxCur&&wxCur())||{lat:40.5865,lon:-122.3917,name:'Redding, CA'};fetch('https://api.open-meteo.com/v1/forecast?latitude='+L.lat+'&longitude='+L.lon+'&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=auto').then(function(r){return r.json();}).then(function(j){try{var W=function(c){return c==0?'\\u2600\\ufe0f Clear':c<=2?'\\u26c5 Partly cloudy':c==3?'\\u2601\\ufe0f Cloudy':c<=48?'\\ud83c\\udf2b\\ufe0f Fog':c<=67||(c>=80&&c<=82)?'\\ud83c\\udf27\\ufe0f Rain':c<=77||c==85||c==86?'\\u2744\\ufe0f Snow':'\\u26c8\\ufe0f Storm';};var d=j.daily,h='<div class=\"now\">'+L.name+' '+Math.round(j.current.temperature_2m)+'\\u00b0 '+W(j.current.weather_code)+' \\u00b7 wind '+Math.round(j.current.wind_speed_10m)+' mph</div>';for(var i=0;i<d.time.length;i++){var dn=i?new Date(d.time[i]+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today';h+='<div class=\"d\"><span>'+dn+'</span><span>'+W(d.weather_code[i]).split(' ')[0]+'</span><span>'+Math.round(d.temperature_2m_max[i])+'\\u00b0 / '+Math.round(d.temperature_2m_min[i])+'\\u00b0</span></div>';}document.getElementById('wx').innerHTML=h;}catch(e){}}).catch(function(){});}
+        function loadTemp(){var L=(window.wxCur&&wxCur())||{lat:40.5865,lon:-122.3917,name:'Redding, CA'};fetch('https://api.open-meteo.com/v1/forecast?latitude='+L.lat+'&longitude='+L.lon+'&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=auto').then(function(r){return r.json();}).then(function(j){try{var W=function(c){return c==0?'☀️ Clear':c<=2?'⛅ Partly cloudy':c==3?'☁️ Cloudy':c<=48?'🌫️ Fog':c<=67||(c>=80&&c<=82)?'🌧️ Rain':c<=77||c==85||c==86?'❄️ Snow':'⛈️ Storm';};var d=j.daily,h='<div class="now">'+L.name+' '+Math.round(j.current.temperature_2m)+'° '+W(j.current.weather_code)+' · wind '+Math.round(j.current.wind_speed_10m)+' mph</div>';for(var i=0;i<d.time.length;i++){var dn=i?new Date(d.time[i]+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today';h+='<div class="d"><span>'+dn+'</span><span>'+W(d.weather_code[i]).split(' ')[0]+'</span><span>'+Math.round(d.temperature_2m_max[i])+'° / '+Math.round(d.temperature_2m_min[i])+'°</span></div>';}document.getElementById('wx').innerHTML=h;}catch(e){}}).catch(function(){});}
         setInterval(updateClock,1000);updateClock();loadTours();setInterval(loadTours,300000);loadTemp();setInterval(loadTemp,900000);
 
         const form = document.getElementById('search-form');

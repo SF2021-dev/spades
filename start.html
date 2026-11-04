@@ -148,6 +148,9 @@
   document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
 })();
 </script>
+
+
+
 </head>
 <body>
     <div class="background"></div>
@@ -455,6 +458,8 @@ bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,
 
   document.querySelectorAll('.icon-wrapper').forEach(function(icon){
     icon.setAttribute('draggable', 'true');
+    icon.style.userSelect = 'none';
+    icon.addEventListener('mousedown', function(e){ if (e.button === 0) icon.draggable = true; });
 
     icon.addEventListener('contextmenu', function(e){
       e.preventDefault();
@@ -462,11 +467,7 @@ bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,
     });
 
     icon.addEventListener('dragstart', function(e){
-      if (!icon.classList.contains('drag-ready') && !e.ctrlKey) {
-        // allow drag only after right-click or with ctrl
-        e.preventDefault();
-        return;
-      }
+      // Allow drag anytime (right-click still marks ready, but not required)
       dragging = icon;
       e.dataTransfer.effectAllowed = 'move';
       icon.style.opacity = '0.5';

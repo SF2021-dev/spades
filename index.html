@@ -3,55 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diamond Spaders — Maintenance</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
+  <title>Diamond Spaders</title>
   <style>
-    html, body { margin: 0; padding: 0; background: #0a0a0a; overflow: auto; }
-    .maint { background: #ff2ad4; color: #111; text-align: center; padding: 18px 16px; font-weight: 800; font-size: 22px; letter-spacing: 0.04em; border-bottom: 4px solid #fbe646; }
-    .maint small { display: block; font-size: 15px; font-weight: 700; margin-top: 6px; }
-    .ds-link { display:flex; flex-direction:column; align-items:center; gap:6px; text-decoration:none; color:#fbe646; padding:10px 6px; border:1px solid #444; border-radius:10px; background:#161616; font-size:11px; font-weight:800; letter-spacing:0.04em; text-align:center; line-height:1.2; }
-    .ds-link:hover { border-color:#fbe646; background:#2a1608; }
-    .ds-ico { width:48px; height:48px; object-fit:cover; border-radius:8px; display:block; }
-    .ds-tour { display:flex; flex-direction:column; gap:8px; background:#ff2ad4; padding:14px 12px; }
-    .ds-tour-item { display:flex; flex-direction:row; justify-content:flex-start; align-items:center; gap:10px; white-space:nowrap; }
-    .ds-join { order:-1; flex:0 0 auto; background:#120c08; color:#fbe646; font-family:Arial,Helvetica,sans-serif; font-weight:800; font-size:18px; text-decoration:none; padding:6px 12px; border-radius:6px; }
-    .ds-join.hide { display:none; }
-    .ds-tour-text { font-family:Arial,Helvetica,sans-serif; font-weight:800; font-size:22px; color:#111; line-height:1.2; white-space:nowrap; }
-    .ds-tour-text a { color:#111; text-decoration:none; }
-    .ds-td { width:28px; height:28px; object-fit:cover; border-radius:6px; border:1px solid #120c08; flex:0 0 auto; }
-    .ds-champ { font-family:'Cinzel Decorative',Georgia,serif; font-weight:900; letter-spacing:0.03em; white-space:nowrap; color:#ffd84a; -webkit-text-stroke:0.4px currentColor; text-shadow:0 0 6px rgba(251,230,70,.55),0 1px 0 #7a5a00; }
-    .ds-tour-item .ds-champ { order:9; font-size:20px; color:#120c08; text-shadow:0 1px 0 rgba(255,255,255,.55); }
-    .ds-tour-item .ds-champ .ca, .ds-tour-item.short .ds-champ .cf { display:none; }
-    .ds-tour-item.short .ds-champ .ca { display:inline; }
-    .ds-tour-item.short2 .ds-champ { font-size:15px; }
-    .rk { position:relative; width:22px; height:22px; flex:0 0 auto; }
-    .rk b { position:absolute; top:-7px; left:-8px; font-size:10px; font-weight:800; color:#fbe646; }
-    .rk img, .rk svg { width:22px; height:22px; display:block; border-radius:4px; }
+    body { margin: 0; background: #0a0a0a; color: #fbe646; font-family: Arial, Helvetica, sans-serif; }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .banner { width: 100%; height: auto; max-height: 160px; object-fit: contain; display: block; background: #0a0a0a; }
+    .section { padding: 16px; border-top: 3px solid #fbe646; }
+    h2 { margin: 0 0 12px; font-size: 15px; letter-spacing: 0.14em; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+    .card { padding: 14px 10px; }
+    .card:nth-child(odd) { background: #1a1200; }
+    .card:nth-child(even) { background: #000; }
+    .time { font-size: 13px; font-weight: 700; }
+    .name { font-size: 22px; font-weight: 800; margin-top: 2px; }
+    .partners { font-size: 14px; font-weight: 600; text-align: center; margin: 4px 0; }
+    .status { padding: 20px; text-align: center; color: #c9a227; }
+    .loading { opacity: 0.6; }
   </style>
-<script>
-/* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */
-(function () {
-  function check() {
-    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
-      var lm = new Date(r.headers.get("last-modified")).getTime(), mine = new Date(document.lastModified).getTime();
-      var tag = "stale-" + location.pathname + "-" + lm;
-      if (lm && mine && Math.abs(lm - mine) > 2000 && !sessionStorage.getItem(tag)) { sessionStorage.setItem(tag, "1"); location.reload(); }
-    }).catch(function () {});
-  }
-  check();
-  setInterval(function () { if (!document.hidden) check(); }, 120000);
-  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
-})();
-</script>
-<script data-goatcounter="/api/count" async src="/gc.js"></script><noscript><img src="/api/count?p=/&noscript=1" alt="" width="1" height="1" style="position:absolute;left:-9999px"></noscript>
 </head>
 <body>
-<div style="width:100%;max-width:1100px;margin:0 auto;background:#0a0a0a;font-family:Arial,Helvetica,sans-serif;color:#fbe646;">
-<div class="maint">SITE DOWN FOR MAINTENANCE<small>We'll be back shortly — Diamond Spaders</small></div>
-<img src="https://diamondspaders.online/dsaltbanner.png" alt="Diamond Spaders" style="width:100%;height:auto;max-height:160px;object-fit:contain;display:block;background:#0a0a0a;">
-<!-- rest of the original page content continues below if you want to keep it hidden or visible -->
-<!-- To fully hide everything under the banner, wrap the remaining content in a div with style="display:none" -->
+<div class="wrap">
+  <img class="banner" src="https://diamondspaders.online/dsaltbanner.png" alt="Diamond Spaders">
+
+  <div class="section">
+    <h2>TODAY'S WINNERS</h2>
+    <div id="today" class="grid"><div class="status">Loading latest winners…</div></div>
+  </div>
+
+  <div class="section">
+    <h2>YESTERDAY</h2>
+    <div id="yesterday" class="grid"><div class="status">Loading…</div></div>
+  </div>
+
+  <div style="text-align:center;padding:24px 10px;color:#c9a227;font-size:13px;">
+    © 2026 Diamond Spaders · Data from MyLeague · No bot required
+  </div>
 </div>
+
+<script>
+async function loadWinners() {
+  const todayEl = document.getElementById("today");
+  const yestEl = document.getElementById("yesterday");
+
+  try {
+    const res = await fetch("/api/winners", { cache: "no-store" });
+    const data = await res.json();
+
+    if (!data.ok || !data.winners || !data.winners.length) {
+      todayEl.innerHTML = '<div class="status">No winners found right now. Check back soon.</div>';
+      yestEl.innerHTML = '<div class="status">—</div>';
+      return;
+    }
+
+    // Group by date (very simple)
+    const byDate = {};
+    for (const w of data.winners) {
+      const d = w.date || "Unknown";
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(w);
+    }
+
+    const dates = Object.keys(byDate);
+    const todayDate = dates[0] || "";
+    const yestDate = dates[1] || "";
+
+    function render(list) {
+      if (!list || !list.length) return '<div class="status">None yet</div>';
+      return list.slice(0, 12).map(w => {
+        const names = (w.names || []).slice(0, 2).join(" & ") || "Winner";
+        return `<div class="card">
+          <div class="time">${w.text.split(" ").slice(0, 4).join(" ")}</div>
+          <div class="name">${names}</div>
+        </div>`;
+      }).join("");
+    }
+
+    todayEl.innerHTML = render(byDate[todayDate]);
+    yestEl.innerHTML = render(byDate[yestDate]);
+  } catch (err) {
+    todayEl.innerHTML = '<div class="status">Could not load winners. Refresh the page.</div>';
+    yestEl.innerHTML = "";
+  }
+}
+
+loadWinners();
+</script>
 </body>
 </html>
+

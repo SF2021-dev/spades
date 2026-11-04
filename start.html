@@ -56,23 +56,28 @@
             position: absolute;
             left: 24px;
             right: 320px;
-            top: 72px;
-            bottom: 36px;
+            top: 80px;          /* equal space under search bar */
+            bottom: 48px;       /* equal space above bottom */
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            gap: 12px;
+            justify-content: space-between;  /* equal gaps top / between / bottom */
+            gap: 0;
             z-index: 20;
             pointer-events: none;
         }
         .icon-row {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             justify-content: center;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             pointer-events: auto;
+            min-height: 0;
         }
+        /* force exactly 3 rows; shorter row first (top) */
+        .icon-row:nth-child(1) { order: 1; }
+        .icon-row:nth-child(2) { order: 2; }
+        .icon-row:nth-child(3) { order: 3; }
         .icon-wrapper {
             height: clamp(70px, min(calc((100vw - 460px) / 9 * 1.25), calc((100vw - 440px) / 9), calc((100vh - 200px) / 3 * 1.25), calc((100vh - 140px) / 3), 225px), 225px); width: clamp(70px, min(calc((100vw - 460px) / 9 * 1.25), calc((100vw - 440px) / 9), calc((100vh - 200px) / 3 * 1.25), calc((100vh - 140px) / 3), 225px), 225px); border-radius: 10px; overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.75); transition: all 0.35s;
@@ -93,15 +98,17 @@
             white-space: nowrap;
         }
     
-        .icon-wrapper { position: relative; }
+        .icon-wrapper { position: relative; overflow: visible !important; }
         .icon-dots {
-            position: absolute; top: 4px; right: 4px;
-            width: 22px; height: 22px; border-radius: 50%;
-            background: rgba(0,0,0,0.6); color: #fff; font-size: 14px;
+            position: absolute; top: 2px; right: 2px;
+            width: 26px; height: 26px; border-radius: 50%;
+            background: rgba(0,0,0,0.85); color: #fff; font-size: 16px; font-weight: bold;
             display: none; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 5; line-height: 1;
+            cursor: pointer; z-index: 30; line-height: 1;
+            box-shadow: 0 0 0 2px rgba(0,212,255,0.6);
         }
         .icon-wrapper:hover .icon-dots { display: flex; }
+        .icon-wrapper:hover .icon-menu { display: flex; }
         .icon-menu, .icon-edit-menu {
             position: absolute; top: 28px; right: 4px;
             background: #1a1a1a; border: 1px solid #444; border-radius: 8px;
@@ -392,22 +399,24 @@ bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,
           var kind = b.dataset.ico;
           editMenu.remove();
           if (kind === 'lib') {
-            var q = prompt('Search for an icon (e.g. github, google, spades):', '');
+            var q = prompt('Search Brandfetch for an icon (e.g. safeway, github, google):', '');
             if (!q) return;
-            // Simulate top 5 public icons (in real use, call an icon API)
+            var domain = q.includes('.') ? q : q + '.com';
             var picker = document.createElement('div');
             picker.className = 'icon-picker open';
+            // Brandfetch CDN + fallbacks
             var samples = [
-              'https://www.google.com/s2/favicons?domain='+encodeURIComponent(q)+'&sz=128',
-              'https://www.google.com/s2/favicons?domain=github.com&sz=128',
-              'https://www.google.com/s2/favicons?domain=google.com&sz=128',
-              'https://www.google.com/s2/favicons?domain=myleague.com&sz=128',
-              'https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'
+              'https://cdn.brandfetch.io/' + encodeURIComponent(domain) + '/w/400/h/400',
+              'https://cdn.brandfetch.io/' + encodeURIComponent(domain) + '/icon',
+              'https://logo.clearbit.com/' + encodeURIComponent(domain),
+              'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=128',
+              'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(domain) + '&sz=64'
             ];
             samples.forEach(function(src){
               var img = document.createElement('img');
               img.src = src;
               img.title = 'Click to use';
+              img.onerror = function(){ this.style.display='none'; };
               img.onclick = function(){ wrap.querySelector('img').src = src; picker.remove(); };
               picker.appendChild(img);
             });

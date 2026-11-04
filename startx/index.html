@@ -235,7 +235,111 @@
 <script>window.WX_DEFAULT={lat:40.5865,lon:-122.3917,name:"Redding, CA"};</script><script src="/wxloc.js?v=sugg1"></script>
 <script src="/startbuzz.js?v=4" data-to="judy" data-me="dennis"></script>
 
-
+<script>
+(function () {
+  var dragging = null, clone = null, ox = 0, oy = 0, moved = false;
+  function squares() {
+    return Array.prototype.slice.call(document.querySelectorAll('.icon-sq'));
+  }
+  document.querySelectorAll('.icon-sq').forEach(function (icon) {
+    icon.addEventListener('mousedown', function (e) {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      dragging = icon;
+      moved = false;
+      var r = icon.getBoundingClientRect();
+      ox = e.clientX - r.left;
+      oy = e.clientY - r.top;
+      icon.style.opacity = '0.35';
+    });
+  });
+  document.addEventListener('mousemove', function (e) {
+    if (!dragging) return;
+    moved = true;
+    if (!clone) {
+      clone = dragging.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.zIndex = '9999';
+      clone.style.pointerEvents = 'none';
+      clone.style.margin = '0';
+      clone.style.opacity = '0.9';
+      clone.style.width = dragging.offsetWidth + 'px';
+      clone.style.height = dragging.offsetHeight + 'px';
+      document.body.appendChild(clone);
+    }
+    clone.style.left = (e.clientX - ox) + 'px';
+    clone.style.top = (e.clientY - oy) + 'px';
+  });
+  function hit(x, y) {
+    var list = squares().filter(function (s) { return s !== dragging; });
+    var i, r;
+    for (i = 0; i < list.length; i++) {
+      r = list[i].getBoundingClientRect();
+      if (y < r.top - 8 || y > r.bottom + 8) continue;
+      var midL = r.left + r.width * 0.28;
+      var midR = r.right - r.width * 0.28;
+      if (x >= midL && x <= midR) return { type: 'swap', icon: list[i] };
+      if (x >= r.left - 20 && x < midL) {
+        var prev = list[i].previousElementSibling;
+        if (prev && prev.classList.contains('icon-sq') && prev !== dragging) return { type: 'between', left: prev, right: list[i] };
+      }
+      if (x > midR && x <= r.right + 20) {
+        var next = list[i].nextElementSibling;
+        if (next && next.classList.contains('icon-sq') && next !== dragging) return { type: 'between', left: list[i], right: next };
+      }
+    }
+    var rows = document.querySelectorAll('.icon-row');
+    for (i = 0; i < rows.length; i++) {
+      var kids = Array.prototype.filter.call(rows[i].children, function (k) {
+        return k.classList && k.classList.contains('icon-sq') && k !== dragging;
+      });
+      for (var j = 0; j < kids.length - 1; j++) {
+        var a = kids[j].getBoundingClientRect();
+        var b = kids[j + 1].getBoundingClientRect();
+        if (y < a.top - 8 || y > a.bottom + 8) continue;
+        if (x > a.right - 4 && x < b.left + 4) return { type: 'between', left: kids[j], right: kids[j + 1] };
+      }
+    }
+    return null;
+  }
+  function insertBetween(left, right) {
+    var row = right.parentNode;
+    var last = row.lastElementChild;
+    while (last && !last.classList.contains('icon-sq')) last = last.previousElementSibling;
+    var oldParent = dragging.parentNode;
+    var oldNext = dragging.nextSibling;
+    if (last && last !== dragging && last !== left && last !== right) {
+      dragging.remove();
+      if (oldNext && oldNext.parentNode === oldParent) oldParent.insertBefore(last, oldNext);
+      else oldParent.appendChild(last);
+    }
+    row.insertBefore(dragging, right);
+  }
+  document.addEventListener('mouseup', function (e) {
+    if (!dragging) return;
+    var icon = dragging;
+    dragging = null;
+    icon.style.opacity = '';
+    if (clone) { clone.remove(); clone = null; }
+    if (!moved) return;
+    var place = hit(e.clientX, e.clientY);
+    if (!place) return;
+    if (place.type === 'swap') {
+      var other = place.icon;
+      var p1 = icon.parentNode, n1 = icon.nextSibling;
+      var p2 = other.parentNode, n2 = other.nextSibling;
+      if (n1 === other) p1.insertBefore(other, icon);
+      else if (n2 === icon) p2.insertBefore(icon, other);
+      else {
+        p1.insertBefore(other, n1);
+        p2.insertBefore(icon, n2);
+      }
+    } else {
+      insertBetween(place.left, place.right);
+    }
+  });
+})();
+</script>
 
 
 

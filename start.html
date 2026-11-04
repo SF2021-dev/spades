@@ -451,93 +451,7 @@ bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,
 </script>
 
 
-<script>
-(function(){
-  var dragging = null;
-  var placeholder = null;
 
-  document.querySelectorAll('.icon-wrapper').forEach(function(icon){
-    icon.setAttribute('draggable', 'true');
-    icon.style.userSelect = 'none';
-    icon.addEventListener('mousedown', function(e){ if (e.button === 0) icon.draggable = true; });
-
-    icon.addEventListener('contextmenu', function(e){
-      e.preventDefault();
-      icon.classList.add('drag-ready');
-    });
-
-    icon.addEventListener('dragstart', function(e){
-      // Allow drag anytime (right-click still marks ready, but not required)
-      dragging = icon;
-      e.dataTransfer.effectAllowed = 'move';
-      icon.style.opacity = '0.5';
-      placeholder = document.createElement('div');
-      placeholder.className = 'icon-placeholder';
-      placeholder.style.width = icon.offsetWidth + 'px';
-      placeholder.style.height = icon.offsetHeight + 'px';
-    });
-
-    icon.addEventListener('dragend', function(){
-      icon.style.opacity = '';
-      icon.classList.remove('drag-ready');
-      if (placeholder && placeholder.parentNode) placeholder.remove();
-      dragging = null;
-    });
-
-    icon.addEventListener('dragover', function(e){
-      e.preventDefault();
-      if (!dragging || dragging === icon) return;
-      var row = icon.parentNode;
-      var rect = icon.getBoundingClientRect();
-      var mid = rect.left + rect.width / 2;
-      if (e.clientX < mid) {
-        row.insertBefore(dragging, icon);
-      } else {
-        row.insertBefore(dragging, icon.nextSibling);
-      }
-    });
-
-    icon.addEventListener('drop', function(e){
-      e.preventDefault();
-      if (!dragging || dragging === icon) return;
-      // If dropped directly on top, swap
-      var parent = icon.parentNode;
-      var next = icon.nextSibling;
-      if (dragging.parentNode === parent) {
-        parent.insertBefore(dragging, next);
-        // simple swap behavior when directly over
-        var temp = document.createElement('div');
-        parent.insertBefore(temp, icon);
-        parent.insertBefore(icon, dragging);
-        parent.insertBefore(dragging, temp);
-        temp.remove();
-      }
-    });
-  });
-
-  // Between-icon insertion: if dropped in the gap, insert and move last icon
-  document.querySelectorAll('.icon-row').forEach(function(row){
-    row.addEventListener('dragover', function(e){
-      e.preventDefault();
-      if (!dragging) return;
-      var after = null;
-      var children = Array.from(row.querySelectorAll('.icon-wrapper'));
-      for (var i = 0; i < children.length; i++) {
-        var r = children[i].getBoundingClientRect();
-        if (e.clientX < r.left + r.width / 2) {
-          after = children[i];
-          break;
-        }
-      }
-      if (after) {
-        row.insertBefore(dragging, after);
-      } else {
-        row.appendChild(dragging);
-      }
-    });
-  });
-})();
-</script>
 
 
 <script>
@@ -554,6 +468,74 @@ bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,
   sortRows();
   // re-sort after any drag/drop that might change counts
   document.addEventListener('dragend', function(){ setTimeout(sortRows, 50); });
+})();
+</script>
+
+
+<script>
+(function(){
+  var dragging = null;
+  var startX, startY;
+  var offsetX, offsetY;
+  var clone = null;
+
+  document.querySelectorAll('.icon-wrapper').forEach(function(icon){
+    icon.style.cursor = 'grab';
+    icon.addEventListener('mousedown', function(e){
+      if (e.button !== 0) return;
+      e.preventDefault();
+      dragging = icon;
+      startX = e.clientX;
+      startY = e.clientY;
+      var rect = icon.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      icon.style.opacity = '0.4';
+      icon.style.cursor = 'grabbing';
+    });
+  });
+
+  document.addEventListener('mousemove', function(e){
+    if (!dragging) return;
+    if (!clone) {
+      clone = dragging.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.zIndex = '9999';
+      clone.style.pointerEvents = 'none';
+      clone.style.opacity = '0.8';
+      clone.style.width = dragging.offsetWidth + 'px';
+      clone.style.height = dragging.offsetHeight + 'px';
+      document.body.appendChild(clone);
+    }
+    clone.style.left = (e.clientX - offsetX) + 'px';
+    clone.style.top = (e.clientY - offsetY) + 'px';
+
+    // Find drop target
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var target = el && el.closest('.icon-wrapper');
+    if (target && target !== dragging) {
+      var row = target.parentNode;
+      var rect = target.getBoundingClientRect();
+      var mid = rect.left + rect.width / 2;
+      if (e.clientX < mid) {
+        row.insertBefore(dragging, target);
+      } else {
+        row.insertBefore(dragging, target.nextSibling);
+      }
+    }
+  });
+
+  document.addEventListener('mouseup', function(){
+    if (dragging) {
+      dragging.style.opacity = '';
+      dragging.style.cursor = 'grab';
+      dragging = null;
+    }
+    if (clone) {
+      clone.remove();
+      clone = null;
+    }
+  });
 })();
 </script>
 

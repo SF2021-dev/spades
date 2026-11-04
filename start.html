@@ -92,6 +92,33 @@
             font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15;
             white-space: nowrap;
         }
+    
+        .icon-wrapper { position: relative; }
+        .icon-dots {
+            position: absolute; top: 4px; right: 4px;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: rgba(0,0,0,0.6); color: #fff; font-size: 14px;
+            display: none; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 5; line-height: 1;
+        }
+        .icon-wrapper:hover .icon-dots { display: flex; }
+        .icon-menu, .icon-edit-menu {
+            position: absolute; top: 28px; right: 4px;
+            background: #1a1a1a; border: 1px solid #444; border-radius: 8px;
+            min-width: 140px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: none; flex-direction: column;
+        }
+        .icon-menu.open, .icon-edit-menu.open { display: flex; }
+        .icon-menu button, .icon-edit-menu button {
+            background: none; border: none; color: #fff; padding: 8px 12px;
+            text-align: left; cursor: pointer; font-size: 13px;
+        }
+        .icon-menu button:hover, .icon-edit-menu button:hover { background: #333; }
+        .icon-picker { position: absolute; top: 28px; right: 4px; background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 8px; z-index: 10; display: none; max-width: 220px; }
+        .icon-picker.open { display: block; }
+        .icon-picker img { width: 40px; height: 40px; margin: 2px; cursor: pointer; border-radius: 4px; }
+        .icon-picker img:hover { outline: 2px solid #00d4ff; }
+    
     </style>
 <script>
 /* stale-page guard: if the server has a newer copy of this page than the one Edge cached, reload once */
@@ -262,7 +289,21 @@
             hn.textContent=mine[0].game;ht.textContent=hh(+mine[0].h,+mine[0].m)+' '+ab;
             mo.innerHTML=mine.slice(1).map(function(t){return esc(hh(+t.h,+t.m)+' '+ab+' '+t.game);}).join('<br>');
         }
-        function loadTours(){fetch('/api/live',{credentials:'same-origin',cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){TOURS=j.tours||[];TERR=false;updateClock();}).catch(function(){TERR=true;updateClock();});}
+        function loadTours(){
+  // Static tour list from myleague.com/diamondspaders (no login required)
+  TOURS = [
+    { dt: "2026-11-04", h: 8, m: 15, game: "CUT", td: "3Bid3Bags", url: "https://www.myleague.com/diamondspaders/tournament/11957729/" },
+    { dt: "2026-11-04", h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11956400/" },
+    { dt: "2026-11-04", h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11957754/" },
+    { dt: "2026-11-04", h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11957575/" },
+    { dt: "2026-11-04", h: 12, m: 15, game: "SINGLES", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957390/" },
+    { dt: "2026-11-04", h: 15, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957419/" },
+    { dt: "2026-11-04", h: 16, m: 15, game: "REG PARDS", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957393/" },
+    { dt: "2026-11-04", h: 18, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957420/" }
+  ];
+  TERR = false;
+  updateClock();
+}
         function loadTemp(){var L=(window.wxCur&&wxCur())||{lat:40.5865,lon:-122.3917,name:'Redding, CA'};fetch('https://api.open-meteo.com/v1/forecast?latitude='+L.lat+'&longitude='+L.lon+'&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=auto').then(function(r){return r.json();}).then(function(j){try{var W=function(c){return c==0?'\u2600\ufe0f Clear':c<=2?'\u26c5 Partly cloudy':c==3?'\u2601\ufe0f Cloudy':c<=48?'\ud83c\udf2b\ufe0f Fog':c<=67||(c>=80&&c<=82)?'\ud83c\udf27\ufe0f Rain':c<=77||c==85||c==86?'\u2744\ufe0f Snow':'\u26c8\ufe0f Storm';};var d=j.daily,h='<div class="now">'+L.name+' '+Math.round(j.current.temperature_2m)+'\u00b0 '+W(j.current.weather_code)+' \u00b7 wind '+Math.round(j.current.wind_speed_10m)+' mph</div>';for(var i=0;i<d.time.length;i++){var dn=i?new Date(d.time[i]+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today';h+='<div class="d"><span>'+dn+'</span><span>'+W(d.weather_code[i]).split(' ')[0]+'</span><span>'+Math.round(d.temperature_2m_max[i])+'\u00b0 / '+Math.round(d.temperature_2m_min[i])+'\u00b0</span></div>';}document.getElementById('wx').innerHTML=h;}catch(e){}}).catch(function(){});}
         setInterval(updateClock,1000);updateClock();loadTours();setInterval(loadTours,300000);loadTemp();setInterval(loadTemp,900000);
 
@@ -303,5 +344,92 @@ bal();if(area)new MutationObserver(function(){setTimeout(bal,0);}).observe(area,
 </script>
 <script>window.WX_DEFAULT={lat:40.5865,lon:-122.3917,name:"Redding, CA"};</script><script src="/wxloc.js?v=sugg1"></script>
 <script src="/startbuzz.js?v=4" data-to="judy" data-me="dennis"></script>
+
+<script>
+(function(){
+  document.querySelectorAll('.icon-wrapper').forEach(function(wrap){
+    var dots = document.createElement('div');
+    dots.className = 'icon-dots';
+    dots.innerHTML = '⋮';
+    dots.title = 'Options';
+    wrap.appendChild(dots);
+
+    var menu = document.createElement('div');
+    menu.className = 'icon-menu';
+    menu.innerHTML = '<button data-act="edit">Edit</button><button data-act="delete">Delete</button>';
+    wrap.appendChild(menu);
+
+    dots.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      document.querySelectorAll('.icon-menu.open, .icon-edit-menu.open, .icon-picker.open').forEach(function(m){ m.classList.remove('open'); });
+      menu.classList.add('open');
+    });
+
+    menu.addEventListener('click', function(e){
+      var btn = e.target.closest('button');
+      if (!btn) return;
+      e.preventDefault(); e.stopPropagation();
+      var act = btn.dataset.act;
+      if (act === 'delete') {
+        if (confirm('Delete this quick link?')) {
+          wrap.remove();
+          // persist via localStorage could be added here
+        }
+        menu.classList.remove('open');
+      } else if (act === 'edit') {
+        menu.classList.remove('open');
+        var url = prompt('Enter new URL for this link:', wrap.href || '');
+        if (!url) return;
+        wrap.href = url;
+        var editMenu = document.createElement('div');
+        editMenu.className = 'icon-edit-menu open';
+        editMenu.innerHTML = '<button data-ico="lib">Icon from public library</button><button data-ico="auto">Auto-generated icon</button><button data-ico="file">Icon from file</button>';
+        wrap.appendChild(editMenu);
+        editMenu.addEventListener('click', function(ev){
+          var b = ev.target.closest('button');
+          if (!b) return;
+          ev.preventDefault(); ev.stopPropagation();
+          var kind = b.dataset.ico;
+          editMenu.remove();
+          if (kind === 'lib') {
+            var q = prompt('Search for an icon (e.g. github, google, spades):', '');
+            if (!q) return;
+            // Simulate top 5 public icons (in real use, call an icon API)
+            var picker = document.createElement('div');
+            picker.className = 'icon-picker open';
+            var samples = [
+              'https://www.google.com/s2/favicons?domain='+encodeURIComponent(q)+'&sz=128',
+              'https://www.google.com/s2/favicons?domain=github.com&sz=128',
+              'https://www.google.com/s2/favicons?domain=google.com&sz=128',
+              'https://www.google.com/s2/favicons?domain=myleague.com&sz=128',
+              'https://www.google.com/s2/favicons?domain=diamondspaders.online&sz=128'
+            ];
+            samples.forEach(function(src){
+              var img = document.createElement('img');
+              img.src = src;
+              img.title = 'Click to use';
+              img.onclick = function(){ wrap.querySelector('img').src = src; picker.remove(); };
+              picker.appendChild(img);
+            });
+            wrap.appendChild(picker);
+          } else if (kind === 'auto') {
+            // Auto-generated: use a screenshot service or favicon as fallback
+            var img = wrap.querySelector('img');
+            img.src = 'https://www.google.com/s2/favicons?domain='+encodeURIComponent(new URL(url).hostname)+'&sz=128';
+            alert('Auto-generated icon set (favicon of the page). For a real screenshot, a backend service would be needed.');
+          } else if (kind === 'file') {
+            var loc = prompt('Enter image file URL or path (e.g. icons/myicon.png or https://...):', '');
+            if (loc) wrap.querySelector('img').src = loc;
+          }
+        });
+      }
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('.icon-menu.open, .icon-edit-menu.open, .icon-picker.open').forEach(function(m){ m.classList.remove('open'); });
+  });
+})();
+</script>
+
 </body>
 </html>>

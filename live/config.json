@@ -79,7 +79,8 @@
 "11957412": "13",
 "11957414": "DementedSpades",
 "11957416": "ShadowBrookRoad",
-"11957650": "Wayward Cats"
+"11957650": "Wayward Cats",
+"11957821": "13"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png"
@@ -1740,6 +1741,10 @@
 ],
 "11957813": [
 "Lookslikeapickel"
+],
+"11957821": [
+"illbid13",
+"DementedWench"
 ]
 },
 "subtitles": {

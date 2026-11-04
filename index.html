@@ -16,9 +16,9 @@
     .card:nth-child(even) { background: #000; }
     .time { font-size: 13px; font-weight: 700; }
     .name { font-size: 22px; font-weight: 800; margin-top: 2px; }
-    .partners { font-size: 14px; font-weight: 600; text-align: center; margin: 4px 0; }
     .status { padding: 20px; text-align: center; color: #c9a227; }
-    .loading { opacity: 0.6; }
+    .note { text-align: center; padding: 12px; font-size: 13px; color: #c9a227; }
+    a { color: #fbe646; }
   </style>
 </head>
 <body>
@@ -35,8 +35,9 @@
     <div id="yesterday" class="grid"><div class="status">Loading…</div></div>
   </div>
 
-  <div style="text-align:center;padding:24px 10px;color:#c9a227;font-size:13px;">
-    © 2026 Diamond Spaders · Data from MyLeague · No bot required
+  <div class="note">
+    Live data from MyLeague · No bot required<br>
+    <a href="https://myleague.com/diamondspaders/tournaments" target="_blank">View full list on MyLeague</a>
   </div>
 </div>
 
@@ -46,21 +47,47 @@ async function loadWinners() {
   const yestEl = document.getElementById("yesterday");
 
   try {
-    const res = await fetch("/api/winners", { cache: "no-store" });
-    const data = await res.json();
+    // Public CORS proxy so the browser can read MyLeague
+    const proxy = "https://api.allorigins.win/raw?url=";
+    const url = proxy + encodeURIComponent("https://myleague.com/diamondspaders/tournaments");
+    const res = await fetch(url);
+    const html = await res.text();
 
-    if (!data.ok || !data.winners || !data.winners.length) {
-      todayEl.innerHTML = '<div class="status">No winners found right now. Check back soon.</div>';
+    // Very simple extraction of recent winner lines
+    const winners = [];
+    const lines = html.split(/\n|<br\s*\/?>/i);
+    let currentDate = null;
+
+    for (const raw of lines) {
+      const line = raw.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      if (!line) continue;
+
+      const dateMatch = line.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+\w+\s+\d{1,2},\s+\d{4}/i);
+      if (dateMatch) {
+        currentDate = dateMatch[0];
+        continue;
+      }
+
+      if (currentDate && (line.includes("vs") || line.match(/\d{1,2}:\d{2}/))) {
+        const nameMatches = line.match(/[A-Z][a-zA-Z0-9_]{2,}/g) || [];
+        winners.push({
+          date: currentDate,
+          text: line,
+          names: nameMatches.slice(0, 3)
+        });
+      }
+    }
+
+    if (!winners.length) {
+      todayEl.innerHTML = '<div class="status">No winners found right now.<br><a href="https://myleague.com/diamondspaders/tournaments" target="_blank">Check MyLeague</a></div>';
       yestEl.innerHTML = '<div class="status">—</div>';
       return;
     }
 
-    // Group by date (very simple)
     const byDate = {};
-    for (const w of data.winners) {
-      const d = w.date || "Unknown";
-      if (!byDate[d]) byDate[d] = [];
-      byDate[d].push(w);
+    for (const w of winners) {
+      if (!byDate[w.date]) byDate[w.date] = [];
+      byDate[w.date].push(w);
     }
 
     const dates = Object.keys(byDate);
@@ -69,10 +96,11 @@ async function loadWinners() {
 
     function render(list) {
       if (!list || !list.length) return '<div class="status">None yet</div>';
-      return list.slice(0, 12).map(w => {
+      return list.slice(0, 9).map(w => {
         const names = (w.names || []).slice(0, 2).join(" & ") || "Winner";
+        const short = w.text.split(" ").slice(0, 6).join(" ");
         return `<div class="card">
-          <div class="time">${w.text.split(" ").slice(0, 4).join(" ")}</div>
+          <div class="time">${short}</div>
           <div class="name">${names}</div>
         </div>`;
       }).join("");
@@ -81,7 +109,7 @@ async function loadWinners() {
     todayEl.innerHTML = render(byDate[todayDate]);
     yestEl.innerHTML = render(byDate[yestDate]);
   } catch (err) {
-    todayEl.innerHTML = '<div class="status">Could not load winners. Refresh the page.</div>';
+    todayEl.innerHTML = '<div class="status">Could not load winners.<br><a href="https://myleague.com/diamondspaders/tournaments" target="_blank">Open MyLeague</a></div>';
     yestEl.innerHTML = "";
   }
 }
@@ -90,6 +118,5 @@ loadWinners();
 </script>
 </body>
 </html>
-
 
 

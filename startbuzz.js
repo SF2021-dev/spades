@@ -9,7 +9,7 @@
   function add() { document.body.appendChild(b); }
   document.body ? add() : document.addEventListener("DOMContentLoaded", add);
   b.onclick = function () {
-    fetch("/api/startbuzz", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to: to }) })
+    fetch("/api/startbuzz", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to: to, from: me }) })
       .then(function (r) { b.lastChild.textContent = r.ok ? " buzzed!" : (r.status === 429 ? " wait…" : " failed"); })
       .catch(function () { b.lastChild.textContent = " failed"; })
       .then(function () { setTimeout(function () { b.innerHTML = "&#128264; buzz " + to.charAt(0).toUpperCase() + to.slice(1); }, 2000); });
@@ -18,12 +18,12 @@
   function unlock() { snd.muted = true; snd.play().then(function () { snd.pause(); snd.currentTime = 0; snd.muted = false; }).catch(function () {}); document.removeEventListener("pointerdown", unlock); document.removeEventListener("keydown", unlock); }
   document.addEventListener("pointerdown", unlock); document.addEventListener("keydown", unlock);
   var last = null;
-  function fx() {
+  function fx(from) {
     try { snd.currentTime = 0; snd.volume = 1; snd.play(); } catch (e) {}
     try { var ac = new (window.AudioContext || window.webkitAudioContext)(), o = ac.createOscillator(), g = ac.createGain(); o.type = "sawtooth"; o.frequency.value = 110; g.gain.value = 0.6; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 1.2); } catch (e) {}
     var o2 = document.getElementById("dsBuzzOv");
     if (!o2) { o2 = document.createElement("div"); o2.id = "dsBuzzOv"; o2.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);color:#f3bf56;font:bold 48px sans-serif;text-align:center;padding:20px;text-shadow:0 0 20px #000"; document.body.appendChild(o2); }
-    var who = to.charAt(0).toUpperCase() + to.slice(1);
+    var w0 = from || to, who = w0.charAt(0).toUpperCase() + w0.slice(1);
     o2.innerHTML = ""; var t = document.createElement("div"); t.textContent = who + " is buzzing you"; o2.appendChild(t);
     var GM = "https://messages.google.com/web/conversations", w = null;
     try { w = window.open(GM, "dsGoogleMessages"); } catch (e) {}
@@ -33,7 +33,7 @@
   }
   function poll() {
     fetch("/api/startbuzz?for=" + me, { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (j) {
-      if (last !== null && j.ts > last && j.now - j.ts < 20000) fx();
+      if (last !== null && j.ts > last && j.now - j.ts < 20000) fx(j.from);
       last = j.ts || 0;
     }).catch(function () {});
   }

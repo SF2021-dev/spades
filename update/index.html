@@ -115,39 +115,16 @@
     const winnersHeading = document.getElementById('winnersHeading');
     const winnersGrid = document.getElementById('winnersGrid');
 
-    let cfg = null;
-
-    function todayET() {
-      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
-      const y = parts.find(p => p.type === 'year').value;
-      const m = parts.find(p => p.type === 'month').value;
-      const d = parts.find(p => p.type === 'day').value;
-      return { y, m, d, iso: `${y}-${m}-${d}` };
-    }
-
-    function addDays(iso, n) {
-      const d = new Date(iso + 'T12:00:00Z');
-      d.setUTCDate(d.getUTCDate() + n);
-      return d.toISOString().slice(0, 10);
-    }
-
     function clock12(h, m) {
       const hh = h % 12 || 12;
       const ampm = h >= 12 ? 'PM' : 'AM';
       return `${hh}:${String(m).padStart(2, '0')} ${ampm} EST`;
     }
 
-    function statusFor(t, nowMin) {
-      const startMin = t.h * 60 + t.m;
+    function statusFor(t) {
       if (t.winners && t.winners.length) return { text: 'Final', winner: t.winners.join(' & ') };
-      if (nowMin >= startMin) return { text: 'Live', winner: 'In progress' };
+      if (t.pending) return { text: 'Live', winner: 'In progress' };
       return { text: 'Upcoming', winner: 'Not started' };
-    }
-
-    function avatar(name) {
-      if (!cfg || !name) return null;
-      const key = (cfg.aliases?.[name] || name).toLowerCase().replace(/\s+/g, '');
-      return cfg.avatars?.[key] || cfg.avatar_overrides?.[name] || null;
     }
 
     function renderTours(tours) {
@@ -158,15 +135,10 @@
         return;
       }
       statusEl.textContent = `Loaded ${tours.length} tour${tours.length === 1 ? '' : 's'}.`;
-      const now = new Date();
-      const etMin = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-        .formatToParts(now).reduce((acc, p) => { if (p.type === 'hour') acc.h = +p.value; if (p.type === 'minute') acc.m = +p.value; return acc; }, { h: 0, m: 0 });
-      const nowMin = etMin.h * 60 + etMin.m;
-
       tours.forEach(t => {
         const time = clock12(t.h, t.m);
-        const st = statusFor(t, nowMin);
-        const jump = `https://cgi6.igl.net/tourney/diamondspaders/${t.id}/`;
+        const st = statusFor(t);
+        const jump = t.url || `https://cgi6.igl.net/tourney/diamondspaders/${t.id}/`;
         const game = (t.game || 'SPADES').toUpperCase().replace(/\s+/g, ' ').trim();
 
         const card = document.createElement('article');
@@ -178,7 +150,7 @@
           </div>
           <p class="host">Host ${t.td || '—'}</p>
           <p class="winner" style="${st.winner === 'In progress' || st.winner === 'Not started' ? 'color:var(--mist)' : ''}">${st.winner}</p>
-          <a class="jump" href="${jump}" target="_blank">Jump ${t.id}</a>
+          <a class="jump" href="${jump}" target="_blank">Jump ${t.id || ''}</a>
         `;
         cardsEl.appendChild(card);
 
@@ -187,128 +159,49 @@
           <td style="font-weight:600">${time}</td>
           <td>${game}</td>
           <td>${t.td || '—'}</td>
-          <td><a class="gold" href="${jump}" target="_blank">${t.id}</a></td>
+          <td><a class="gold" href="${jump}" target="_blank">${t.id || ''}</a></td>
           <td style="${st.winner === 'In progress' || st.winner === 'Not started' ? 'color:var(--mist)' : ''}">${st.winner}</td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function renderWinners(winners, label) {
+    function renderWinnersFromApi(days, today) {
       winnersGrid.innerHTML = '';
-      if (!winners.length) {
+      const keys = Object.keys(days || {}).sort().reverse();
+      const todayHas = days[today] && days[today].cells && days[today].cells.length;
+      const sourceKey = todayHas ? keys[1] : keys[0];
+      const source = days[sourceKey];
+      if (!source || !source.cells || !source.cells.length) {
         winnersSection.style.display = 'none';
         return;
       }
-      winnersHeading.textContent = label;
+      winnersHeading.textContent = todayHas ? "Yesterday's Winners" : source.heading || 'Winners';
       winnersSection.style.display = 'block';
-      winners.forEach((w) => {
+      source.cells.forEach(html => {
         const div = document.createElement('div');
         div.className = 'winner-card';
-        const ava = avatar(w.names[0]);
-        const img = ava ? `<img src="${ava}" alt="">` : '';
-        if (w.names.length === 1) {
-          div.innerHTML = `
-            <div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
-              ${img}
-              <div>
-                <div class="winner-label">${w.label}</div>
-                <div class="winner-name">${w.names[0]}</div>
-              </div>
-            </div>`;
-        } else {
-          const pairs = w.names.map(n => {
-            const a = avatar(n);
-            return `<div style="display:flex;align-items:center;gap:6px;"><img src="${a || ''}" alt="" style="width:44px;height:44px;"><div style="font-size:14px;font-weight:800;">${n}</div></div>`;
-          }).join('');
-          div.innerHTML = `
-            <div class="winner-label">${w.label}</div>
-            <div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;margin-top:6px;">${pairs}</div>`;
-        }
+        div.innerHTML = html;
         winnersGrid.appendChild(div);
       });
-    }
-
-    async function fetchCalendar(startIso, endIso) {
-      const [sy, sm, sd] = startIso.split('-').map(Number);
-      const [ey, em, ed] = endIso.split('-').map(Number);
-      const body = new URLSearchParams({
-        range: 'daily', strLadder: 'diamondspaders', DisplayCount: '300', page: '1', sort: '1',
-        sd, sm, sy, ed, em, ey
-      });
-      // Public CORS proxies no longer work reliably for this Cloudflare-protected endpoint
-      const proxies = [
-        'https://cors.isomorphic-git.org/'
-      ];
-      for (const proxy of proxies) {
-        try {
-          const url = proxy + 'https://www.myleague.com/pages/remote/tournamentCalendar.php';
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: body.toString()
-          });
-          const text = await res.text();
-          if (res.ok && text.includes('<SQLResults')) {
-            return parseTours(text);
-          }
-        } catch (e) { /* try next */ }
-      }
-      throw new Error('Calendar feed blocked by Cloudflare. A server-side proxy (like the old /api/live) is required for live data.');
-    }
-
-    function parseTours(text) {
-      const tours = [];
-      const recs = text.match(/<objRecord>[\s\S]*?<\/objRecord>/g) || [];
-      for (const rec of recs) {
-        const d = {};
-        for (const m of rec.matchAll(/<(\w+)>([\s\S]*?)<\/\1>/g)) {
-          d[m[1]] = m[2].replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n)).trim();
-        }
-        const time = parseInt(d.time, 10);
-        if (isNaN(time) || !d.tcount) continue;
-        const y = parseInt(d.year, 10), mo = parseInt(d.month, 10), dd = parseInt(d.day, 10);
-        const date = `${y}-${String(mo + 1).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
-        tours.push({
-          id: d.tcount,
-          date,
-          h: Math.floor(time / 100),
-          m: time % 100,
-          td: d.td || '',
-          game: d.location || '',
-          winners: (d.winner || '').split(',').map(s => s.trim()).filter(Boolean)
-        });
-      }
-      return tours;
     }
 
     async function loadTours() {
       loadBtn.disabled = true;
       errorNote.style.display = 'none';
-      statusEl.textContent = 'Reading the calendar…';
-      const today = todayET();
-      const yesterday = addDays(today.iso, -1);
-      dateMeta.textContent = `${new Date(today.iso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} · Eastern time`;
-
+      statusEl.textContent = 'Loading from /api/live…';
       try {
-        if (!cfg) {
-          const cfgRes = await fetch('/live/config.json');
-          if (cfgRes.ok) cfg = await cfgRes.json();
-        }
+        const res = await fetch('/api/live');
+        if (!res.ok) throw new Error('api/live returned ' + res.status);
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'api/live error');
 
-        const all = await fetchCalendar(yesterday, today.iso);
-        const todayTours = all.filter(t => t.date === today.iso).sort((a, b) => (a.h - b.h) || (a.m - b.m));
-        const yesterdayTours = all.filter(t => t.date === yesterday);
+        dateMeta.textContent = `${data.today || ''} · Eastern time`;
 
+        const todayTours = (data.tours || []).filter(t => t.date === data.today)
+          .sort((a, b) => (a.h - b.h) || (a.m - b.m));
         renderTours(todayTours);
-
-        const todayHasWinner = todayTours.some(t => t.winners && t.winners.length);
-        const source = todayHasWinner ? yesterdayTours : [];
-        const winners = source.filter(t => t.winners && t.winners.length).map(t => ({
-          label: clock12(t.h, t.m) + ' ' + (t.game || 'SPADES').toUpperCase(),
-          names: t.winners
-        }));
-        renderWinners(winners, todayHasWinner ? "Yesterday's Winners" : '');
+        renderWinnersFromApi(data.days, data.today);
       } catch (err) {
         statusEl.textContent = 'Could not load tours.';
         errorNote.style.display = 'block';

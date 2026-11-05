@@ -245,8 +245,14 @@
       var mm = Math.floor(s / 60); s -= mm * 60;
       document.getElementById("ds-next-count").textContent = pad(hh) + ":" + pad(mm) + ":" + pad(s);
     } else {
-      document.getElementById("ds-next-main").textContent = live ? "Last game of the day" : "See you tomorrow";
-      document.getElementById("ds-next-count").textContent = "00:00:00";
+      var morning = new Date(now.getTime());
+      morning.setHours(8, 15, 0, 0);
+      if (morning <= now) morning.setDate(morning.getDate() + 1);
+      document.getElementById("ds-next-main").textContent = "8:15 AM";
+      var ms2 = morning - now; if (ms2 < 0) ms2 = 0;
+      var s2 = Math.floor(ms2 / 1000), hh2 = Math.floor(s2 / 3600); s2 -= hh2 * 3600;
+      var mm2 = Math.floor(s2 / 60); s2 -= mm2 * 60;
+      document.getElementById("ds-next-count").textContent = pad(hh2) + ":" + pad(mm2) + ":" + pad(s2);
     }
     drawTours();
   }

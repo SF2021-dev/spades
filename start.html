@@ -175,18 +175,18 @@
             <a class="icon-sq" href="https://www.myleague.com/diamondspaders/" title="Diamond Spaders"><img src="/icons/ds.png" alt="Diamond Spaders"></a>
             <a class="icon-sq" href="https://www.myleague.com/dagreathoudini/" title="houdini"><img src="/icons/houdini.png" alt="houdini"></a>
             <a class="icon-sq" href="https://www.myleague.com/ams/" title="ams"><img src="/icons/ams.png" alt="ams"></a>
-            <a class="icon-sq" href="https://www.myleague.com/teamtfriends/index.php/" title="Team T Friends"><img src="/icons/tfs.png" alt="Team T Friends"></a>
         </div>
         <div class="icon-row">
+            <a class="icon-sq" href="https://www.myleague.com/teamtfriends/index.php/" title="Team T Friends"><img src="/icons/tfs.png" alt="Team T Friends"></a>
             <a class="icon-sq" href="https://docs.google.com/document/u/0/" title="Google Docs"><img src="/icons/docs.png" alt="Google Docs"></a>
             <a class="icon-sq" href="https://drive.google.com/drive/my-drive" title="Google Drive"><img src="/icons/docs.png" alt="Google Drive"></a>
             <a class="icon-sq" href="https://notepad.uk.com/" title="notepad"><img src="/icons/np.png" alt="notepad"></a>
             <a class="icon-sq" href="https://grok.com" title="Grok"><img src="/icons/grok.png" alt="Grok"></a>
             <a class="icon-sq" href="https://messages.google.com/web/" title="Messages"><img src="/icons/messages.png" alt="Messages"></a>
             <a class="icon-sq" href="https://mail.google.com" title="Gmail"><img src="/icons/gmail.png" alt="Gmail"></a>
-            <a class="icon-sq" href="https://www.youtube.com" title="YouTube"><img src="/icons/youtube.png" alt="YouTube"></a>
         </div>
         <div class="icon-row">
+            <a class="icon-sq" href="https://www.youtube.com" title="YouTube"><img src="/icons/youtube.png" alt="YouTube"></a>
             <a class="icon-sq" href="https://www.walmart.com/" title="Walmart"><img src="/icons/walmart.png" alt="Walmart"></a>
             <a class="icon-sq" href="https://www.amazon.com" title="Amazon"><img src="/icons/amazon.png" alt="Amazon"></a>
             <a class="icon-sq" href="https://www.giphy.com" title="Giphy"><img src="/icons/giphy.png" alt="Giphy"></a>
@@ -280,9 +280,16 @@
 <script>
 (function () {
   var dragging = null, clone = null, ox = 0, oy = 0, moved = false;
-  function squares() {
-    return Array.prototype.slice.call(document.querySelectorAll('.icon-sq'));
+  function sortShortRows() {
+    var area = document.querySelector('.icons-area');
+    if (!area) return;
+    var rows = Array.prototype.slice.call(area.querySelectorAll('.icon-row'));
+    rows.sort(function (a, b) {
+      return a.querySelectorAll('.icon-sq').length - b.querySelectorAll('.icon-sq').length;
+    });
+    rows.forEach(function (row) { area.appendChild(row); });
   }
+  sortShortRows();
   document.querySelectorAll('.icon-sq').forEach(function (icon) {
     icon.addEventListener('mousedown', function (e) {
       if (e.button !== 0) return;
@@ -382,6 +389,7 @@
     } else {
       insertBetween(place.left, place.right);
     }
+    sortShortRows();
   });
 })();
 </script>

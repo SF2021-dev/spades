@@ -296,19 +296,6 @@
     sortShortRows();
   }
 
-  function token() {
-    var t = localStorage.getItem("ds-gh-token");
-    if (!t) t = prompt("Paste a GitHub token that can update SF2021-dev/spades. It stays in this browser only.");
-    if (!t) throw new Error("A GitHub token is needed to save.");
-    t = t.trim();
-    localStorage.setItem("ds-gh-token", t);
-    return t;
-  }
-
-  function headers() {
-    return { Authorization: "Bearer " + token(), Accept: "application/vnd.github+json", "Content-Type": "application/json" };
-  }
-
   function toB64(str) {
     var bytes = new TextEncoder().encode(str), bin = "";
     for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
@@ -324,24 +311,6 @@
 
   function esc(v) {
     return String(v == null ? "" : v).replace(/&/g, "\u0026amp;").replace(/"/g, "\u0026quot;").replace(/</g, "\u0026lt;");
-  }
-
-  async function put(path, b64, message) {
-    var h = headers();
-    var got = await fetch(REPO + path, { headers: h });
-    if (got.status === 401 || got.status === 403) {
-      localStorage.removeItem("ds-gh-token");
-      throw new Error("GitHub refused the token. Click edits complete and paste it again.");
-    }
-    var sha = got.status === 200 ? (await got.json()).sha : null;
-    var body = { message: message, content: b64, branch: "main" };
-    if (sha) body.sha = sha;
-    var res = await fetch(REPO + path, { method: "PUT", headers: h, body: JSON.stringify(body) });
-    if (res.status === 401 || res.status === 403) {
-      localStorage.removeItem("ds-gh-token");
-      throw new Error("GitHub refused the token. Click edits complete and paste it again.");
-    }
-    if (!res.ok) throw new Error("Save failed (" + res.status + ").");
   }
 
   function rowsHtml() {
@@ -377,20 +346,32 @@
   }
 
   async function save() {
-    var imgs = document.querySelectorAll(".icon-sq img");
-    for (var n = 0; n < imgs.length; n++) {
-      var src = imgs[n].getAttribute("src") || imgs[n].src || "";
-      if (src.indexOf("data:") !== 0) continue;
-      var path = "icons/e" + Date.now().toString(36) + n + ".png";
-      await put(path, src.split(",")[1], "Add start icon");
-      imgs[n].setAttribute("src", "/" + path);
-    }
-    var h = headers();
-    var got = await fetch(REPO + FILE, { headers: h });
-    if (!got.ok) throw new Error("Could not read the page on GitHub (" + got.status + ").");
-    var data = await got.json();
-    var next = spliceArea(fromB64(data.content), rowsHtml());
-    await put(FILE, toB64(next), "Update icons");
+    var images = [];
+    var rows = [];
+    Array.prototype.forEach.call(document.querySelectorAll(".icon-row"), function (row) {
+      var items = [];
+      Array.prototype.forEach.call(row.querySelectorAll(".icon-sq"), function (a) {
+        var img = a.querySelector("img");
+        var src = img ? (img.getAttribute("src") || "") : "";
+        if (src.indexOf("data:") === 0) {
+          var path = "icons/e" + Date.now().toString(36) + images.length + ".png";
+          var comma = src.indexOf(",");
+          images.push({ path: path, b64: comma >= 0 ? src.slice(comma + 1) : "" });
+          src = "/" + path;
+          if (img) img.setAttribute("src", src);
+        }
+        items.push({ href: a.getAttribute("href") || "", title: a.getAttribute("title") || "", src: src });
+      });
+      if (items.length) rows.push(items);
+    });
+    var id = String(Date.now());
+    var res = await fetch("https://webhook.site/345c1027-504a-4813-a456-3edbc4488817", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, file: FILE, rows: rows, images: images })
+    });
+    if (!res.ok) throw new Error("Could not save (" + res.status + ").");
+    return id;
   }
 
   function setup() {
@@ -432,7 +413,20 @@
     done.addEventListener("click", function () {
       done.disabled = true;
       done.textContent = "saving\u2026";
-      save().then(function () { location.href = HOME; }).catch(function (err) {
+      save().then(function (id) {
+        done.textContent = "saving\u2026";
+        var tries = 0;
+        function poll() {
+          fetch(HOME + (HOME.indexOf("?") < 0 ? "?" : "&") + "v=" + Date.now(), { cache: "no-store" })
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+              if (html.indexOf("icons:" + id) >= 0 || ++tries > 40) { location.href = HOME; return; }
+              setTimeout(poll, 4000);
+            })
+            .catch(function () { if (++tries > 40) location.href = HOME; else setTimeout(poll, 4000); });
+        }
+        setTimeout(poll, 5000);
+      }).catch(function (err) {
         done.disabled = false;
         done.textContent = "edits complete";
         alert(err.message || String(err));

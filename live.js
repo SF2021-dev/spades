@@ -47,7 +47,7 @@
   function poll() {
     if (busy || document.hidden) return;
     busy = true;
-    fetch("/api/live", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; })
+    fetch("/update/live.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; })
       .then(apply).catch(function () {}).then(function () { busy = false; });
   }
   poll();

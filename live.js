@@ -1,7 +1,6 @@
-/* Diamond Spaders live results: polls /api/live (Cloudflare Pages Function reading the MyLeague calendar, ~60 s cache)
-   and refreshes the two winners grids and the tour list whenever they differ from what this page shows, so results
-   appear even when the box that republishes index.html is asleep. It renders exactly what the box would publish
-   (same labels / manual winners / teams / avatars via /live/config.json) and never invents a winner. */
+/* Diamond Spaders live results: polls /api/live and refreshes winners grids + tour list.
+   As soon as today has any winners, yesterday's winners cards are placed in the lower grid
+   (below the tours list), replacing whatever was previously there. */
 (function () {
   var POLL = 60000, BG_EVEN = "#1a1200";
   var lastTours = null;
@@ -19,15 +18,25 @@
     if (!d || !d.ok || !d.days || !d.today) return;
     var gT = document.getElementById("ds-winners-today"), gY = document.getElementById("ds-winners-yesterday");
     var keys = Object.keys(d.days).sort().reverse();          // [today, yesterday, day before]
-    var today = d.days[keys[0]];
-    var top = today.cells.length ? keys[0] : keys[1], second = today.cells.length ? keys[1] : keys[2];
-    if (gT && gY && d.days[top] && d.days[second]) {
-      var t = d.days[top], s = d.days[second];
-      var wantT = norm(body(t, top !== keys[0]));
-      var wantY = norm(body(s, true) + (s.cells.length ? trail(gY, s.cells.length % 2 === 0 ? BG_EVEN : "#000") : ""));
+    var todayKey = keys[0], yestKey = keys[1], beforeKey = keys[2];
+    var today = d.days[todayKey] || { cells: [] };
+    var todayHasWinner = today.cells && today.cells.length > 0;
+
+    // Top grid: today if it has winners, otherwise yesterday
+    var topKey = todayHasWinner ? todayKey : yestKey;
+    // Lower grid (below tours): yesterday once today has a winner, otherwise the day before
+    var lowerKey = todayHasWinner ? yestKey : beforeKey;
+
+    var top = d.days[topKey], lower = d.days[lowerKey];
+    if (gT && top) {
+      var wantT = norm(body(top, topKey !== todayKey));
       if (norm(gT.innerHTML) !== wantT) gT.innerHTML = wantT;
+    }
+    if (gY && lower) {
+      var wantY = norm(body(lower, true) + (lower.cells.length ? trail(gY, lower.cells.length % 2 === 0 ? BG_EVEN : "#000") : ""));
       if (norm(gY.innerHTML) !== wantY) gY.innerHTML = wantY;
     }
+
     if (d.tours && window.dsSetTours) {
       var j = JSON.stringify(d.tours);
       if (j !== lastTours) window.dsSetTours(d.tours);

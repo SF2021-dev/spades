@@ -168,15 +168,12 @@
 
     function renderWinnersFromApi(days, today) {
       winnersGrid.innerHTML = '';
-      const keys = Object.keys(days || {}).sort().reverse();
-      const todayHas = days[today] && days[today].cells && days[today].cells.length;
-      const sourceKey = todayHas ? keys[1] : keys[0];
-      const source = days[sourceKey];
-      if (!source || !source.cells || !source.cells.length) {
+      const source = days && days[today] && days[today].cells && days[today].cells.length ? days[today] : null;
+      if (!source) {
         winnersSection.style.display = 'none';
         return;
       }
-      winnersHeading.textContent = todayHas ? "Yesterday's Winners" : source.heading || 'Winners';
+      winnersHeading.textContent = "Today's winners";
       winnersSection.style.display = 'block';
       source.cells.forEach(html => {
         const div = document.createElement('div');
@@ -189,16 +186,17 @@
     async function loadTours() {
       loadBtn.disabled = true;
       errorNote.style.display = 'none';
-      statusEl.textContent = 'Loading from /api/live…';
+      statusEl.textContent = 'Reading MyLeague…';
       try {
-        const res = await fetch('/api/live');
-        if (!res.ok) throw new Error('api/live returned ' + res.status);
+        const res = await fetch('/update/live.json?v=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('live board returned ' + res.status);
         const data = await res.json();
-        if (!data.ok) throw new Error(data.error || 'api/live error');
+        if (!data.ok) throw new Error(data.error || 'live board error');
 
         dateMeta.textContent = `${data.today || ''} · Eastern time`;
 
-        const todayTours = (data.tours || []).filter(t => t.date === data.today)
+        const todayTours = (data.board || data.tours || []).map(t => ({ ...t, date: t.date || t.dt }))
+          .filter(t => t.date === data.today)
           .sort((a, b) => (a.h - b.h) || (a.m - b.m));
         renderTours(todayTours);
         renderWinnersFromApi(data.days, data.today);

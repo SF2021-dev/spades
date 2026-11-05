@@ -19,80 +19,47 @@
       --ink: #1a140c;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--felt);
-      color: var(--ivory);
-      font-family: "Source Sans 3", system-ui, sans-serif;
-    }
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px 16px 48px;
-    }
-    header {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 20px;
-      margin-bottom: 24px;
-    }
-    @media (min-width: 640px) {
-      header { flex-direction: row; align-items: flex-end; justify-content: space-between; }
-    }
+    body { margin: 0; background: var(--felt); color: var(--ivory); font-family: "Source Sans 3", system-ui, sans-serif; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+    header { display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 24px; }
+    @media (min-width: 640px) { header { flex-direction: row; align-items: flex-end; justify-content: space-between; } }
     .brand { display: flex; align-items: flex-start; gap: 12px; }
     .logo { color: var(--gold); margin-top: 4px; }
     .sub { font-family: Fraunces, Georgia, serif; font-size: 14px; letter-spacing: 0.04em; color: var(--gold); margin: 0; }
     h1 { font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; margin: 4px 0 0; line-height: 1.2; }
     .meta { margin: 4px 0 0; color: var(--mist); }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      height: 44px;
-      padding: 0 20px;
-      background: var(--gold);
-      color: var(--ink);
-      border: none;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 15px;
-      cursor: pointer;
-      text-decoration: none;
-    }
-    .btn:hover { filter: brightness(1.05); }
-    .cards { display: flex; flex-direction: column; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; background: var(--gold); color: var(--ink); border: none; border-radius: 999px; font-weight: 600; font-size: 15px; cursor: pointer; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn:hover:not(:disabled) { filter: brightness(1.05); }
+    #status { color: var(--mist); margin-bottom: 16px; min-height: 1.2em; }
+    .cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
     @media (min-width: 768px) { .cards { display: none; } }
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 16px;
-    }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
     .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
     .time { font-weight: 600; margin: 0; }
     .game { font-family: Fraunces, Georgia, serif; font-size: 20px; margin: 2px 0 0; }
-    .badge {
-      background: var(--felt);
-      color: var(--gold);
-      border-radius: 999px;
-      padding: 4px 12px;
-      font-size: 13px;
-    }
+    .badge { background: var(--felt); color: var(--gold); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
     .host { color: var(--mist); margin: 8px 0 0; }
     .winner { margin: 12px 0 0; font-weight: 600; display: flex; align-items: center; gap: 6px; }
     .jump { color: var(--gold); margin-top: 12px; display: inline-block; text-decoration: underline; text-underline-offset: 2px; }
-    .table-wrap { display: none; }
-    @media (min-width: 768px) {
-      .table-wrap { display: block; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-    }
+    .table-wrap { display: none; margin-bottom: 32px; }
+    @media (min-width: 768px) { .table-wrap { display: block; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; } }
     table { width: 100%; border-collapse: collapse; text-align: left; }
     thead { background: var(--felt-2); color: var(--mist); font-size: 14px; }
     th, td { padding: 12px 16px; }
     tbody tr { border-top: 1px solid var(--line); background: var(--panel); }
     a.gold { color: var(--gold); text-decoration: underline; text-underline-offset: 2px; }
-    .trophy { color: var(--gold); }
+    .winners-section { margin-top: 24px; border-top: 3px solid var(--gold); padding-top: 16px; }
+    .winners-section h2 { font-family: Fraunces, Georgia, serif; font-size: 18px; letter-spacing: 0.1em; color: var(--gold); margin: 0 0 12px; }
+    .winners-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+    @media (max-width: 700px) { .winners-grid { grid-template-columns: 1fr; } }
+    .winner-card { padding: 14px 10px; }
+    .winner-card:nth-child(odd) { background: #1a1200; }
+    .winner-card:nth-child(even) { background: #000; }
+    .winner-card img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gold); }
+    .winner-card .pair img { width: 44px; height: 44px; }
+    .winner-name { font-size: 22px; font-weight: 800; }
+    .winner-label { font-size: 13px; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -107,166 +74,238 @@
         <div>
           <p class="sub">Diamond Spaders</p>
           <h1>Today's board</h1>
-          <p class="meta">Thursday November 5, 2026 · Load today's tours updates diamondspaders.online</p>
+          <p class="meta" id="dateMeta">Eastern time · Load today's tours</p>
         </div>
       </div>
-      <a class="btn" href="https://diamondspaders.online/update/">
+      <button class="btn" id="loadBtn" type="button">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>
           <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
         </svg>
         Load today's tours
-      </a>
+      </button>
     </header>
 
-    <!-- Mobile cards -->
-    <div class="cards">
-      <article class="card">
-        <div class="card-head">
-          <div><p class="time">8:15 AM EST</p><h2 class="game">CUT</h2></div>
-          <span class="badge">Final</span>
-        </div>
-        <p class="host">Host 3Bid3Bags</p>
-        <p class="winner"><svg class="trophy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg> Lookslikeapickel</p>
-        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957729/">Jump 11957729</a>
-      </article>
-      <article class="card">
-        <div class="card-head">
-          <div><p class="time">9:15 AM EST</p><h2 class="game">SINGLES</h2></div>
-          <span class="badge">Live</span>
-        </div>
-        <p class="host">Host Untouchable_One</p>
-        <p class="winner" style="color:var(--mist)">In progress</p>
-        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11956400/">Jump 11956400</a>
-      </article>
-      <article class="card">
-        <div class="card-head">
-          <div><p class="time">10:15 AM EST</p><h2 class="game">CUT</h2></div>
-          <span class="badge">Upcoming</span>
-        </div>
-        <p class="host">Host Untouchable_One</p>
-        <p class="winner" style="color:var(--mist)">Not started</p>
-        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957754/">Jump 11957754</a>
-      </article>
-      <article class="card">
-        <div class="card-head">
-          <div><p class="time">11:15 AM EST</p><h2 class="game">CUT</h2></div>
-          <span class="badge">Upcoming</span>
-        </div>
-        <p class="host">Host Untouchable_One</p>
-        <p class="winner" style="color:var(--mist)">Not started</p>
-        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957575/">Jump 11957575</a>
-      </article>
-      <article class="card">
-        <div class="card-head">
-          <div><p class="time">3:15 PM EST</p><h2 class="game">CUT</h2></div>
-          <span class="badge">Upcoming</span>
-        </div>
-        <p class="host">Host Treco521</p>
-        <p class="winner" style="color:var(--mist)">Not started</p>
-        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957459/">Jump 11957459</a>
-      </article>
-      <article class="card">
-        <div class="card-head">
-          <div><p class="time">8:15 PM EST</p><h2 class="game">CUT</h2></div>
-          <span class="badge">Upcoming</span>
-        </div>
-        <p class="host">Host Treco521</p>
-        <p class="winner" style="color:var(--mist)">Not started</p>
-        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957461/">Jump 11957461</a>
-      </article>
-      <article class="card">
-        <div class="card-head">
-          <div><p class="time">10:15 PM EST</p><h2 class="game">SINGLES</h2></div>
-          <span class="badge">Upcoming</span>
-        </div>
-        <p class="host">Host Treco521</p>
-        <p class="winner" style="color:var(--mist)">Not started</p>
-        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957462/">Jump 11957462</a>
-      </article>
-      <article class="card">
-        <div class="card-head">
-          <div><p class="time">11:15 PM EST</p><h2 class="game">CUT</h2></div>
-          <span class="badge">Upcoming</span>
-        </div>
-        <p class="host">Host Treco521</p>
-        <p class="winner" style="color:var(--mist)">Not started</p>
-        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957471/">Jump 11957471</a>
-      </article>
-    </div>
-
-    <!-- Desktop table -->
+    <p id="status">Click the button to load today's tours.</p>
+    <div class="cards" id="cards"></div>
     <div class="table-wrap">
       <table>
         <thead>
-          <tr>
-            <th>Start</th>
-            <th>Game</th>
-            <th>Host</th>
-            <th>Jump</th>
-            <th>Winner</th>
-          </tr>
+          <tr><th>Start</th><th>Game</th><th>Host</th><th>Jump</th><th>Status / Winner</th></tr>
         </thead>
-        <tbody>
-          <tr>
-            <td style="font-weight:600">8:15 AM EST</td>
-            <td>CUT</td>
-            <td>3Bid3Bags</td>
-            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957729/">11957729</a></td>
-            <td><span class="winner" style="margin:0"><svg class="trophy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg> Lookslikeapickel</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight:600">9:15 AM EST</td>
-            <td>SINGLES</td>
-            <td>Untouchable_One</td>
-            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11956400/">11956400</a></td>
-            <td style="color:var(--mist)">In progress</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600">10:15 AM EST</td>
-            <td>CUT</td>
-            <td>Untouchable_One</td>
-            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957754/">11957754</a></td>
-            <td style="color:var(--mist)">Not started</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600">11:15 AM EST</td>
-            <td>CUT</td>
-            <td>Untouchable_One</td>
-            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957575/">11957575</a></td>
-            <td style="color:var(--mist)">Not started</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600">3:15 PM EST</td>
-            <td>CUT</td>
-            <td>Treco521</td>
-            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957459/">11957459</a></td>
-            <td style="color:var(--mist)">Not started</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600">8:15 PM EST</td>
-            <td>CUT</td>
-            <td>Treco521</td>
-            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957461/">11957461</a></td>
-            <td style="color:var(--mist)">Not started</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600">10:15 PM EST</td>
-            <td>SINGLES</td>
-            <td>Treco521</td>
-            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957462/">11957462</a></td>
-            <td style="color:var(--mist)">Not started</td>
-          </tr>
-          <tr>
-            <td style="font-weight:600">11:15 PM EST</td>
-            <td>CUT</td>
-            <td>Treco521</td>
-            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957471/">11957471</a></td>
-            <td style="color:var(--mist)">Not started</td>
-          </tr>
-        </tbody>
+        <tbody id="tbody"></tbody>
       </table>
     </div>
+
+    <div class="winners-section" id="winnersSection" style="display:none;">
+      <h2 id="winnersHeading">Yesterday's Winners</h2>
+      <div class="winners-grid" id="winnersGrid"></div>
+    </div>
   </div>
+
+  <script>
+    const loadBtn = document.getElementById('loadBtn');
+    const statusEl = document.getElementById('status');
+    const cardsEl = document.getElementById('cards');
+    const tbody = document.getElementById('tbody');
+    const dateMeta = document.getElementById('dateMeta');
+    const winnersSection = document.getElementById('winnersSection');
+    const winnersHeading = document.getElementById('winnersHeading');
+    const winnersGrid = document.getElementById('winnersGrid');
+
+    let cfg = null;
+
+    function todayET() {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+      const y = parts.find(p => p.type === 'year').value;
+      const m = parts.find(p => p.type === 'month').value;
+      const d = parts.find(p => p.type === 'day').value;
+      return { y, m, d, iso: `${y}-${m}-${d}` };
+    }
+
+    function addDays(iso, n) {
+      const d = new Date(iso + 'T12:00:00Z');
+      d.setUTCDate(d.getUTCDate() + n);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function clock12(h, m) {
+      const hh = h % 12 || 12;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      return `${hh}:${String(m).padStart(2, '0')} ${ampm} EST`;
+    }
+
+    function statusFor(t, nowMin) {
+      const startMin = t.h * 60 + t.m;
+      if (t.winners && t.winners.length) return { text: 'Final', winner: t.winners.join(' & ') };
+      if (nowMin >= startMin) return { text: 'Live', winner: 'In progress' };
+      return { text: 'Upcoming', winner: 'Not started' };
+    }
+
+    function avatar(name) {
+      if (!cfg || !name) return null;
+      const key = (cfg.aliases?.[name] || name).toLowerCase().replace(/\s+/g, '');
+      return cfg.avatars?.[key] || cfg.avatar_overrides?.[name] || null;
+    }
+
+    function renderTours(tours) {
+      cardsEl.innerHTML = '';
+      tbody.innerHTML = '';
+      if (!tours.length) {
+        statusEl.textContent = 'No tours found for today.';
+        return;
+      }
+      statusEl.textContent = `Loaded ${tours.length} tour${tours.length === 1 ? '' : 's'}.`;
+      const now = new Date();
+      const etMin = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+        .formatToParts(now).reduce((acc, p) => { if (p.type === 'hour') acc.h = +p.value; if (p.type === 'minute') acc.m = +p.value; return acc; }, { h: 0, m: 0 });
+      const nowMin = etMin.h * 60 + etMin.m;
+
+      tours.forEach(t => {
+        const time = clock12(t.h, t.m);
+        const st = statusFor(t, nowMin);
+        const jump = `https://cgi6.igl.net/tourney/diamondspaders/${t.id}/`;
+        const game = (t.game || 'SPADES').toUpperCase().replace(/\s+/g, ' ').trim();
+
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-head">
+            <div><p class="time">${time}</p><h2 class="game">${game}</h2></div>
+            <span class="badge">${st.text}</span>
+          </div>
+          <p class="host">Host ${t.td || '—'}</p>
+          <p class="winner" style="${st.winner === 'In progress' || st.winner === 'Not started' ? 'color:var(--mist)' : ''}">${st.winner}</p>
+          <a class="jump" href="${jump}" target="_blank">Jump ${t.id}</a>
+        `;
+        cardsEl.appendChild(card);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight:600">${time}</td>
+          <td>${game}</td>
+          <td>${t.td || '—'}</td>
+          <td><a class="gold" href="${jump}" target="_blank">${t.id}</a></td>
+          <td style="${st.winner === 'In progress' || st.winner === 'Not started' ? 'color:var(--mist)' : ''}">${st.winner}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderWinners(winners, label) {
+      winnersGrid.innerHTML = '';
+      if (!winners.length) {
+        winnersSection.style.display = 'none';
+        return;
+      }
+      winnersHeading.textContent = label;
+      winnersSection.style.display = 'block';
+      winners.forEach((w, i) => {
+        const div = document.createElement('div');
+        div.className = 'winner-card';
+        const ava = avatar(w.names[0]);
+        const img = ava ? `<img src="${ava}" alt="">` : '';
+        if (w.names.length === 1) {
+          div.innerHTML = `
+            <div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;">
+              ${img}
+              <div>
+                <div class="winner-label">${w.label}</div>
+                <div class="winner-name">${w.names[0]}</div>
+              </div>
+            </div>`;
+        } else {
+          const pairs = w.names.map(n => {
+            const a = avatar(n);
+            return `<div style="display:flex;align-items:center;gap:6px;"><img src="${a || ''}" alt="" style="width:44px;height:44px;"><div style="font-size:14px;font-weight:800;">${n}</div></div>`;
+          }).join('');
+          div.innerHTML = `
+            <div class="winner-label">${w.label}</div>
+            <div style="display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;margin-top:6px;">${pairs}</div>`;
+        }
+        winnersGrid.appendChild(div);
+      });
+    }
+
+    async function fetchCalendar(startIso, endIso) {
+      const [sy, sm, sd] = startIso.split('-').map(Number);
+      const [ey, em, ed] = endIso.split('-').map(Number);
+      const body = new URLSearchParams({
+        range: 'daily', strLadder: 'diamondspaders', DisplayCount: '300', page: '1', sort: '1',
+        sd, sm, sy, ed, em, ey
+      });
+      const proxy = 'https://corsproxy.io/?';
+      const url = proxy + encodeURIComponent('https://www.myleague.com/pages/remote/tournamentCalendar.php');
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      });
+      const text = await res.text();
+      if (!res.ok || !text.includes('<SQLResults')) throw new Error('Calendar feed blocked');
+      const tours = [];
+      const recs = text.match(/<objRecord>[\s\S]*?<\/objRecord>/g) || [];
+      for (const rec of recs) {
+        const d = {};
+        for (const m of rec.matchAll(/<(\w+)>([\s\S]*?)<\/\1>/g)) {
+          d[m[1]] = m[2].replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n)).trim();
+        }
+        const time = parseInt(d.time, 10);
+        if (isNaN(time) || !d.tcount) continue;
+        const y = parseInt(d.year, 10), mo = parseInt(d.month, 10), dd = parseInt(d.day, 10);
+        const date = `${y}-${String(mo + 1).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+        tours.push({
+          id: d.tcount,
+          date,
+          h: Math.floor(time / 100),
+          m: time % 100,
+          td: d.td || '',
+          game: d.location || '',
+          winners: (d.winner || '').split(',').map(s => s.trim()).filter(Boolean)
+        });
+      }
+      return tours;
+    }
+
+    async function loadTours() {
+      loadBtn.disabled = true;
+      statusEl.textContent = 'Reading the calendar…';
+      const today = todayET();
+      const yesterday = addDays(today.iso, -1);
+      dateMeta.textContent = `${new Date(today.iso + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} · Eastern time`;
+
+      try {
+        if (!cfg) {
+          const cfgRes = await fetch('/live/config.json');
+          if (cfgRes.ok) cfg = await cfgRes.json();
+        }
+
+        const all = await fetchCalendar(yesterday, today.iso);
+        const todayTours = all.filter(t => t.date === today.iso).sort((a, b) => (a.h - b.h) || (a.m - b.m));
+        const yesterdayTours = all.filter(t => t.date === yesterday);
+
+        renderTours(todayTours);
+
+        // As soon as there is a winner in today's tournaments, show yesterday's winners below the list (replacing what's there)
+        const todayHasWinner = todayTours.some(t => t.winners && t.winners.length);
+        const source = todayHasWinner ? yesterdayTours : [];
+        const winners = source.filter(t => t.winners && t.winners.length).map(t => ({
+          label: clock12(t.h, t.m) + ' ' + (t.game || 'SPADES').toUpperCase(),
+          names: t.winners
+        }));
+        renderWinners(winners, todayHasWinner ? "Yesterday's Winners" : '');
+      } catch (err) {
+        statusEl.textContent = 'Could not load tours: ' + err.message;
+        cardsEl.innerHTML = '';
+        tbody.innerHTML = '';
+        winnersSection.style.display = 'none';
+      } finally {
+        loadBtn.disabled = false;
+      }
+    }
+
+    loadBtn.addEventListener('click', loadTours);
+    loadTours();
+  </script>
 </body>
 </html>

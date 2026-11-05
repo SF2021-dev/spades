@@ -169,7 +169,6 @@
             <a class="icon-sq" href="https://sf2021-dev.github.io/spades/" title="tours"><img src="/icons/tours.png" alt="tours"></a>
         </div>
         <div class="icon-row">
-            <a class="icon-sq" href="https://ochwiay.goatcounter.com" title="GoatCounter visitors"><img src="/icons/goatcounter.svg" alt="GoatCounter"></a>
             <a class="icon-sq" href="https://www.myleague.com/allspaders/admin.html" title="MyLeague Administration"><img src="/icons/admin.png" alt="MyLeague Administration"></a>
             <a class="icon-sq" href="https://www.myleague.com/allspaders/" title="All Spaders"><img src="/icons/as.png" alt="All Spaders"></a>
             <a class="icon-sq" href="https://www.myleague.com/diamondspaders/" title="Diamond Spaders"><img src="/icons/ds.png" alt="Diamond Spaders"></a>
@@ -289,45 +288,32 @@
     });
     rows.forEach(function (row) { area.appendChild(row); });
   }
-  sortShortRows();
-  document.querySelectorAll('.icon-sq').forEach(function (icon) {
-    icon.addEventListener('mousedown', function (e) {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      dragging = icon;
-      moved = false;
-      var r = icon.getBoundingClientRect();
-      ox = e.clientX - r.left;
-      oy = e.clientY - r.top;
-      icon.style.opacity = '0.35';
-    });
+  document.addEventListener('mousedown', function (e) {
+    var icon = e.target.closest('.icon-sq');
+    if (!icon || e.button !== 0) return;
+    e.preventDefault();
+    dragging = icon;
+    moved = false;
+    var r = icon.getBoundingClientRect();
+    ox = e.clientX - r.left; oy = e.clientY - r.top;
+    clone = icon.cloneNode(true);
+    clone.style.cssText = 'position:fixed;left:' + r.left + 'px;top:' + r.top + 'px;width:' + r.width + 'px;height:' + r.height + 'px;z-index:9999;pointer-events:none;opacity:0.85;box-shadow:0 8px 24px rgba(0,0,0,0.5);';
+    document.body.appendChild(clone);
+    icon.style.opacity = '0.3';
   });
   document.addEventListener('mousemove', function (e) {
-    if (!dragging) return;
+    if (!dragging || !clone) return;
     moved = true;
-    if (!clone) {
-      clone = dragging.cloneNode(true);
-      clone.style.position = 'fixed';
-      clone.style.zIndex = '9999';
-      clone.style.pointerEvents = 'none';
-      clone.style.margin = '0';
-      clone.style.opacity = '0.9';
-      clone.style.width = dragging.offsetWidth + 'px';
-      clone.style.height = dragging.offsetHeight + 'px';
-      document.body.appendChild(clone);
-    }
     clone.style.left = (e.clientX - ox) + 'px';
     clone.style.top = (e.clientY - oy) + 'px';
   });
   function hit(x, y) {
-    var list = squares().filter(function (s) { return s !== dragging; });
-    var i, r;
-    for (i = 0; i < list.length; i++) {
-      r = list[i].getBoundingClientRect();
-      if (y < r.top - 8 || y > r.bottom + 8) continue;
-      var midL = r.left + r.width * 0.28;
-      var midR = r.right - r.width * 0.28;
-      if (x >= midL && x <= midR) return { type: 'swap', icon: list[i] };
+    var list = document.querySelectorAll('.icon-sq');
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] === dragging) continue;
+      var r = list[i].getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return { type: 'swap', icon: list[i] };
+      var midL = r.left + r.width / 2, midR = r.right - r.width / 2;
       if (x >= r.left - 20 && x < midL) {
         var prev = list[i].previousElementSibling;
         if (prev && prev.classList.contains('icon-sq') && prev !== dragging) return { type: 'between', left: prev, right: list[i] };

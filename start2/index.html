@@ -165,9 +165,9 @@
             var e=tzParts('America/New_York'),ab=estAbbr();
             document.getElementById('est').textContent=hm(+e.hour,+e.minute)+' '+ab;
             var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
-            var up=TOURS.filter(function(t){return (!t.dt||t.dt===today)&&(+t.h)*60+(+t.m)>nowMin;}).sort(function(a,b){return (a.h*60+ +a.m)-(b.h*60+ +b.m);});
+            var up=TOURS.filter(function(t){if(!t.dt||t.dt===today)return (+t.h)*60+(+t.m)>nowMin;return t.dt>today;}).sort(function(a,b){return String(a.dt||today).localeCompare(String(b.dt||today))||((a.h*60+ +a.m)-(b.h*60+ +b.m));});
             var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');
-            if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!up.length){nn.textContent='done for today';nx.textContent='';}else{nn.textContent=up[0].game+(up[0].td?' w/ '+up[0].td:'');nx.textContent=hh(+up[0].h,+up[0].m)+' '+ab;}
+            if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!up.length){nn.textContent='8:15 AM';nx.textContent='';}else{nn.textContent=up[0].game+(up[0].td?' w/ '+up[0].td:'');var when=hh(+up[0].h,+up[0].m)+' '+ab;if(up[0].dt&&up[0].dt!==today)when=up[0].dt.slice(5).replace('-','/')+' '+when;nx.textContent=when;}
             var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
             if(TERR){hn.textContent='sign in for tours';ht.textContent='';mo.innerHTML='';return;}
             var mine=TOURS.filter(function(t){

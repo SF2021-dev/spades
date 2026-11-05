@@ -414,16 +414,17 @@
       done.disabled = true;
       done.textContent = "saving\u2026";
       save().then(function (id) {
-        done.textContent = "saving\u2026";
+        done.textContent = "saved";
         var tries = 0;
+        var raw = "https://raw.githubusercontent.com/SF2021-dev/spades/main/" + FILE + "?v=";
         function poll() {
-          fetch(HOME + (HOME.indexOf("?") < 0 ? "?" : "&") + "v=" + Date.now(), { cache: "no-store" })
+          fetch(raw + Date.now(), { cache: "no-store" })
             .then(function (r) { return r.text(); })
             .then(function (html) {
-              if (html.indexOf("icons:" + id) >= 0 || ++tries > 40) { location.href = HOME; return; }
-              setTimeout(poll, 4000);
+              if (html.indexOf("icons:" + id) >= 0 || ++tries > 20) { location.href = HOME; return; }
+              setTimeout(poll, 3000);
             })
-            .catch(function () { if (++tries > 40) location.href = HOME; else setTimeout(poll, 4000); });
+            .catch(function () { if (++tries > 20) location.href = HOME; else setTimeout(poll, 3000); });
         }
         setTimeout(poll, 5000);
       }).catch(function (err) {

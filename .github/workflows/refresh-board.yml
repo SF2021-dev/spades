@@ -1,0 +1,27 @@
+name: Refresh board
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+permissions:
+  contents: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node tools/build_live.mjs
+      - name: Publish the board
+        run: |
+          git config user.name "diamondspaders"
+          git config user.email "actions@diamondspaders.online"
+          git add update/live.json
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git commit -m "Refresh today's board"
+            git push
+          fi

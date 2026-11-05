@@ -288,6 +288,14 @@ async function build(env, origin) {
       winners: [...(e.winners || [])] });
     if (e.label) { cfg.labels_by_id = { ...(cfg.labels_by_id || {}) }; if (cfg.labels_by_id[e.id] == null) cfg.labels_by_id[e.id] = e.label; }
   }
+  for (const e of cfg.added_tours || []) {     // tours the feed missed; stay on the list until a winner is recorded
+    const [hh, mm] = String(e.time || "").split(":").map(Number);
+    if (!e.date || Number.isNaN(hh) || Number.isNaN(mm)) continue;
+    const td = e.td || "";
+    if (tours.some(t => t.status !== "extra" && t.date === e.date && t.h === hh && t.m === mm && String(t.td || "").toLowerCase() === td.toLowerCase())) continue;
+    tours.push({ id: String(e.id || ""), date: e.date, h: hh, m: mm, td, game: e.label || "", status: "added", perteam: "",
+      winners: [], url: e.url || "https://www.myleague.com/diamondspaders/tournaments" });
+  }
   tours.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.h - b.h) || (a.m - b.m) || (String(a.id) < String(b.id) ? -1 : 1));
   const mw = cfg.manual_winners || {}, mo = cfg.manual_overrides || {};
   for (const t of tours) {
@@ -336,15 +344,15 @@ async function build(env, origin) {
   for (const d of [today, addDays(today, -1), addDays(today, -2)]) days[d] = R.day(tours, d, today);
     // Keep every today tour with no standings/user winner. Never drop based on calendar feed status.
     const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && !t.winners.length && t.status !== "extra")
-    .map(t => ({ dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td, url: (cfg.tour_url || "").replace("%s", t.id), ava: R.avatar(t.td) || "", ...(R.subtitle(t) ? { sub: R.subtitle(t) } : {}) }));
+    .map(t => ({ dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td, url: t.url || (cfg.tour_url || "").replace("%s", t.id), ava: R.avatar(t.td) || "", ...(R.subtitle(t) ? { sub: R.subtitle(t) } : {}) }));
   const board = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && t.status !== "extra").map(t => ({
     date: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td,
-    url: (cfg.tour_url || "https://www.myleague.com/diamondspaders/tournament/%s/").replace("%s", t.id),
+    url: t.url || (cfg.tour_url || "https://www.myleague.com/diamondspaders/tournament/%s/").replace("%s", t.id),
     id: t.id, winners: t.winners || [], pending: !!t.pending,
   }));
   const schedule = tours.filter(t => !hidden.has(String(t.id)) && t.status !== "extra" && t.date >= today).map(t => ({
     dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td,
-    url: (cfg.tour_url || "https://www.myleague.com/diamondspaders/tournament/%s/").replace("%s", t.id),
+    url: t.url || (cfg.tour_url || "https://www.myleague.com/diamondspaders/tournament/%s/").replace("%s", t.id),
   }));
   return { ok: true, now: now.toISOString(), today, days, tours: upcoming, board, schedule };
 }

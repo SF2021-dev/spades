@@ -170,10 +170,16 @@
             if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!up.length){nn.textContent='done for today';nx.textContent='';}else{nn.textContent=up[0].game+(up[0].td?' w/ '+up[0].td:'');nx.textContent=hh(+up[0].h,+up[0].m)+' '+ab;}
             var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
             if(TERR){hn.textContent='sign in for tours';ht.textContent='';mo.innerHTML='';return;}
-            var mine=up.filter(function(t){return /^fetch_?it_?up$/i.test(String(t.td||'').trim());});
+            var mine=TOURS.filter(function(t){
+                if(!/^fetch_?it_?up$/i.test(String(t.td||'').trim())) return false;
+                if(t.dt && t.dt < today) return false;
+                if(t.dt && t.dt > today) return true;
+                return (+t.h)*60+(+t.m)>nowMin;
+            }).sort(function(a,b){return String(a.dt||'').localeCompare(String(b.dt||''))||((a.h*60+ +a.m)-(b.h*60+ +b.m));});
             if(!mine.length){hn.textContent='none today';ht.textContent='';mo.innerHTML='';return;}
-            hn.textContent=mine[0].game;ht.textContent=hh(+mine[0].h,+mine[0].m)+' '+ab;
-            mo.innerHTML=mine.slice(1).map(function(t){return esc(hh(+t.h,+t.m)+' '+ab+' '+t.game);}).join('<br>');
+            function stamp(t, timeOnly){var day=t.dt&&t.dt!==today?t.dt.slice(5).replace('-','/')+' ':'';return day+hh(+t.h,+t.m)+' '+ab+(timeOnly?'':' '+t.game);}
+            hn.textContent=mine[0].game;ht.textContent=stamp(mine[0], true);
+            mo.innerHTML=mine.slice(1).map(function(t){return esc(stamp(t));}).join('<br>');
         }
         function loadTours(){
   TOURS = [
@@ -184,7 +190,9 @@
     { dt: "2026-11-05", h: 12, m: 15, game: "PAB", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournament/11958092/" },
     { dt: "2026-11-05", h: 14, m: 15, game: "CUT MIRRORS", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11950607/" },
     { dt: "2026-11-05", h: 15, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957459/" },
+    { dt: "2026-11-05", h: 17, m: 15, game: "REG PARTNERS", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournament/11958149/" },
     { dt: "2026-11-05", h: 20, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957461/" },
+    { dt: "2026-11-05", h: 21, m: 15, game: "REG PARTNERS", td: "Ellisandrew80", url: "https://www.myleague.com/diamondspaders/tournament/11958150/" },
     { dt: "2026-11-05", h: 22, m: 15, game: "SINGLES", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957462/" },
     { dt: "2026-11-05", h: 23, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957471/" },
   ];

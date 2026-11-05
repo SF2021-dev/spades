@@ -356,7 +356,8 @@ const body = await build(env, "https://diamondspaders.online");
 const out = new URL("../update/live.json", import.meta.url);
 writeFileSync(out, JSON.stringify(body));
 const hers = /^fetch_?it_?up$/i;
-const schedule = (body.schedule || []).filter(t => t.dt === body.today || hers.test(String(t.td || "").trim()));
+const tomorrow = addDays(body.today, 1);
+const schedule = (body.schedule || []).filter(t => t.dt === body.today || t.dt === tomorrow || hers.test(String(t.td || "").trim()));
 const lines = schedule.map(t => {
   const game = t.game === "SUI PASS 2 PAB" ? "PAB" : t.game;
   return `    { dt: ${JSON.stringify(t.dt)}, h: ${t.h}, m: ${t.m}, game: ${JSON.stringify(game)}, td: ${JSON.stringify(t.td)}, url: ${JSON.stringify(t.url)} },`;

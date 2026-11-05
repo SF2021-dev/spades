@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Today's Board — Diamond Spaders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,680&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --felt: #10211c;
+      --felt-2: #17302a;
+      --panel: #1c3830;
+      --line: #2f5146;
+      --ivory: #f3efe4;
+      --mist: #b7c3ba;
+      --gold: #e0b15a;
+      --ink: #1a140c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--felt);
+      color: var(--ivory);
+      font-family: "Source Sans 3", system-ui, sans-serif;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    @media (min-width: 640px) {
+      header { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    }
+    .brand { display: flex; align-items: flex-start; gap: 12px; }
+    .logo { color: var(--gold); margin-top: 4px; }
+    .sub { font-family: Fraunces, Georgia, serif; font-size: 14px; letter-spacing: 0.04em; color: var(--gold); margin: 0; }
+    h1 { font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 600; margin: 4px 0 0; line-height: 1.2; }
+    .meta { margin: 4px 0 0; color: var(--mist); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 20px;
+      background: var(--gold);
+      color: var(--ink);
+      border: none;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn:hover { filter: brightness(1.05); }
+    .cards { display: flex; flex-direction: column; gap: 12px; }
+    @media (min-width: 768px) { .cards { display: none; } }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .time { font-weight: 600; margin: 0; }
+    .game { font-family: Fraunces, Georgia, serif; font-size: 20px; margin: 2px 0 0; }
+    .badge {
+      background: var(--felt);
+      color: var(--gold);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 13px;
+    }
+    .host { color: var(--mist); margin: 8px 0 0; }
+    .winner { margin: 12px 0 0; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .jump { color: var(--gold); margin-top: 12px; display: inline-block; text-decoration: underline; text-underline-offset: 2px; }
+    .table-wrap { display: none; }
+    @media (min-width: 768px) {
+      .table-wrap { display: block; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    thead { background: var(--felt-2); color: var(--mist); font-size: 14px; }
+    th, td { padding: 12px 16px; }
+    tbody tr { border-top: 1px solid var(--line); background: var(--panel); }
+    a.gold { color: var(--gold); text-decoration: underline; text-underline-offset: 2px; }
+    .trophy { color: var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <span class="logo">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41l7.59 7.59a2.41 2.41 0 0 0 3.41 0l7.59-7.59a2.41 2.41 0 0 0 0-3.41l-7.59-7.59a2.41 2.41 0 0 0-3.41 0Z"/>
+          </svg>
+        </span>
+        <div>
+          <p class="sub">Diamond Spaders</p>
+          <h1>Today's board</h1>
+          <p class="meta">Thursday November 5, 2026 · Load today's tours updates diamondspaders.online</p>
+        </div>
+      </div>
+      <a class="btn" href="https://diamondspaders.online/update/">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>
+          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
+        </svg>
+        Load today's tours
+      </a>
+    </header>
+
+    <!-- Mobile cards -->
+    <div class="cards">
+      <article class="card">
+        <div class="card-head">
+          <div><p class="time">8:15 AM EST</p><h2 class="game">CUT</h2></div>
+          <span class="badge">Final</span>
+        </div>
+        <p class="host">Host 3Bid3Bags</p>
+        <p class="winner"><svg class="trophy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg> Lookslikeapickel</p>
+        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957729/">Jump 11957729</a>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div><p class="time">9:15 AM EST</p><h2 class="game">SINGLES</h2></div>
+          <span class="badge">Live</span>
+        </div>
+        <p class="host">Host Untouchable_One</p>
+        <p class="winner" style="color:var(--mist)">In progress</p>
+        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11956400/">Jump 11956400</a>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div><p class="time">10:15 AM EST</p><h2 class="game">CUT</h2></div>
+          <span class="badge">Upcoming</span>
+        </div>
+        <p class="host">Host Untouchable_One</p>
+        <p class="winner" style="color:var(--mist)">Not started</p>
+        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957754/">Jump 11957754</a>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div><p class="time">11:15 AM EST</p><h2 class="game">CUT</h2></div>
+          <span class="badge">Upcoming</span>
+        </div>
+        <p class="host">Host Untouchable_One</p>
+        <p class="winner" style="color:var(--mist)">Not started</p>
+        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957575/">Jump 11957575</a>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div><p class="time">3:15 PM EST</p><h2 class="game">CUT</h2></div>
+          <span class="badge">Upcoming</span>
+        </div>
+        <p class="host">Host Treco521</p>
+        <p class="winner" style="color:var(--mist)">Not started</p>
+        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957459/">Jump 11957459</a>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div><p class="time">8:15 PM EST</p><h2 class="game">CUT</h2></div>
+          <span class="badge">Upcoming</span>
+        </div>
+        <p class="host">Host Treco521</p>
+        <p class="winner" style="color:var(--mist)">Not started</p>
+        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957461/">Jump 11957461</a>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div><p class="time">10:15 PM EST</p><h2 class="game">SINGLES</h2></div>
+          <span class="badge">Upcoming</span>
+        </div>
+        <p class="host">Host Treco521</p>
+        <p class="winner" style="color:var(--mist)">Not started</p>
+        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957462/">Jump 11957462</a>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div><p class="time">11:15 PM EST</p><h2 class="game">CUT</h2></div>
+          <span class="badge">Upcoming</span>
+        </div>
+        <p class="host">Host Treco521</p>
+        <p class="winner" style="color:var(--mist)">Not started</p>
+        <a class="jump" href="https://cgi6.igl.net/tourney/diamondspaders/11957471/">Jump 11957471</a>
+      </article>
+    </div>
+
+    <!-- Desktop table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Start</th>
+            <th>Game</th>
+            <th>Host</th>
+            <th>Jump</th>
+            <th>Winner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600">8:15 AM EST</td>
+            <td>CUT</td>
+            <td>3Bid3Bags</td>
+            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957729/">11957729</a></td>
+            <td><span class="winner" style="margin:0"><svg class="trophy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg> Lookslikeapickel</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">9:15 AM EST</td>
+            <td>SINGLES</td>
+            <td>Untouchable_One</td>
+            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11956400/">11956400</a></td>
+            <td style="color:var(--mist)">In progress</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">10:15 AM EST</td>
+            <td>CUT</td>
+            <td>Untouchable_One</td>
+            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957754/">11957754</a></td>
+            <td style="color:var(--mist)">Not started</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">11:15 AM EST</td>
+            <td>CUT</td>
+            <td>Untouchable_One</td>
+            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957575/">11957575</a></td>
+            <td style="color:var(--mist)">Not started</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">3:15 PM EST</td>
+            <td>CUT</td>
+            <td>Treco521</td>
+            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957459/">11957459</a></td>
+            <td style="color:var(--mist)">Not started</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">8:15 PM EST</td>
+            <td>CUT</td>
+            <td>Treco521</td>
+            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957461/">11957461</a></td>
+            <td style="color:var(--mist)">Not started</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">10:15 PM EST</td>
+            <td>SINGLES</td>
+            <td>Treco521</td>
+            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957462/">11957462</a></td>
+            <td style="color:var(--mist)">Not started</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600">11:15 PM EST</td>
+            <td>CUT</td>
+            <td>Treco521</td>
+            <td><a class="gold" href="https://cgi6.igl.net/tourney/diamondspaders/11957471/">11957471</a></td>
+            <td style="color:var(--mist)">Not started</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

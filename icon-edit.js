@@ -219,11 +219,28 @@
     return new Promise(function (resolve) {
       var box = document.createElement("div");
       box.className = "icon-pick";
-      box.innerHTML = '<div class="box"><p>Icon image</p><button type="button" data-a="up">upload image</button><button type="button" data-a="paste">paste image</button><p data-note style="font-weight:500;font-size:13px;min-height:1.2em;"></p><button type="button" class="cancel" data-a="cancel">cancel</button></div>';
+      box.innerHTML = '<div class="box"><p>Icon image</p><button type="button" data-a="up">upload image</button><button type="button" data-a="paste">paste image</button><button type="button" data-a="url">Image URL</button><div data-urlrow style="display:none;"><input data-url type="url" placeholder="https://..." style="width:100%;box-sizing:border-box;margin-top:8px;padding:8px;border-radius:8px;border:1px solid #fbe646;background:#000;color:#fff;"><button type="button" data-a="useurl">use this image</button></div><p data-note style="font-weight:500;font-size:13px;min-height:1.2em;"></p><button type="button" class="cancel" data-a="cancel">cancel</button></div>';
       document.body.appendChild(box);
       modal = box;
       var note = box.querySelector("[data-note]");
+      var urlRow = box.querySelector("[data-urlrow]");
+      var urlInput = box.querySelector("[data-url]");
       function finish(url) { window.removeEventListener("paste", onPaste); box.remove(); modal = null; resolve(url || ""); }
+      function useImageUrl(raw) {
+        raw = String(raw || "").trim();
+        if (!raw) { note.textContent = "Paste the image address."; return; }
+        if (!/^https?:\/\//i.test(raw)) raw = "https://" + raw;
+        note.textContent = "Loading\u2026";
+        fetch(raw).then(function (r) {
+          if (!r.ok) throw new Error("bad");
+          return r.blob();
+        }).then(blobToIcon).then(finish).catch(function () {
+          var probe = new Image();
+          probe.onload = function () { finish(raw); };
+          probe.onerror = function () { note.textContent = "Could not load that image."; };
+          probe.src = raw;
+        });
+      }
       function onPaste(e) {
         var items = (e.clipboardData && e.clipboardData.items) || [];
         for (var i = 0; i < items.length; i++) {
@@ -235,12 +252,17 @@
         }
         note.textContent = "Copy the picture itself, then press Ctrl+V.";
       }
+      urlInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); useImageUrl(urlInput.value); }
+      });
       window.addEventListener("paste", onPaste);
       box.addEventListener("click", function (e) {
         var act = e.target.getAttribute && e.target.getAttribute("data-a");
         if (act === "cancel" || e.target === box) finish("");
         else if (act === "up") fileInput.click();
         else if (act === "paste") { note.textContent = "Press Ctrl+V."; }
+        else if (act === "url") { urlRow.style.display = "block"; urlInput.focus(); }
+        else if (act === "useurl") useImageUrl(urlInput.value);
       });
       pasteOn = finish;
     });

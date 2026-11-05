@@ -1,6 +1,5 @@
-name = "diamondspaders"
+name = "spades"
 compatibility_date = "2026-10-09"
 
 [assets]
 directory = "."
-exclude = [".git", "*.pack", "node_modules", ".github"]

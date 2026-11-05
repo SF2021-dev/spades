@@ -18,7 +18,7 @@ jobs:
         run: |
           git config user.name "diamondspaders"
           git config user.email "actions@diamondspaders.online"
-          git add update/live.json
+          git add update/live.json start.html start2/index.html
           if git diff --cached --quiet; then
             echo "no change"
           else

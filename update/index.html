@@ -32,6 +32,7 @@
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn:hover:not(:disabled) { filter: brightness(1.05); }
     #status { color: var(--mist); margin-bottom: 16px; min-height: 1.2em; }
+    .error-note { background: #2a1a10; border: 1px solid #5a3a20; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #f0d0a0; font-size: 14px; }
     .cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
     @media (min-width: 768px) { .cards { display: none; } }
     .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
@@ -57,7 +58,6 @@
     .winner-card:nth-child(odd) { background: #1a1200; }
     .winner-card:nth-child(even) { background: #000; }
     .winner-card img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid var(--gold); }
-    .winner-card .pair img { width: 44px; height: 44px; }
     .winner-name { font-size: 22px; font-weight: 800; }
     .winner-label { font-size: 13px; font-weight: 700; }
   </style>
@@ -86,6 +86,7 @@
       </button>
     </header>
 
+    <div id="errorNote" class="error-note" style="display:none;"></div>
     <p id="status">Click the button to load today's tours.</p>
     <div class="cards" id="cards"></div>
     <div class="table-wrap">
@@ -106,6 +107,7 @@
   <script>
     const loadBtn = document.getElementById('loadBtn');
     const statusEl = document.getElementById('status');
+    const errorNote = document.getElementById('errorNote');
     const cardsEl = document.getElementById('cards');
     const tbody = document.getElementById('tbody');
     const dateMeta = document.getElementById('dateMeta');
@@ -200,7 +202,7 @@
       }
       winnersHeading.textContent = label;
       winnersSection.style.display = 'block';
-      winners.forEach((w, i) => {
+      winners.forEach((w) => {
         const div = document.createElement('div');
         div.className = 'winner-card';
         const ava = avatar(w.names[0]);
@@ -234,15 +236,28 @@
         range: 'daily', strLadder: 'diamondspaders', DisplayCount: '300', page: '1', sort: '1',
         sd, sm, sy, ed, em, ey
       });
-      const proxy = 'https://corsproxy.io/?';
-      const url = proxy + encodeURIComponent('https://www.myleague.com/pages/remote/tournamentCalendar.php');
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString()
-      });
-      const text = await res.text();
-      if (!res.ok || !text.includes('<SQLResults')) throw new Error('Calendar feed blocked');
+      // Public CORS proxies no longer work reliably for this Cloudflare-protected endpoint
+      const proxies = [
+        'https://cors.isomorphic-git.org/'
+      ];
+      for (const proxy of proxies) {
+        try {
+          const url = proxy + 'https://www.myleague.com/pages/remote/tournamentCalendar.php';
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+          });
+          const text = await res.text();
+          if (res.ok && text.includes('<SQLResults')) {
+            return parseTours(text);
+          }
+        } catch (e) { /* try next */ }
+      }
+      throw new Error('Calendar feed blocked by Cloudflare. A server-side proxy (like the old /api/live) is required for live data.');
+    }
+
+    function parseTours(text) {
       const tours = [];
       const recs = text.match(/<objRecord>[\s\S]*?<\/objRecord>/g) || [];
       for (const rec of recs) {
@@ -269,6 +284,7 @@
 
     async function loadTours() {
       loadBtn.disabled = true;
+      errorNote.style.display = 'none';
       statusEl.textContent = 'Reading the calendar…';
       const today = todayET();
       const yesterday = addDays(today.iso, -1);
@@ -286,7 +302,6 @@
 
         renderTours(todayTours);
 
-        // As soon as there is a winner in today's tournaments, show yesterday's winners below the list (replacing what's there)
         const todayHasWinner = todayTours.some(t => t.winners && t.winners.length);
         const source = todayHasWinner ? yesterdayTours : [];
         const winners = source.filter(t => t.winners && t.winners.length).map(t => ({
@@ -295,7 +310,9 @@
         }));
         renderWinners(winners, todayHasWinner ? "Yesterday's Winners" : '');
       } catch (err) {
-        statusEl.textContent = 'Could not load tours: ' + err.message;
+        statusEl.textContent = 'Could not load tours.';
+        errorNote.style.display = 'block';
+        errorNote.textContent = err.message;
         cardsEl.innerHTML = '';
         tbody.innerHTML = '';
         winnersSection.style.display = 'none';

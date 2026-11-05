@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="google" content="notranslate">
+    <meta http-equiv="content-language" content="en">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit start 2</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root { --bg: #0a0a0a; --text: #f0f0f0; --accent: #00d4ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg) center/cover no-repeat fixed;
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background-image 0.8s ease;
+        }
+        .background {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(0, 212, 255, 0.06) 0%, rgba(10, 10, 10, 0.85) 65%);
+            pointer-events: none; z-index: 1;
+        }
+        .back {
+            position: absolute; top: 14px; left: 20px; z-index: 40;
+            color: #fff; text-decoration: none; font-size: 0.95rem; font-weight: 600;
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.28);
+            border-radius: 999px; padding: 10px 16px;
+        }
+        .back:hover { border-color: var(--accent); color: var(--accent); }
+        .search {
+            position: absolute; top: 12px; left: 118px; right: 320px; max-width: 520px; padding: 0; z-index: 10;
+        }
+        .search-input {
+            width: 100%; padding: 14px 24px; font-size: 1.25rem; font-weight: 500;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08);
+            border-radius: 9999px; color: white; outline: none;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .search-input:focus {
+            border-color: var(--accent); background: rgba(255,255,255,0.11);
+            box-shadow: 0 0 0 14px rgba(0,212,255,0.18); transform: scale(1.015);
+        }
+        .clock { position:absolute; top:10px; right:20px; z-index:30; text-align:right; width:260px;
+            color:rgba(255,255,255,0.88); font-size:0.95rem; line-height:1.35; text-shadow:0 1px 4px #000; }
+        .clock svg { width:110px; height:110px; display:block; margin-left:auto; }
+        .clock .tz { font-size:1.15rem; font-weight:600; margin:2px 0; }
+        .clock .tz:first-of-type { margin-top:4px; }
+        .clock .tz.last { margin-bottom:6px; }
+        .clock .lbl { font-size:0.8rem; color:rgba(255,255,255,0.6); margin-top:6px; }
+        .clock .big { font-weight:600; }
+        .clock .host { color:#ffd54a; font-weight:700; }
+        .clock .more { font-size:0.8rem; color:rgba(255,255,255,0.75); }
+        .wx { position:absolute; right:20px; bottom:12px; z-index:30; width:250px; padding:8px 10px; border-radius:10px;
+            background:rgba(0,0,0,0.5); font-size:0.8rem; color:rgba(255,255,255,0.85); text-align:right; }
+        .wx .now { font-size:0.95rem; font-weight:600; margin-bottom:4px; }
+        .wx .d { display:flex; justify-content:space-between; gap:6px; }
+        .icons-area {
+            position: absolute; left: 0; right: 290px; top: 78px; bottom: 0;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; z-index: 20;
+        }
+        .icon-row { display: flex; justify-content: center; align-items: center; gap: 14px; width: 100%; }
+        .icon-sq {
+            width: 70px; height: 70px; background: transparent; border-radius: 10px; flex: 0 0 auto;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6); color: #111; font-size: 28px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            user-select: none; overflow: hidden; text-decoration: none;
+        }
+        .icon-sq img { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
+        .hint {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+            font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15; white-space: nowrap;
+        }
+    </style>
+<script>
+(function () {
+  function check() {
+    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      var lm = new Date(r.headers.get("last-modified")).getTime(), mine = new Date(document.lastModified).getTime();
+      var tag = "stale-" + location.pathname + "-" + lm;
+      if (lm && mine && Math.abs(lm - mine) > 2000 && !sessionStorage.getItem(tag)) { sessionStorage.setItem(tag, "1"); location.reload(); }
+    }).catch(function () {});
+  }
+  check();
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
+})();
+</script>
+</head>
+<body class="icon-edit">
+    <div class="background"></div>
+    <a class="back" href="/">← Main</a>
+    <div class="clock">
+        <svg viewBox="0 0 100 100" aria-label="Pacific time"><circle cx="50" cy="50" r="47" fill="rgba(0,0,0,0.55)" stroke="#ddd" stroke-width="2"/>
+        <g id="ticks"></g>
+        <line id="hh" x1="50" y1="50" x2="50" y2="27" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+        <line id="mh" x1="50" y1="50" x2="50" y2="14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="sh" x1="50" y1="55" x2="50" y2="10" stroke="#00d4ff" stroke-width="1"/>
+        <circle cx="50" cy="50" r="2.5" fill="#00d4ff"/></svg>
+        <div class="tz last" id="est">--:-- EST</div>
+        <div class="lbl">next Diamond Spaders tour</div>
+        <div class="big" id="nextName">&mdash;</div>
+        <div class="big" id="nextTime"></div>
+        <div class="lbl">my tours</div>
+        <div class="host" id="hostName">&mdash;</div>
+        <div class="host" id="hostTime"></div>
+        <div class="more" id="more"></div>
+    </div>
+    <div class="search">
+        <form id="search-form" action="https://www.google.com/search" method="get">
+            <input type="text" id="search-input" class="search-input" name="q"
+                   placeholder="Search Google or ask anything..." autofocus autocomplete="off">
+        </form>
+    </div>
+    <div class="icons-area">
+        <div class="icon-row">
+            <a class="icon-sq" href="https://diamondspaders.online/" title="Diamond Spaders site"><img src="/icons/ds-site-shot.jpg" alt="Diamond Spaders site"></a>
+            <a class="icon-sq" href="https://www.igl.net/tk/headtd/" title="HTD Login"><img src="/icons/htd-login.jpg" alt="HTD Login"></a>
+            <a class="icon-sq" href="https://www.igl.net/tk/" title="TD Login"><img src="/icons/td-login.jpg" alt="TD Login"></a>
+            <a class="icon-sq" href="https://tourneyking.com/app/home/" title="Tourney King"><img src="/icons/tk-crown.jpg" alt="Tourney King"></a>
+            <a class="icon-sq" href="https://www.myleague.com/allspaders/admin.html" title="All Spaders admin"><img src="/icons/admin.png" alt="All Spaders admin"></a>
+            <a class="icon-sq" href="https://www.myleague.com/diamondspaders/" title="Diamond Spaders"><img src="/icons/ds.png" alt="Diamond Spaders"></a>
+            <a class="icon-sq" href="https://www.myleague.com/allspaders/" title="All Spaders"><img src="/icons/as.png" alt="All Spaders"></a>
+        </div>
+        <div class="icon-row">
+            <a class="icon-sq" href="https://www.myleague.com/dagreathoudini/" title="houdini"><img src="/icons/houdini.png" alt="houdini"></a>
+            <a class="icon-sq" href="https://www.myleague.com/fantasyspaders/" title="fantasy"><img src="/icons/fantasy.png" alt="fantasy"></a>
+            <a class="icon-sq" href="https://www.myleague.com/teamtfriends/index.php/" title="Team T Friends"><img src="/icons/tfs.png" alt="Team T Friends"></a>
+            <a class="icon-sq" href="https://notepad.uk.com/" title="online notepad"><img src="/icons/np-online.png" alt="online notepad"></a>
+            <a class="icon-sq" href="https://mail.google.com" title="Gmail"><img src="/icons/gmail.png" alt="Gmail"></a>
+            <a class="icon-sq" href="https://outlook.live.com/mail/" title="Hotmail"><img src="/icons/hotmail.png" alt="Hotmail"></a>
+            <a class="icon-sq" href="https://www.youtube.com" title="YouTube"><img src="/icons/youtube.png" alt="YouTube"></a>
+        </div>
+        <div class="icon-row">
+            <a class="icon-sq" href="https://messages.google.com/web/" title="Messages"><img src="/icons/messages.png" alt="Messages"></a>
+            <a class="icon-sq" href="https://docs.google.com/document/u/0/" title="google docs"><img src="/icons/docs.png" alt="google docs"></a>
+            <a class="icon-sq" href="https://www.giphy.com" title="Giphy"><img src="/icons/giphy.png" alt="Giphy"></a>
+            <a class="icon-sq" href="https://www.merriam-webster.com/" title="Merriam-Webster"><img src="/icons/merriam2.png" alt="Merriam-Webster"></a>
+            <a class="icon-sq" href="https://www.wikipedia.org/" title="Wikipedia"><img src="/icons/wikipedia-globe.png" alt="Wikipedia"></a>
+            <a class="icon-sq" href="https://www.webmd.com/" title="WebMD"><img src="/icons/webmd.png" alt="WebMD"></a>
+            <a class="icon-sq" href="https://www.petmd.com/" title="Pet MD"><img src="/icons/petmd.png" alt="Pet MD"></a>
+        </div>
+    </div>
+    <div class="wx" id="wx"></div>
+    <div class="hint">Press <span style="color:var(--accent)">Enter</span> to search Google • <span style="color:var(--accent)">Esc</span> to clear</div>
+    <script>
+        (function () { document.body.style.backgroundImage = 'url(/start2-bg.jpg?v=20261103-lionsgate)'; })();
+        (function(){var g=document.getElementById('ticks'),h='';for(var i=0;i<12;i++){var a=i*Math.PI/6;h+='<line x1="'+(50+40*Math.sin(a))+'" y1="'+(50-40*Math.cos(a))+'" x2="'+(50+45*Math.sin(a))+'" y2="'+(50-45*Math.cos(a))+'" stroke="#ccc" stroke-width="'+(i%3?1.5:3)+'"/>';}g.innerHTML=h;})();
+        var SKEW=0;function SNOW(){return new Date(Date.now()+SKEW);}function syncSkew(){var t0=Date.now();fetch('/api/live?skew='+t0,{method:'HEAD',cache:'no-store'}).then(function(r){var d=Date.parse(r.headers.get('date'));if(d)SKEW=d-(t0+Date.now())/2;if(Math.abs(SKEW)<3000)SKEW=0;updateClock();}).catch(function(){});}setTimeout(syncSkew,0);setInterval(syncSkew,600000);
+        function tzParts(tz){var p={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(SNOW()).forEach(function(x){p[x.type]=x.value;});p.hour=(+p.hour)%24;return p;}
+        function hm(h,m){return (h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');}
+        function hh(h,m){return hm(+h,+m);}
+        function esc(x){return String(x==null?'':x).replace(/[&<>\"]/g,function(c){return '&#'+c.charCodeAt(0)+';';});}
+        function estAbbr(){var t=SNOW().toLocaleTimeString('en-US',{timeZone:'America/New_York',timeZoneName:'short'});return (t.match(/E[SD]T/)||['EST'])[0];}
+        var TOURS=[],TERR=false;
+        function rot(id,deg){document.getElementById(id).setAttribute('transform','rotate('+deg+' 50 50)');}
+        function updateClock(){
+            var v=tzParts('America/Los_Angeles');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
+            var e=tzParts('America/New_York'),ab=estAbbr();
+            document.getElementById('est').textContent=hm(+e.hour,+e.minute)+' '+ab;
+            var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
+            var up=TOURS.filter(function(t){return (!t.dt||t.dt===today)&&(+t.h)*60+(+t.m)>nowMin;}).sort(function(a,b){return (a.h*60+ +a.m)-(b.h*60+ +b.m);});
+            var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');
+            if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!up.length){nn.textContent='done for today';nx.textContent='';}else{nn.textContent=up[0].game+(up[0].td?' w/ '+up[0].td:'');nx.textContent=hh(+up[0].h,+up[0].m)+' '+ab;}
+            var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
+            if(TERR){hn.textContent='sign in for tours';ht.textContent='';mo.innerHTML='';return;}
+            var mine=TOURS.filter(function(t){
+                if(!/^fetch_?it_?up$/i.test(String(t.td||'').trim())) return false;
+                if(t.dt && t.dt < today) return false;
+                if(t.dt && t.dt > today) return true;
+                return (+t.h)*60+(+t.m)>nowMin;
+            }).sort(function(a,b){return String(a.dt||'').localeCompare(String(b.dt||''))||((a.h*60+ +a.m)-(b.h*60+ +b.m));});
+            if(!mine.length){hn.textContent='none today';ht.textContent='';mo.innerHTML='';return;}
+            function stamp(t, timeOnly){var day=t.dt&&t.dt!==today?t.dt.slice(5).replace('-','/')+' ':'';return day+hh(+t.h,+t.m)+' '+ab+(timeOnly?'':' '+t.game);}
+            hn.textContent=mine[0].game;ht.textContent=stamp(mine[0], true);
+            mo.innerHTML=mine.slice(1).map(function(t){return esc(stamp(t));}).join('<br>');
+        }
+        function loadTours(){
+  TOURS = [
+    { dt: "2026-11-05", h: 8, m: 15, game: "CUT", td: "3Bid3Bags", url: "https://www.myleague.com/diamondspaders/tournament/11957729/" },
+    { dt: "2026-11-05", h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11956400/" },
+    { dt: "2026-11-05", h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11957754/" },
+    { dt: "2026-11-05", h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11957575/" },
+    { dt: "2026-11-05", h: 12, m: 15, game: "PAB", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournament/11958092/" },
+    { dt: "2026-11-05", h: 14, m: 15, game: "CUT MIRRORS", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11950607/" },
+    { dt: "2026-11-05", h: 15, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957459/" },
+    { dt: "2026-11-05", h: 17, m: 15, game: "REG PARTNERS", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournament/11958149/" },
+    { dt: "2026-11-05", h: 20, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957461/" },
+    { dt: "2026-11-05", h: 21, m: 15, game: "REG PARTNERS", td: "Ellisandrew80", url: "https://www.myleague.com/diamondspaders/tournament/11958150/" },
+    { dt: "2026-11-05", h: 22, m: 15, game: "SINGLES", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957462/" },
+    { dt: "2026-11-05", h: 23, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11957471/" },
+  ];
+  TERR = false; updateClock();
+}
+        function loadTemp(){var L=(window.wxCur&&wxCur())||{lat:49.28,lon:-123.12,name:'Vancouver B.C.'};fetch('https://api.open-meteo.com/v1/forecast?latitude='+L.lat+'&longitude='+L.lon+'&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=auto').then(function(r){return r.json();}).then(function(j){try{var W=function(c){return c==0?'☀️ Clear':c<=2?'⛅ Partly cloudy':c==3?'☁️ Cloudy':c<=48?'🌫️ Fog':c<=67||(c>=80&&c<=82)?'🌧️ Rain':c<=77||c==85||c==86?'❄️ Snow':'⛈️ Storm';};var d=j.daily,h='<div class="now">'+L.name+' '+Math.round(j.current.temperature_2m)+'° '+W(j.current.weather_code)+' · wind '+Math.round(j.current.wind_speed_10m)+' mph</div>';for(var i=0;i<d.time.length;i++){var dn=i?new Date(d.time[i]+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today';h+='<div class="d"><span>'+dn+'</span><span>'+W(d.weather_code[i]).split(' ')[0]+'</span><span>'+Math.round(d.temperature_2m_max[i])+'° / '+Math.round(d.temperature_2m_min[i])+'°</span></div>';}document.getElementById('wx').innerHTML=h;}catch(e){}}).catch(function(){});}
+        setInterval(updateClock,1000);updateClock();loadTours();setInterval(loadTours,300000);loadTemp();setInterval(loadTemp,900000);
+        const form = document.getElementById('search-form');
+        const input = document.getElementById('search-input');
+        form.addEventListener('submit', function (e) {
+            const query = input.value.trim();
+            if (!query) { e.preventDefault(); return; }
+            setTimeout(function () { input.value = ''; }, 300);
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { input.value = ''; input.focus(); }
+        });
+        document.body.addEventListener('click', function(e) {
+            if (e.target === document.body || e.target.classList.contains('background')) input.focus();
+        });
+    </script>
+<script>window.WX_DEFAULT={lat:49.28,lon:-123.12,name:"Vancouver B.C."};</script><script src="/wxloc.js?v=sugg1"></script>
+<script src="/startbuzz.js?v=4" data-to="dennis" data-me="judy"></script>
+
+<script src="/icon-edit.js?v=2" data-file="start2/index.html" data-home="/start2/"></script>
+</body>
+</html>

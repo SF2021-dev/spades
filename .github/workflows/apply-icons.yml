@@ -1,0 +1,26 @@
+name: Apply icon edits
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "* * * * *"
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/apply_icons.py
+      - name: Publish icons
+        run: |
+          git config user.name "diamondspaders"
+          git config user.email "actions@diamondspaders.online"
+          git add start.html start2/index.html
+          if [ -f update/icons-applied.txt ]; then git add update/icons-applied.txt; fi
+          if [ -d icons ]; then git add icons; fi
+          if git diff --cached --quiet; then
+            echo "no change"
+          else
+            git commit -m "Update start icons"
+            git push
+          fi

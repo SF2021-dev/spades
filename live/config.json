@@ -1,4 +1,5 @@
 {
+"added_tours": [{"date": "2026-11-05", "time": "18:15", "td": "Untouchable_One", "label": "CUT", "url": "https://www.myleague.com/diamondspaders/tournaments"}, {"date": "2026-11-05", "time": "19:15", "td": "Untouchable_One", "label": "CUT", "url": "https://www.myleague.com/diamondspaders/tournaments"}],
 "aliases": {
 "Jays26": "Jays_26",
 "Lookslikeapickel": "Looks__",
@@ -1151,6 +1152,7 @@
 "11956987": "muziklvr & Untouchable_One"
 },
 "manual_winners": {
+"11957459": ["1jimbeam"],
 "11923667": [
 "Ellisandrew80",
 "Ochwiay"

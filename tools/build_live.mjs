@@ -342,7 +342,11 @@ async function build(env, origin) {
     url: (cfg.tour_url || "https://www.myleague.com/diamondspaders/tournament/%s/").replace("%s", t.id),
     id: t.id, winners: t.winners || [], pending: !!t.pending,
   }));
-  return { ok: true, now: now.toISOString(), today, days, tours: upcoming, board };
+  const schedule = tours.filter(t => !hidden.has(String(t.id)) && t.status !== "extra" && t.date >= today).map(t => ({
+    dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td,
+    url: (cfg.tour_url || "https://www.myleague.com/diamondspaders/tournament/%s/").replace("%s", t.id),
+  }));
+  return { ok: true, now: now.toISOString(), today, days, tours: upcoming, board, schedule };
 }
 
 
@@ -351,4 +355,19 @@ const env = { ASSETS: { fetch: async () => new Response(cfgText, { status: 200 }
 const body = await build(env, "https://diamondspaders.online");
 const out = new URL("../update/live.json", import.meta.url);
 writeFileSync(out, JSON.stringify(body));
-console.log("tours", (body.board || []).length, "today", body.today, "upcoming", (body.tours || []).length);
+const hers = /^fetch_?it_?up$/i;
+const schedule = (body.schedule || []).filter(t => t.dt === body.today || hers.test(String(t.td || "").trim()));
+const lines = schedule.map(t => {
+  const game = t.game === "SUI PASS 2 PAB" ? "PAB" : t.game;
+  return `    { dt: ${JSON.stringify(t.dt)}, h: ${t.h}, m: ${t.m}, game: ${JSON.stringify(game)}, td: ${JSON.stringify(t.td)}, url: ${JSON.stringify(t.url)} },`;
+}).join("\n");
+for (const file of ["../start.html", "../start2/index.html"]) {
+  const path = new URL(file, import.meta.url);
+  let html = readFileSync(path, "utf8");
+  const at = html.indexOf("  TOURS = [");
+  const end = html.indexOf("\n  ];", at);
+  if (at < 0 || end < 0) throw new Error("TOURS list missing in " + file);
+  html = html.slice(0, at) + "  TOURS = [\n" + lines + "\n  ];" + html.slice(end + 5);
+  writeFileSync(path, html);
+}
+console.log("tours", (body.board || []).length, "today", body.today, "upcoming", (body.tours || []).length, "listed", schedule.length, "judy", schedule.filter(t => hers.test(String(t.td || "").trim())).map(t => t.dt + " " + t.h + ":" + t.m + " " + t.game).join(", "));

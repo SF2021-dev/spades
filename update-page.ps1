@@ -16,69 +16,14 @@ function Log($msg) {
   Write-Host $line
 }
 
-function Run-Quiet([string]$File, [string[]]$ArgList, [switch]$NoWait) {
-  if (-not ("QuietRun" -as [type])) {
-    Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public class QuietRun {
-  [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
-  public struct STARTUPINFO {
-    public int cb;
-    public string lpReserved;
-    public string lpDesktop;
-    public string lpTitle;
-    public int dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars, dwFillAttribute, dwFlags;
-    public short wShowWindow, cbReserved2;
-    public IntPtr lpReserved2, hStdInput, hStdOutput, hStdError;
-  }
-  [StructLayout(LayoutKind.Sequential)]
-  public struct PROCESS_INFORMATION {
-    public IntPtr hProcess, hThread;
-    public int dwProcessId, dwThreadId;
-  }
-  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
-  public static extern bool CreateProcess(string app, string cmd, IntPtr pa, IntPtr ta, bool inherit, uint flags, IntPtr env, string dir, ref STARTUPINFO si, out PROCESS_INFORMATION pi);
-  [DllImport("kernel32.dll")] public static extern uint WaitForSingleObject(IntPtr h, uint ms);
-  [DllImport("kernel32.dll")] public static extern bool GetExitCodeProcess(IntPtr h, out uint code);
-  [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr h);
-}
-"@
-  }
-  $parts = foreach ($a in $ArgList) {
-    if ($null -eq $a) { $a = "" }
-    if ($a -match '[\s"]') { '"' + ($a -replace '"', '\"') + '"' } else { $a }
-  }
-  $cmd = '"' + $File + '" ' + ($parts -join " ")
-  $si = New-Object QuietRun+STARTUPINFO
-  $si.cb = [Runtime.InteropServices.Marshal]::SizeOf($si)
-  $si.dwFlags = 1
-  $si.wShowWindow = 0
-  $pi = New-Object QuietRun+PROCESS_INFORMATION
-  $ok = [QuietRun]::CreateProcess($File, $cmd, [IntPtr]::Zero, [IntPtr]::Zero, $false, [uint32]134217728, [IntPtr]::Zero, $null, [ref]$si, [ref]$pi)
-  if (-not $ok) { $global:LASTEXITCODE = 1; return }
-  if ($NoWait) { $global:LASTEXITCODE = 0; return }
-  [void][QuietRun]::WaitForSingleObject($pi.hProcess, [uint32]::MaxValue)
-  $code = [uint32]0
-  [void][QuietRun]::GetExitCodeProcess($pi.hProcess, [ref]$code)
-  [void][QuietRun]::CloseHandle($pi.hProcess)
-  [void][QuietRun]::CloseHandle($pi.hThread)
-  $global:LASTEXITCODE = [int]$code
-}
-
-function Start-HiddenLoop {
-  if (-not $PSCommandPath) { return }
-  Run-Quiet "powershell.exe" @("-NoProfile","-ExecutionPolicy","Bypass","-WindowStyle","Hidden","-File",$PSCommandPath,"-loop") -NoWait
-}
-
 function Register-Always {
   if (-not $PSCommandPath) { Log "startup file NOT saved"; return }
   $startup = [Environment]::GetFolderPath("Startup")
   if (-not $startup -or -not (Test-Path $startup)) { Log "startup file NOT saved"; return }
   $vbs = Join-Path $startup "DiamondSpadersUpdate.vbs"
   $qq = '""'
-  $run = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $qq$PSCommandPath$qq -loop"
-  $body = "CreateObject(""Wscript.Shell"").Run ""$run"", 0, False"
+  $run = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Minimized -File $qq$PSCommandPath$qq"
+  $body = "CreateObject(""Wscript.Shell"").Run ""$run"", 7, False"
   try { Set-Content -Path $vbs -Value $body -Encoding ASCII }
   catch { Log ("startup file NOT saved " + $_.Exception.Message); return }
   if (Test-Path $vbs) { Log "startup file saved" } else { Log "startup file NOT saved" }
@@ -207,10 +152,6 @@ function Label([string]$text, [int]$per) {
 
 function Invoke-Update {
 try {
-  $git = Find-Git
-  if (-not $git) { throw "Git is not installed. Install GitHub Desktop, sign in, then run this again." }
-  Log "git $git"
-
   $tz = [TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
   $now = [TimeZoneInfo]::ConvertTime([DateTime]::UtcNow, $tz)
   $today = $now.ToString("yyyy-MM-dd")
@@ -243,14 +184,9 @@ try {
     return
   }
 
-  if (-not (Test-Path (Join-Path $root ".git"))) {
-    if (Test-Path $root) {
-      Log "removing the blocked folder"
-      Remove-Item $root -Recurse -Force
-    }
-    Log "cloning the site"
-    Run-Quiet $git @("clone","https://github.com/SF2021-dev/spades.git",$root)
-    if ($LASTEXITCODE -ne 0) { throw "clone failed" }
+  if (-not (Test-Path (Join-Path $root "index.html"))) {
+    Log "site folder is missing"
+    return
   }
   Set-Location $root
 

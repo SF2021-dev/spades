@@ -332,7 +332,7 @@ async function build(env, origin) {
   }));
   cfg.manual_teams = { ...(cfg.manual_teams || {}) };
   cfg.auto_teams = { ...(cfg.auto_teams || {}) };
-  // Always re-resolve today/yesterday from players.php (CF-cached by id+winners). Do not trust a stale
+  // Always re-resolve today/yesterday from players.php (cached by id and winners). Do not trust a stale
   // auto name locked mid-bracket to the finalist — that was the 7:15 "13 13 13 13 13" / Northern Exposure bug.
   await Promise.all(tours.filter(t => t.date >= addDays(today, -1) && t.winners.length === 2 && t.id && !cfg.manual_teams[String(t.id)])
     .map(async t => { try { const n = await fetchTeam(t, cfg.league || "diamondspaders"); if (n) cfg.auto_teams[String(t.id)] = n; } catch (e) {} }));

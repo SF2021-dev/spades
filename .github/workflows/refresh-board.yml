@@ -2,7 +2,8 @@ name: Refresh board
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    # :05 and :35, not :00/:30. GitHub drops a lot of jobs scheduled on the hour.
+    - cron: "5,35 * * * *"
 permissions:
   contents: write
 jobs:
@@ -13,12 +14,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Apply any saved icon edits
+        run: python3 tools/apply_icons.py
       - run: node tools/build_live.mjs
-      - name: Publish the board
+      - name: Publish
         run: |
           git config user.name "diamondspaders"
           git config user.email "actions@diamondspaders.online"
           git add update/live.json start.html start2/index.html
+          if [ -f update/icons-applied.txt ]; then git add update/icons-applied.txt; fi
+          if [ -d icons ]; then git add icons; fi
           if git diff --cached --quiet; then
             echo "no change"
           else

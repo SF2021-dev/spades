@@ -413,20 +413,9 @@
     done.addEventListener("click", function () {
       done.disabled = true;
       done.textContent = "saving\u2026";
-      save().then(function (id) {
+      save().then(function () {
         done.textContent = "saved";
-        var tries = 0;
-        var raw = "https://raw.githubusercontent.com/SF2021-dev/spades/main/" + FILE + "?v=";
-        function poll() {
-          fetch(raw + Date.now(), { cache: "no-store" })
-            .then(function (r) { return r.text(); })
-            .then(function (html) {
-              if (html.indexOf("icons:" + id) >= 0 || ++tries > 20) { location.href = HOME; return; }
-              setTimeout(poll, 3000);
-            })
-            .catch(function () { if (++tries > 20) location.href = HOME; else setTimeout(poll, 3000); });
-        }
-        setTimeout(poll, 5000);
+        location.href = HOME;
       }).catch(function (err) {
         done.disabled = false;
         done.textContent = "edits complete";

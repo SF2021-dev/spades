@@ -140,6 +140,27 @@ async function fetchTeam(t, league) {
   if (ok) disk.teams[key] = found || "";
   return found;
 }
+async function fetchWinnerTeam(id, league) {
+  for (const srv of ["cgi6", "plus2"]) {
+    try {
+      const r = await fetch(`https://${srv}.igl.net/tourneysystem/players.php?tcount=${id}&path=${league}`, { headers: { "User-Agent": UA } });
+      const page = await r.text();
+      const m = page.match(/\$\.parseJSON\('([\s\S]*?)'\);/);
+      if (!m) continue;
+      const d = JSON.parse(m[1].replace(/\\\\/g, "\x00").replace(/\\'/g, "'").replace(/\x00/g, "\\"));
+      for (const tm of d.teams || []) {
+        if (!String(tm.status || "").toLowerCase().includes("winner")) continue;
+        const names = (tm.players || []).map(p => {
+          const mm = String(p).match(/<strong>([\s\S]*?)<\/strong>/);
+          return unhtml(mm ? mm[1] : String(p).replace(/<[^>]+>/g, "")).trim();
+        }).filter(Boolean);
+        if (names.length) return { team: unhtml(String(tm.team || "")).trim(), names };
+      }
+      return null;
+    } catch (e) { continue; }
+  }
+  return null;
+}
 function parseCalendar(xml) {
   const out = [], seen = new Set();
   for (const rec of xml.match(/<objRecord>[\s\S]*?<\/objRecord>/g) || []) {
@@ -320,17 +341,26 @@ async function build(env, origin) {
     // Only a tour in its window is worth a standings read. A known winner is never read again.
     if (!t.winners.length && disk.winners[t.id]?.length) t.winners = [...disk.winners[t.id]];
     const startMin = t.h * 60 + t.m;
-    const inWindow = t.date === today && et.min >= startMin && et.min <= startMin + 90;
-    if (!t.winners.length && t.id && t.status !== "extra" && inWindow) t.pending = true;
+    const startedToday = t.date === today && et.min >= startMin;
+    if (!t.winners.length && t.id && t.status !== "extra" && startedToday && et.min <= startMin + 180) t.pending = true;
   }
   await Promise.all(tours.filter(t => t.pending && t.id).map(async t => {
+    const league = cfg.league || "diamondspaders";
+    const txt = `${t.game || ""} ${(cfg.labels_by_id || {})[t.id] || ""}`;
+    const pard = String(t.perteam) === "2" || /PAR(TNER)?D?S|SUI|SUICIDE|PASS ?2|2 ?VS/i.test(txt);
     try {
-      const r = await fetch(`https://cgi6.igl.net/tourneysystem/standings.php?tcount=${t.id}&path=${cfg.league || "diamondspaders"}`, { headers: { "User-Agent": UA } });
+      const r = await fetch(`https://cgi6.igl.net/tourneysystem/standings.php?tcount=${t.id}&path=${league}`, { headers: { "User-Agent": UA } });
       const names = standingsWinner(await r.text());
-      if (!names || !names.length) return;
-      const txt = `${t.game || ""} ${(cfg.labels_by_id || {})[t.id] || ""}`;
-      const pard = String(t.perteam) === "2" || /PAR(TNER)?D?S|SUI|SUICIDE|PASS ?2|2 ?VS/i.test(txt);
-      t.winners = pard ? names.slice(0, 2) : names.slice(0, 1);
+      if (names && names.length && (!pard || names.length >= 2)) {
+        t.winners = pard ? names.slice(0, 2) : names.slice(0, 1);
+        if (t.winners.length) { t.pending = false; disk.winners[t.id] = [...t.winners]; return; }
+      }
+    } catch (e) {}
+    try {
+      const win = await fetchWinnerTeam(t.id, league);
+      if (!win) return;
+      t.winners = pard ? win.names.slice(0, 2) : win.names.slice(0, 1);
+      if (win.team && t.winners.length === 2) disk.teams[`${t.id}|${[...t.winners].map(w => w.toLowerCase()).sort().join("|")}`] = win.team;
       if (t.winners.length) { t.pending = false; disk.winners[t.id] = [...t.winners]; }
     } catch (e) {}
   }));
@@ -374,12 +404,16 @@ const liveUrl = new URL("../update/live.json", import.meta.url);
 const cacheUrl = new URL("../update/fetch-cache.json", import.meta.url);
 const prev = loadJson(liveUrl);
 disk = Object.assign(disk, loadJson(cacheUrl) || {});
+disk.winners = disk.winners || {};
+disk.teams = disk.teams || {};
+disk.names = disk.names || {};
 const etNow = etParts(new Date());
 const idleMin = prev?.now ? (Date.now() - Date.parse(prev.now)) / 60000 : 999;
 const slots = [];
 for (const t of prev?.board || []) slots.push([t.date, t.h * 60 + t.m]);
 for (const t of prev?.schedule || []) slots.push([t.dt, t.h * 60 + t.m]);
-const busy = !prev || prev.today !== etNow.date || slots.some(([day, mins]) => day === etNow.date && etNow.min >= mins - 20 && etNow.min <= mins + 90);
+const waiting = (prev?.board || []).some(t => t.date === etNow.date && !(t.winners || []).length && etNow.min >= t.h * 60 + t.m && etNow.min <= t.h * 60 + t.m + 180);
+const busy = !prev || prev.today !== etNow.date || waiting || slots.some(([day, mins]) => day === etNow.date && etNow.min >= mins - 20 && etNow.min <= mins + 90);
 if (!busy && idleMin < 60) {
   console.log("skipped, nothing in play");
   process.exit(0);

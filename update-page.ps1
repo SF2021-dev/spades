@@ -3,6 +3,20 @@ $ErrorActionPreference = "Stop"
 $root = Join-Path $env:USERPROFILE "diamondspaders"
 $log = Join-Path $env:TEMP "diamondspaders-update-log.txt"
 
+if ($args -notcontains "-noupdate" -and $PSCommandPath) {
+  $latest = Join-Path $env:TEMP "update-page-latest.ps1"
+  & curl.exe -fsSL -o $latest "https://raw.githubusercontent.com/SF2021-dev/spades/main/update-page.ps1"
+  if ($LASTEXITCODE -eq 0 -and (Test-Path $latest)) {
+    $here = (Get-FileHash $PSCommandPath -Algorithm MD5).Hash
+    $there = (Get-FileHash $latest -Algorithm MD5).Hash
+    if ($here -ne $there) {
+      Copy-Item $latest $PSCommandPath -Force
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $PSCommandPath -noupdate
+      exit $LASTEXITCODE
+    }
+  }
+}
+
 function Log($msg) {
   $line = "{0}  {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg
   Add-Content -Path $log -Value $line
@@ -282,6 +296,11 @@ try {
     & $git push origin HEAD
     if ($LASTEXITCODE -ne 0) { throw "push failed. Sign in to GitHub on this computer and run this again." }
     Log "saved"
+  }
+  if ($PSCommandPath) {
+    $task = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -noupdate"
+    & schtasks.exe /Create /F /SC MINUTE /MO 15 /TN "Diamond Spaders update" /TR $task | Out-Null
+    Log "will check again every 15 minutes"
   }
   Log "done"
 }

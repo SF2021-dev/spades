@@ -364,6 +364,7 @@ try {
     }
     $t.team = $team
   }
+  $tours = @($tours | Where-Object { [string]$_.id -ne "11958274" })
   $open = @($tours | Where-Object { $_.date -eq $today -and @($_.winners).Count -eq 0 } | Sort-Object h, m, id)
   $todayWins = @($tours | Where-Object { $_.date -eq $today -and @($_.winners).Count -gt 0 } | Sort-Object h, m, id)
   $yestWins = @($tours | Where-Object { $_.date -eq $yesterday -and @($_.winners).Count -gt 0 } | Sort-Object h, m, id)

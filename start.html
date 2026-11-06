@@ -261,5 +261,25 @@
     </script>
 <script>window.WX_DEFAULT={lat:40.5865,lon:-122.3917,name:"Redding, CA"};</script><script src="/wxloc.js?v=sugg1"></script>
 
+<script>
+(function () {
+  if (document.body.classList.contains("icon-edit")) return;
+  fetch("https://raw.githubusercontent.com/SF2021-dev/spades/main/start.html?v=" + Date.now(), { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.text() : ""; })
+    .then(function (html) {
+      var key = '<div class="icons-area">', start = html.indexOf(key);
+      if (start < 0) return;
+      var i = start + key.length, depth = 1;
+      while (i < html.length && depth) {
+        var open = html.indexOf("<div", i), close = html.indexOf("</div>", i);
+        if (close < 0) return;
+        if (open !== -1 && open < close) { depth++; i = open + 4; }
+        else { depth--; i = close + 6; }
+      }
+      var area = document.querySelector(".icons-area");
+      if (area) area.innerHTML = html.slice(start + key.length, i - 6);
+    }).catch(function () {});
+})();
+</script>
 </body>
 </html>

@@ -440,7 +440,7 @@
       done.textContent = "saving\u2026";
       save().then(function () {
         done.textContent = "saved";
-        location.href = HOME;
+        location.href = HOME + (HOME.indexOf("?") < 0 ? "?" : "&") + "v=" + Date.now();
       }).catch(function (err) {
         done.disabled = false;
         done.textContent = "edits complete";
@@ -485,7 +485,7 @@
   });
   document.body.appendChild(fileInput);
 
-  fetch(HOME + (HOME.indexOf("?") < 0 ? "?" : "&") + "v=" + Date.now(), { cache: "no-store" })
+  fetch("https://raw.githubusercontent.com/SF2021-dev/spades/main/" + FILE + "?v=" + Date.now(), { cache: "no-store" })
     .then(function (r) { return r.ok ? r.text() : ""; })
     .then(function (html) {
       if (html) {

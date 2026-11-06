@@ -461,7 +461,8 @@ try {
     $top = "<div id=`"ds-winners-today`" style=`"display:grid;grid-template-columns:1fr 1fr 1fr;`">`r`n" + ($cards -join "`r`n") + "`r`n</div>`r`n"
     $html2 = [regex]::Replace($html2, '<div id="ds-winners-today"[\s\S]*?(?=<div id="ds-tours")', $top, 1)
   }
-  if ($html2 -eq $html) { Log "no change" }
+  $same = ($html2 -replace "`r","") -eq ($html -replace "`r","")
+  if ($same) { Log "no change" }
   else {
     Log "updating the saved copy"
     Run-Quiet $git @("fetch","origin","main")

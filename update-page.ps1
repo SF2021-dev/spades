@@ -147,7 +147,7 @@ try {
     if ($state.winners) { $known = [bool]($state.winners.PSObject.Properties.Name -contains [string]$t.id) }
     if ($known) { continue }
     $age = $nowMin - ([int]$t.h * 60 + [int]$t.m)
-    if ($age -ge 20 -and [string]$t.status -ne "2") { $dueCount++ }
+    if ($age -ge 20) { $dueCount++ }
   }
   if (-not $doCalendar -and $dueCount -eq 0) {
     if ($PSCommandPath) {
@@ -243,7 +243,7 @@ try {
     }
     if ($knownNames) { $t.winners = @($knownNames); $t.team = $knownTeam; continue }
     $age = $nowMin - ($t.h * 60 + $t.m)
-    if ($age -lt 20 -or $t.status -eq "2") { continue }
+    if ($age -lt 20) { continue }
     $page = Get-Page "https://cgi6.igl.net/tourneysystem/standings.php?tcount=$($t.id)&path=diamondspaders"
     $names = @(Get-StandingsWinner $page)
     $pard = ($t.per -eq 2) -or ($t.game -eq "REG PARTNERS") -or ($t.game -eq "SUI PASS 2")

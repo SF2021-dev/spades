@@ -29,50 +29,22 @@ function Log($msg) {
 }
 
 function Run-Quiet([string]$File, [string[]]$ArgList) {
-  if (-not ("QuietWin" -as [type])) {
-    Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-public class QuietWin {
-  [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
-  public struct STARTUPINFO {
-    public int cb;
-    public string lpReserved;
-    public string lpDesktop;
-    public string lpTitle;
-    public int dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars, dwFillAttribute, dwFlags;
-    public short wShowWindow, cbReserved2;
-    public IntPtr lpReserved2, hStdInput, hStdOutput, hStdError;
-  }
-  [StructLayout(LayoutKind.Sequential)]
-  public struct PROCESS_INFORMATION {
-    public IntPtr hProcess, hThread;
-    public int dwProcessId, dwThreadId;
-  }
-  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
-  public static extern bool CreateProcess(string app, string cmd, IntPtr pa, IntPtr ta, bool inherit, uint flags, IntPtr env, string dir, ref STARTUPINFO si, out PROCESS_INFORMATION pi);
-  [DllImport("kernel32.dll")] public static extern uint WaitForSingleObject(IntPtr h, uint ms);
-  [DllImport("kernel32.dll")] public static extern bool GetExitCodeProcess(IntPtr h, out uint code);
-  [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr h);
-}
-"@
-  }
   $parts = foreach ($a in $ArgList) {
     if ($null -eq $a) { $a = "" }
     if ($a -match '[\s"]') { '"' + ($a -replace '"', '\"') + '"' } else { $a }
   }
-  $cmd = '"' + $File + '" ' + ($parts -join " ")
-  $si = New-Object QuietWin+STARTUPINFO
-  $si.cb = [Runtime.InteropServices.Marshal]::SizeOf([type]QuietWin+STARTUPINFO)
-  $pi = New-Object QuietWin+PROCESS_INFORMATION
-  $ok = [QuietWin]::CreateProcess($File, $cmd, [IntPtr]::Zero, [IntPtr]::Zero, $false, [uint32]0x08000000, [IntPtr]::Zero, $null, [ref]$si, [ref]$pi)
-  if (-not $ok) { $global:LASTEXITCODE = 1; return }
-  [void][QuietWin]::WaitForSingleObject($pi.hProcess, [uint32]::MaxValue)
-  $code = [uint32]0
-  [void][QuietWin]::GetExitCodeProcess($pi.hProcess, [ref]$code)
-  [void][QuietWin]::CloseHandle($pi.hProcess)
-  [void][QuietWin]::CloseHandle($pi.hThread)
-  $global:LASTEXITCODE = [int]$code
+  $psi = New-Object System.Diagnostics.ProcessStartInfo
+  $psi.FileName = $File
+  $psi.Arguments = ($parts -join " ")
+  $psi.UseShellExecute = $false
+  $psi.CreateNoWindow = $true
+  $psi.RedirectStandardOutput = $true
+  $psi.RedirectStandardError = $true
+  $p = [System.Diagnostics.Process]::Start($psi)
+  $null = $p.StandardOutput.ReadToEnd()
+  $null = $p.StandardError.ReadToEnd()
+  $p.WaitForExit()
+  $global:LASTEXITCODE = $p.ExitCode
 }
 
 function Start-HiddenLoop {
@@ -261,11 +233,12 @@ try {
     $age = $nowMin - ([int]$t.h * 60 + [int]$t.m)
     if ($age -ge 20) { $dueCount++ }
   }
+  if ($dueCount -gt 0) { $doCalendar = $true }
   if (-not $doCalendar -and $dueCount -eq 0) {
     Start-LoopIfNeeded
     if ($full) { Log "all 16 slots filled, next tour check is after midnight" } else { Log "nothing to check" }
     Log "done"
-    exit 0
+    return
   }
 
   if (-not (Test-Path (Join-Path $root ".git"))) {
@@ -518,7 +491,11 @@ if ($script:asLoop) {
   while ($true) {
     try {
       $latest = Join-Path $env:TEMP "update-page-latest.ps1"
-      Run-Quiet "curl.exe" @("-fsSL","-o",$latest,"https://raw.githubusercontent.com/SF2021-dev/spades/main/update-page.ps1")
+      try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        (New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/SF2021-dev/spades/main/update-page.ps1", $latest)
+        $global:LASTEXITCODE = 0
+      } catch { $global:LASTEXITCODE = 1 }
       if ($LASTEXITCODE -eq 0 -and (Test-Path $latest) -and $PSCommandPath) {
         $here = (Get-FileHash $PSCommandPath -Algorithm MD5).Hash
         $there = (Get-FileHash $latest -Algorithm MD5).Hash

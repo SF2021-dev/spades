@@ -24,7 +24,7 @@ jobs:
         run: |
           git config user.name "diamondspaders"
           git config user.email "actions@diamondspaders.online"
-          git add update/live.json start.html start2/index.html
+          git add update/live.json update/fetch-cache.json start.html start2/index.html
           if [ -f update/icons-applied.txt ]; then git add update/icons-applied.txt; fi
           if [ -d icons ]; then git add icons; fi
           if git diff --cached --quiet; then

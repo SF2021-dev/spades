@@ -26,6 +26,7 @@ function standingsWinner(html) {
 
 
 const mem = new Map();
+let disk = { winners: {}, teams: {}, names: {} };
 globalThis.caches = { default: {
   async match(req) {
     const hit = mem.get(typeof req === "string" ? req : req.url);
@@ -108,9 +109,8 @@ function defaultTeam(name, players) {
 }
 function unhtml(s) { return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0?39;|&#x27;/g, "'"); }
 async function fetchTeam(t, league) {
-  const cache = caches.default, ck = new Request(`https://team-cache.local/v2/${t.id}/${t.winners.join(",").toLowerCase()}`);
-  const hit = await cache.match(ck);
-  if (hit) return (await hit.text()) || null;
+  const key = `${t.id}|${[...t.winners].map(w => w.toLowerCase()).sort().join("|")}`;
+  if (Object.prototype.hasOwnProperty.call(disk.teams, key)) return disk.teams[key] || null;
   const want = t.winners.map(w => w.toLowerCase()).sort().join("|");
   let found = null, ok = false;
   for (const srv of ["cgi6", "plus2"]) {
@@ -137,7 +137,7 @@ async function fetchTeam(t, league) {
       break;
     } catch (e) { continue; }
   }
-  if (ok) await cache.put(ck, new Response(found || "", { headers: { "cache-control": "max-age=86400" } }));
+  if (ok) disk.teams[key] = found || "";
   return found;
 }
 function parseCalendar(xml) {
@@ -163,6 +163,7 @@ function parseCalendar(xml) {
 const ambiguous = t => String(t.perteam) === "2"
   && /^(\d ?VS\.? ?\d|SPADES)?$/.test(t.game.toUpperCase().replace(/\d+\s*\/\s*\d+/g, " ").replace(/\s+/g, " ").trim());
 async function tourName(tid, league) {
+  if (disk.names[tid]) return disk.names[tid];
   const ck = new Request(`https://diamondspaders.online/__tourname/${league}/${tid}`);
   try {
     const hit = await caches.default.match(ck);
@@ -172,6 +173,7 @@ async function tourName(tid, league) {
     const page = await r.text();
     const m = page.match(/<h2>([\s\S]*?)<\/h2>/) || page.match(/<title>[^<]*?'s ([\s\S]*?) Tournament\s*<\/title>/);
     const name = m ? unxml(m[1].replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim() : "";
+    if (name) disk.names[tid] = name;
     await caches.default.put(ck, new Response(name, { headers: { "cache-control": "public, max-age=21600" } }));
     return name;
   } catch (e) { return null; }
@@ -315,9 +317,11 @@ async function build(env, origin) {
       const pard = String(t.perteam) === "2" ? true : String(t.perteam) === "1" ? false
         : /\b(CUT|SINGLES?|SOLO|PAB|1 ?VS\.? ?1)\b/i.test(txt) ? false : /PAR(TNER)?D?S|SUI|SUICIDE|PASS ?2|RANDOM|2 ?VS\.? ?2/i.test(txt);
       if (t.winners.length > (pard ? 2 : 1)) t.winners = []; }
-    // Pending by clock only: started, no standings/user winner yet. Never use calendar feed status.
-    if (!t.winners.length && t.status !== "extra" && t.date >= addDays(today, -1)
-        && t.date <= today && et.min >= t.h * 60 + t.m) t.pending = true;
+    // Only a tour in its window is worth a standings read. A known winner is never read again.
+    if (!t.winners.length && disk.winners[t.id]?.length) t.winners = [...disk.winners[t.id]];
+    const startMin = t.h * 60 + t.m;
+    const inWindow = t.date === today && et.min >= startMin && et.min <= startMin + 90;
+    if (!t.winners.length && t.id && t.status !== "extra" && inWindow) t.pending = true;
   }
   await Promise.all(tours.filter(t => t.pending && t.id).map(async t => {
     try {
@@ -327,13 +331,12 @@ async function build(env, origin) {
       const txt = `${t.game || ""} ${(cfg.labels_by_id || {})[t.id] || ""}`;
       const pard = String(t.perteam) === "2" || /PAR(TNER)?D?S|SUI|SUICIDE|PASS ?2|2 ?VS/i.test(txt);
       t.winners = pard ? names.slice(0, 2) : names.slice(0, 1);
-      if (t.winners.length) t.pending = false;
+      if (t.winners.length) { t.pending = false; disk.winners[t.id] = [...t.winners]; }
     } catch (e) {}
   }));
   cfg.manual_teams = { ...(cfg.manual_teams || {}) };
   cfg.auto_teams = { ...(cfg.auto_teams || {}) };
-  // Always re-resolve today/yesterday from players.php (cached by id and winners). Do not trust a stale
-  // auto name locked mid-bracket to the finalist — that was the 7:15 "13 13 13 13 13" / Northern Exposure bug.
+  // Team names already on file are not read again.
   await Promise.all(tours.filter(t => t.date >= addDays(today, -1) && t.winners.length === 2 && t.id && !cfg.manual_teams[String(t.id)])
     .map(async t => { try { const n = await fetchTeam(t, cfg.league || "diamondspaders"); if (n) cfg.auto_teams[String(t.id)] = n; } catch (e) {} }));
   const names = {};
@@ -359,25 +362,53 @@ async function build(env, origin) {
 }
 
 
+function loadJson(url) {
+  try { return JSON.parse(readFileSync(url, "utf8")); } catch { return null; }
+}
+function signature(body) {
+  const days = {};
+  for (const [k, v] of Object.entries(body.days || {})) days[k] = v.keys;
+  return JSON.stringify({ today: body.today, tours: body.tours, board: body.board, schedule: body.schedule, days });
+}
+const liveUrl = new URL("../update/live.json", import.meta.url);
+const cacheUrl = new URL("../update/fetch-cache.json", import.meta.url);
+const prev = loadJson(liveUrl);
+disk = Object.assign(disk, loadJson(cacheUrl) || {});
+const etNow = etParts(new Date());
+const idleMin = prev?.now ? (Date.now() - Date.parse(prev.now)) / 60000 : 999;
+const slots = [];
+for (const t of prev?.board || []) slots.push([t.date, t.h * 60 + t.m]);
+for (const t of prev?.schedule || []) slots.push([t.dt, t.h * 60 + t.m]);
+const busy = !prev || prev.today !== etNow.date || slots.some(([day, mins]) => day === etNow.date && etNow.min >= mins - 20 && etNow.min <= mins + 90);
+if (!busy && idleMin < 60) {
+  console.log("skipped, nothing in play");
+  process.exit(0);
+}
+const before = JSON.stringify(disk);
 const cfgText = readFileSync(new URL("../live/config.json", import.meta.url), "utf8");
 const env = { ASSETS: { fetch: async () => new Response(cfgText, { status: 200 }) } };
 const body = await build(env, "https://diamondspaders.online");
-const out = new URL("../update/live.json", import.meta.url);
-writeFileSync(out, JSON.stringify(body));
-const hers = /^fetch_?it_?up$/i;
-const tomorrow = addDays(body.today, 1);
-const schedule = (body.schedule || []).filter(t => t.dt === body.today || t.dt === tomorrow || hers.test(String(t.td || "").trim()));
-const lines = schedule.map(t => {
-  const game = t.game === "SUI PASS 2 PAB" ? "PAB" : t.game;
-  return `    { dt: ${JSON.stringify(t.dt)}, h: ${t.h}, m: ${t.m}, game: ${JSON.stringify(game)}, td: ${JSON.stringify(t.td)}, url: ${JSON.stringify(t.url)} },`;
-}).join("\n");
-for (const file of ["../start.html", "../start2/index.html"]) {
-  const path = new URL(file, import.meta.url);
-  let html = readFileSync(path, "utf8");
-  const at = html.indexOf("  TOURS = [");
-  const end = html.indexOf("\n  ];", at);
-  if (at < 0 || end < 0) throw new Error("TOURS list missing in " + file);
-  html = html.slice(0, at) + "  TOURS = [\n" + lines + "\n  ];" + html.slice(end + 5);
-  writeFileSync(path, html);
+if (JSON.stringify(disk) !== before) writeFileSync(cacheUrl, JSON.stringify(disk));
+const same = prev && signature(prev) === signature(body);
+if (!same) {
+  writeFileSync(liveUrl, JSON.stringify(body));
+  const hers = /^fetch_?it_?up$/i;
+  const tomorrow = addDays(body.today, 1);
+  const schedule = (body.schedule || []).filter(t => t.dt === body.today || t.dt === tomorrow || hers.test(String(t.td || "").trim()));
+  const lines = schedule.map(t => {
+    const game = t.game === "SUI PASS 2 PAB" ? "PAB" : t.game;
+    return `    { dt: ${JSON.stringify(t.dt)}, h: ${t.h}, m: ${t.m}, game: ${JSON.stringify(game)}, td: ${JSON.stringify(t.td)}, url: ${JSON.stringify(t.url)} },`;
+  }).join("\n");
+  for (const file of ["../start.html", "../start2/index.html"]) {
+    const path = new URL(file, import.meta.url);
+    let html = readFileSync(path, "utf8");
+    const at = html.indexOf("  TOURS = [");
+    const end = html.indexOf("\n  ];", at);
+    if (at < 0 || end < 0) throw new Error("TOURS list missing in " + file);
+    html = html.slice(0, at) + "  TOURS = [\n" + lines + "\n  ];" + html.slice(end + 5);
+    writeFileSync(path, html);
+  }
+  console.log("tours", (body.board || []).length, "today", body.today, "upcoming", (body.tours || []).length, "listed", schedule.length);
+} else {
+  console.log("no change");
 }
-console.log("tours", (body.board || []).length, "today", body.today, "upcoming", (body.tours || []).length, "listed", schedule.length, "judy", schedule.filter(t => hers.test(String(t.td || "").trim())).map(t => t.dt + " " + t.h + ":" + t.m + " " + t.game).join(", "));

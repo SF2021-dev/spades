@@ -167,8 +167,7 @@
             document.getElementById('est').textContent=hm(+e.hour,+e.minute)+' '+ab;
             var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
             var up=TOURS.filter(function(t){if(!t.dt||t.dt===today)return (+t.h)*60+(+t.m)>nowMin;return t.dt>today;}).sort(function(a,b){return String(a.dt||today).localeCompare(String(b.dt||today))||((a.h*60+ +a.m)-(b.h*60+ +b.m));});
-            var cur=TOURS.filter(function(t){if((t.dt||today)!==today)return false;var mins=(+t.h)*60+(+t.m);return mins<=nowMin&&nowMin-mins<60;}).sort(function(a,b){return (a.h*60+ +a.m)-(b.h*60+ +b.m);});
-            var nxt=cur.length?cur[cur.length-1]:(up[0]||null);
+            var nxt=up[0]||null;
             var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');
             if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!nxt){nn.textContent='8:15 AM';nx.textContent='';}else{nn.textContent=nxt.game+(nxt.td?' w/ '+nxt.td:'');var when=hh(+nxt.h,+nxt.m)+' '+ab;if(nxt.dt&&nxt.dt!==today)when=nxt.dt.slice(5).replace('-','/')+' '+when;nx.textContent=when;}
             var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');

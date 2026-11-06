@@ -96,11 +96,6 @@ function Get-LoopPid {
 
 function Start-LoopIfNeeded {
   Register-Always
-  if ($script:asLoop -or $script:asOnce) { return }
-  if ((Get-LoopPid) -ne 0) { Log "it is already running"; return }
-  if (-not $PSCommandPath) { return }
-  Start-HiddenLoop
-  Log "it stays running"
 }
 
 Register-Always
@@ -505,9 +500,7 @@ if ($script:asLoop) {
         $looksRight = (Get-Content $latest -Raw -ErrorAction SilentlyContinue) -match "Invoke-Update"
         if ($looksRight -and $here -ne $there) {
           Copy-Item $latest $PSCommandPath -Force
-          Remove-Item $lock -Force -ErrorAction SilentlyContinue
-          Start-HiddenLoop
-          exit 0
+          Log "new copy saved, this one keeps looping"
         }
       }
       Invoke-Update

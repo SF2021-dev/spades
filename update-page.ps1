@@ -465,37 +465,7 @@ try {
   $finger = ((@($open) | ForEach-Object { "$($_.id)|$($_.h)|$($_.game)|$($_.td)" }) -join ";") + "#" + ((@($todayWins) | ForEach-Object { "$($_.id)|" + (@($_.winners) -join "+") }) -join ";")
   if ($same -or ($state -and [string]$state.finger -eq $finger)) { Log "no change" }
   else {
-    Log "updating the saved copy"
-    Run-Quiet $git @("fetch","origin","main")
-    if ($LASTEXITCODE -ne 0) { throw "fetch failed" }
-    Run-Quiet $git @("reset","--hard","origin/main")
-    if ($LASTEXITCODE -ne 0) { throw "reset failed" }
-    $html = Get-Content $indexPath -Raw
-    $html2 = [regex]::Replace($html, '<div id="ds-tours" class="ds-tour">[\s\S]*?(?=<div id="ds-winners-yesterday")', $bar, 1)
-    $html2 = [regex]::Replace($html2, '  var TOURS = \[[\s\S]*?\];', $list, 1)
-    if ($todayWins.Count -gt 0) {
-      $alreadyMoved = $state -and [string]$state.movedDay -eq $today
-      if (-not $alreadyMoved) {
-        $oldTop = [regex]::Match($html2, '<div id="ds-winners-today"[^>]*>([\s\S]*?)</div>\s*(?=<div id="ds-tours")')
-        if ($oldTop.Success -and $oldTop.Groups[1].Value.Trim()) {
-          $head = "<div style=`"grid-column:1/-1;padding:12px 10px 4px;font-size:15px;font-weight:800;letter-spacing:0.14em;color:#fbe646;`">Yesterday's Winners</div>"
-          $bot = "<div id=`"ds-winners-yesterday`" style=`"border-top:3px solid #fbe646;display:grid;grid-template-columns:1fr 1fr 1fr;`">`r`n$head`r`n" + $oldTop.Groups[1].Value.Trim() + "`r`n</div>`r`n"
-          $html2 = [regex]::Replace($html2, '<div id="ds-winners-yesterday"[\s\S]*?(?=<div id="ds-rank")', $bot, 1)
-          $movedDay = $today
-        }
-      }
-      $cards = @()
-      for ($i = 0; $i -lt $todayWins.Count; $i++) { $cards += CardOf $todayWins[$i] $i }
-      $top = "<div id=`"ds-winners-today`" style=`"display:grid;grid-template-columns:1fr 1fr 1fr;`">`r`n" + ($cards -join "`r`n") + "`r`n</div>`r`n"
-      $html2 = [regex]::Replace($html2, '<div id="ds-winners-today"[\s\S]*?(?=<div id="ds-tours")', $top, 1)
-    }
-    [System.IO.File]::WriteAllText($indexPath, $html2)
-    Run-Quiet $git @("add","index.html")
-    Run-Quiet $git @("-c","user.name=diamondspaders","-c","user.email=actions@diamondspaders.online","commit","-m","Update the page")
-    if ($LASTEXITCODE -ne 0) { throw "commit failed" }
-    Run-Quiet $git @("push","origin","HEAD")
-    if ($LASTEXITCODE -ne 0) { throw "push failed. Sign in to GitHub on this computer and run this again." }
-    Log "saved"
+    Log "page changed, left Git closed"
   }
   $winMap = @{}
   if ($state -and $state.winners) {
@@ -535,7 +505,9 @@ if ($script:asLoop) {
         $looksRight = (Get-Content $latest -Raw -ErrorAction SilentlyContinue) -match "Invoke-Update"
         if ($looksRight -and $here -ne $there) {
           Copy-Item $latest $PSCommandPath -Force
-          Log "new copy saved for the next start"
+          Remove-Item $lock -Force -ErrorAction SilentlyContinue
+          Start-HiddenLoop
+          exit 0
         }
       }
       Invoke-Update

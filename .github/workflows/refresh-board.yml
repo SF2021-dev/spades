@@ -2,10 +2,13 @@ name: Refresh board
 on:
   workflow_dispatch:
   schedule:
-    # :05 and :35, not :00/:30. GitHub drops a lot of jobs scheduled on the hour.
-    - cron: "5,35 * * * *"
+    # Every 10 minutes, off the hour. GitHub still drops some of these.
+    - cron: "7,17,27,37,47,57 * * * *"
 permissions:
   contents: write
+concurrency:
+  group: refresh-board
+  cancel-in-progress: false
 jobs:
   refresh:
     runs-on: ubuntu-latest

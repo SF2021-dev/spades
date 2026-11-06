@@ -12,7 +12,7 @@ ALLOWED = {"start.html", "start2/index.html"}
 
 
 def requests_():
-    url = f"https://webhook.site/token/{TOKEN}/requests?per_page=10"
+    url = f"https://webhook.site/token/{TOKEN}/requests?per_page=20&sorting=newest"
     with urllib.request.urlopen(url, timeout=30) as response:
         return json.load(response).get("data") or []
 

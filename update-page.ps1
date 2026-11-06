@@ -65,8 +65,10 @@ try {
   Log "today $today Eastern"
 
   $body = "range=daily&strLadder=diamondspaders&DisplayCount=300&page=1&sort=1&sd=$($now.Day)&sm=$($now.Month)&sy=$($now.Year)&ed=$($now.Day)&em=$($now.Month)&ey=$($now.Year)"
-  $resp = Invoke-WebRequest -Uri "https://www.myleague.com/pages/remote/tournamentCalendar.php" -Method POST -Body $body -Headers @{ "User-Agent" = "Mozilla/5.0" } -UseBasicParsing
-  $xml = $resp.Content
+  $cal = Join-Path $env:TEMP "diamondspaders-calendar.xml"
+  & curl.exe -sS -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded" --data $body -o $cal "https://www.myleague.com/pages/remote/tournamentCalendar.php"
+  if ($LASTEXITCODE -ne 0) { throw "MyLeague did not answer" }
+  $xml = [System.IO.File]::ReadAllText($cal)
   if ($xml -notmatch "SQLResults") { throw "MyLeague did not return the tour list" }
 
   $avatars = @{}

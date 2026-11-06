@@ -28,6 +28,24 @@ function Log($msg) {
   Write-Host $line
 }
 
+function Run-Quiet([string]$File, [string[]]$ArgList) {
+  $parts = foreach ($a in $ArgList) {
+    if ($a -match '[\s"]') { '"' + ($a -replace '"', '\"') + '"' } else { $a }
+  }
+  $psi = New-Object System.Diagnostics.ProcessStartInfo
+  $psi.FileName = $File
+  $psi.Arguments = ($parts -join " ")
+  $psi.UseShellExecute = $false
+  $psi.CreateNoWindow = $true
+  $psi.RedirectStandardOutput = $true
+  $psi.RedirectStandardError = $true
+  $p = [System.Diagnostics.Process]::Start($psi)
+  $null = $p.StandardOutput.ReadToEnd()
+  $null = $p.StandardError.ReadToEnd()
+  $p.WaitForExit()
+  $global:LASTEXITCODE = $p.ExitCode
+}
+
 function Register-Always {
   if (-not $PSCommandPath) { Log "startup file NOT saved"; return }
   $startup = [Environment]::GetFolderPath("Startup")
@@ -68,26 +86,6 @@ if ($args -contains "-loop") {
   Set-Content -Path $lock -Value $PID
   Register-Always
   Log "staying running"
-  while ($true) {
-    try {
-      $latest = Join-Path $env:TEMP "update-page-latest.ps1"
-      & curl.exe -fsSL -o $latest "https://raw.githubusercontent.com/SF2021-dev/spades/main/update-page.ps1"
-      if ($LASTEXITCODE -eq 0 -and (Test-Path $latest) -and $PSCommandPath) {
-        $here = (Get-FileHash $PSCommandPath -Algorithm MD5).Hash
-        $there = (Get-FileHash $latest -Algorithm MD5).Hash
-        if ($here -ne $there) {
-          Copy-Item $latest $PSCommandPath -Force
-          Remove-Item $lock -Force -ErrorAction SilentlyContinue
-          Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-WindowStyle","Hidden","-File",$PSCommandPath,"-loop") -WindowStyle Hidden
-          exit 0
-        }
-      }
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $PSCommandPath -noupdate -once
-    } catch {
-      Log ("ERROR " + $_.Exception.Message)
-    }
-    Start-Sleep -Seconds 300
-  }
 }
 
 function Find-Git {
@@ -108,7 +106,7 @@ function Find-Git {
 
 function Get-Page([string]$url) {
   $out = Join-Path $env:TEMP ("ds-page-" + [guid]::NewGuid().ToString() + ".html")
-  & curl.exe -sS -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -o $out $url
+  Run-Quiet "curl.exe" @("-sS","-L","-A","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36","-o",$out,$url)
   if ($LASTEXITCODE -ne 0 -or -not (Test-Path $out)) { return "" }
   return [System.IO.File]::ReadAllText($out)
 }
@@ -187,6 +185,7 @@ function Label([string]$text, [int]$per) {
   return "CUT"
 }
 
+function Invoke-Update {
 try {
   $git = Find-Git
   if (-not $git) { throw "Git is not installed. Install GitHub Desktop, sign in, then run this again." }
@@ -229,14 +228,14 @@ try {
       Remove-Item $root -Recurse -Force
     }
     Log "cloning the site"
-    & $git clone https://github.com/SF2021-dev/spades.git $root
+    Run-Quiet $git @("clone","https://github.com/SF2021-dev/spades.git",$root)
     if ($LASTEXITCODE -ne 0) { throw "clone failed" }
   }
   Set-Location $root
   Log "updating the saved copy"
-  & $git fetch origin main
+  Run-Quiet $git @("fetch","origin","main")
   if ($LASTEXITCODE -ne 0) { throw "fetch failed" }
-  & $git reset --hard origin/main
+  Run-Quiet $git @("reset","--hard","origin/main")
   if ($LASTEXITCODE -ne 0) { throw "reset failed" }
 
   $tz = [TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
@@ -250,7 +249,7 @@ try {
   if ($doCalendar) {
     $body = "range=daily&strLadder=diamondspaders&DisplayCount=300&page=1&sort=1&sd=$($yestDate.Day)&sm=$($yestDate.Month)&sy=$($yestDate.Year)&ed=$($now.Day)&em=$($now.Month)&ey=$($now.Year)"
     $cal = Join-Path $env:TEMP "diamondspaders-calendar.xml"
-    & curl.exe -sS -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded" --data $body -o $cal "https://www.myleague.com/pages/remote/tournamentCalendar.php"
+    Run-Quiet "curl.exe" @("-sS","-A","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36","-H","Content-Type: application/x-www-form-urlencoded","--data",$body,"-o",$cal,"https://www.myleague.com/pages/remote/tournamentCalendar.php")
     if ($LASTEXITCODE -ne 0) { throw "MyLeague did not answer" }
     $xml = [System.IO.File]::ReadAllText($cal)
     if ($xml -notmatch "SQLResults") { throw "MyLeague did not return the tour list" }
@@ -438,10 +437,10 @@ try {
   if ($html2 -eq $html) { Log "no change" }
   else {
     [System.IO.File]::WriteAllText($indexPath, $html2)
-    & $git add index.html
-    & $git -c user.name="diamondspaders" -c user.email="actions@diamondspaders.online" commit -m "Update the page"
+    Run-Quiet $git @("add","index.html")
+    Run-Quiet $git @("-c","user.name=diamondspaders","-c","user.email=actions@diamondspaders.online","commit","-m","Update the page")
     if ($LASTEXITCODE -ne 0) { throw "commit failed" }
-    & $git push origin HEAD
+    Run-Quiet $git @("push","origin","HEAD")
     if ($LASTEXITCODE -ne 0) { throw "push failed. Sign in to GitHub on this computer and run this again." }
     Log "saved"
   }
@@ -464,5 +463,31 @@ try {
 }
 catch {
   Log ("ERROR " + $_.Exception.Message)
-  exit 1
+  if (-not $script:asLoop) { exit 1 }
+}
+}
+
+if ($script:asLoop) {
+  while ($true) {
+    try {
+      $latest = Join-Path $env:TEMP "update-page-latest.ps1"
+      Run-Quiet "curl.exe" @("-fsSL","-o",$latest,"https://raw.githubusercontent.com/SF2021-dev/spades/main/update-page.ps1")
+      if ($LASTEXITCODE -eq 0 -and (Test-Path $latest) -and $PSCommandPath) {
+        $here = (Get-FileHash $PSCommandPath -Algorithm MD5).Hash
+        $there = (Get-FileHash $latest -Algorithm MD5).Hash
+        if ($here -ne $there) {
+          Copy-Item $latest $PSCommandPath -Force
+          Remove-Item $lock -Force -ErrorAction SilentlyContinue
+          Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-WindowStyle","Hidden","-File",$PSCommandPath,"-loop") -WindowStyle Hidden
+          exit 0
+        }
+      }
+      Invoke-Update
+    } catch {
+      Log ("ERROR " + $_.Exception.Message)
+    }
+    Start-Sleep -Seconds 300
+  }
+} else {
+  Invoke-Update
 }

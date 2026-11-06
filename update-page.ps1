@@ -257,11 +257,15 @@ try {
   }
 
   $avatars = @{}
+  $aliases = @{}
   $cfgPath = Join-Path $root "live\config.json"
   if (Test-Path $cfgPath) {
     $cfg = Get-Content $cfgPath -Raw | ConvertFrom-Json
     if ($cfg.avatars) {
       $cfg.avatars.PSObject.Properties | ForEach-Object { $avatars[$_.Name.ToLower()] = $_.Value }
+    }
+    if ($cfg.aliases) {
+      $cfg.aliases.PSObject.Properties | ForEach-Object { $aliases[$_.Name.ToLower()] = $_.Value }
     }
   }
 
@@ -354,10 +358,17 @@ try {
     $h12 = $h % 12; if ($h12 -eq 0) { $h12 = 12 }
     return ("{0}:{1:00} {2}" -f $h12, $m, $amp)
   }
-  function AvaOf([string]$n) {
+  function Shown([string]$n) {
     $k = $n.ToLower()
-    if ($avatars.ContainsKey($k)) { return $avatars[$k] }
-    return "https://diamondspaders.online/$n-ava.png"
+    if ($aliases.ContainsKey($k)) { return [string]$aliases[$k] }
+    return $n
+  }
+  function AvaOf([string]$n) {
+    $show = Shown $n
+    foreach ($k in @($show.ToLower(), $n.ToLower())) {
+      if ($avatars.ContainsKey($k)) { return $avatars[$k] }
+    }
+    return "https://diamondspaders.online/$show-ava.png"
   }
   function CardOf($t, [int]$i) {
     $bg = if ($i % 2 -eq 0) { "#1a1200" } else { "#000" }
@@ -365,10 +376,11 @@ try {
     $who = @($t.winners)
     if ($who.Count -lt 2) {
       $n = [string]$who[0]
+      $show = Shown $n
       $ava = AvaOf $n
       $fs = 22
-      if ($n.Length -gt 15) { $fs = 16 } elseif ($n.Length -gt 12) { $fs = 18 } elseif ($n.Length -gt 9) { $fs = 20 }
-      $en = Esc $n
+      if ($show.Length -gt 15) { $fs = 16 } elseif ($show.Length -gt 12) { $fs = 18 } elseif ($show.Length -gt 9) { $fs = 20 }
+      $en = Esc $show
       return "<div style=`"padding:14px 10px;background:${bg};`"><div style=`"display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;`"><a href=`"https://www.myleague.com/diamondspaders/profile/$([uri]::EscapeDataString($n))`" title=`"$en`" style=`"display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;`"><img src=`"$ava`" width=`"64`" height=`"64`" style=`"width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;`"></a><div><div style=`"font-size:13px;font-weight:700;`">$(Esc $label)</div><div style=`"font-size:${fs}px;font-weight:800;`">$en</div></div></div></div>"
     }
     $teamHtml = ""
@@ -377,10 +389,11 @@ try {
     }
     $bits = @()
     foreach ($n in $who) {
-      $en = Esc $n
+      $show = Shown $n
+      $en = Esc $show
       $ava = AvaOf $n
       $fs = 14
-      if ($n.Length -gt 11) { $fs = 12 } elseif ($n.Length -le 7) { $fs = 15 }
+      if ($show.Length -gt 11) { $fs = 12 } elseif ($show.Length -le 7) { $fs = 15 }
       $bits += "<div style=`"display:flex;align-items:center;gap:6px;min-width:0;`"><a href=`"https://www.myleague.com/diamondspaders/profile/$([uri]::EscapeDataString($n))`" title=`"$en`" style=`"display:block;line-height:0;color:inherit;text-decoration:none;cursor:pointer;`"><img src=`"$ava`" width=`"44`" height=`"44`" style=`"width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid #fbe646;`"></a><div style=`"font-size:${fs}px;font-weight:800;overflow-wrap:anywhere;line-height:1.1;`">$en</div></div>"
     }
     return "<div style=`"padding:14px 10px;background:${bg};`"><div style=`"font-size:13px;font-weight:700;margin-bottom:2px;`">$(Esc $label)</div>$teamHtml<div style=`"display:grid;grid-template-columns:auto auto;justify-content:space-between;gap:6px;`">$($bits -join '')</div></div>"

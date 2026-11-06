@@ -29,21 +29,50 @@ function Log($msg) {
 }
 
 function Run-Quiet([string]$File, [string[]]$ArgList) {
+  if (-not ("QuietWin" -as [type])) {
+    Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class QuietWin {
+  [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
+  public struct STARTUPINFO {
+    public int cb;
+    public string lpReserved;
+    public string lpDesktop;
+    public string lpTitle;
+    public int dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars, dwFillAttribute, dwFlags;
+    public short wShowWindow, cbReserved2;
+    public IntPtr lpReserved2, hStdInput, hStdOutput, hStdError;
+  }
+  [StructLayout(LayoutKind.Sequential)]
+  public struct PROCESS_INFORMATION {
+    public IntPtr hProcess, hThread;
+    public int dwProcessId, dwThreadId;
+  }
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  public static extern bool CreateProcess(string app, string cmd, IntPtr pa, IntPtr ta, bool inherit, uint flags, IntPtr env, string dir, ref STARTUPINFO si, out PROCESS_INFORMATION pi);
+  [DllImport("kernel32.dll")] public static extern uint WaitForSingleObject(IntPtr h, uint ms);
+  [DllImport("kernel32.dll")] public static extern bool GetExitCodeProcess(IntPtr h, out uint code);
+  [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr h);
+}
+"@
+  }
   $parts = foreach ($a in $ArgList) {
     if ($null -eq $a) { $a = "" }
-    if ($a -match '[\s"&]') { '"' + ($a -replace '"', '\"') + '"' } else { $a }
+    if ($a -match '[\s"]') { '"' + ($a -replace '"', '\"') + '"' } else { $a }
   }
-  $cmd = ($File + " " + ($parts -join " ")).Replace('"', '""')
-  $vbsPath = Join-Path $env:TEMP "ds-quiet.vbs"
-  Set-Content -Path $vbsPath -Value "WScript.Quit CreateObject(""Wscript.Shell"").Run(""$cmd"", 0, True)" -Encoding ASCII
-  $psi = New-Object System.Diagnostics.ProcessStartInfo
-  $psi.FileName = "wscript.exe"
-  $psi.Arguments = "//B //Nologo `"$vbsPath`""
-  $psi.UseShellExecute = $false
-  $psi.CreateNoWindow = $true
-  $p = [System.Diagnostics.Process]::Start($psi)
-  $p.WaitForExit()
-  $global:LASTEXITCODE = $p.ExitCode
+  $cmd = '"' + $File + '" ' + ($parts -join " ")
+  $si = New-Object QuietWin+STARTUPINFO
+  $si.cb = [Runtime.InteropServices.Marshal]::SizeOf([type]QuietWin+STARTUPINFO)
+  $pi = New-Object QuietWin+PROCESS_INFORMATION
+  $ok = [QuietWin]::CreateProcess($File, $cmd, [IntPtr]::Zero, [IntPtr]::Zero, $false, [uint32]0x08000000, [IntPtr]::Zero, $null, [ref]$si, [ref]$pi)
+  if (-not $ok) { $global:LASTEXITCODE = 1; return }
+  [void][QuietWin]::WaitForSingleObject($pi.hProcess, [uint32]::MaxValue)
+  $code = [uint32]0
+  [void][QuietWin]::GetExitCodeProcess($pi.hProcess, [ref]$code)
+  [void][QuietWin]::CloseHandle($pi.hProcess)
+  [void][QuietWin]::CloseHandle($pi.hThread)
+  $global:LASTEXITCODE = [int]$code
 }
 
 function Start-HiddenLoop {

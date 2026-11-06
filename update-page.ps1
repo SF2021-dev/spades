@@ -5,6 +5,11 @@ $script:asOnce = $args -contains "-once"
 $root = Join-Path $env:USERPROFILE "diamondspaders"
 $log = Join-Path $env:TEMP "diamondspaders-update-log.txt"
 
+Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" -ErrorAction SilentlyContinue |
+  Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -match 'update-page\.ps1' } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+if (-not $script:asLoop) { $script:asLoop = $true }
+
 function Log($msg) {
   $line = "{0}  {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg
   Add-Content -Path $log -Value $line
@@ -100,15 +105,10 @@ function Start-LoopIfNeeded {
 
 Register-Always
 
-if ($args -contains "-loop") {
-  if ((Get-LoopPid) -ne 0) { exit 0 }
+if ($script:asLoop) {
   $lock = Join-Path $env:TEMP "diamondspaders-loop.pid"
   Set-Content -Path $lock -Value $PID
-  Register-Always
   Log "staying running"
-  Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" -ErrorAction SilentlyContinue |
-    Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -match 'update-page\.ps1' } |
-    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 }
 
 function Find-Git {
@@ -462,7 +462,8 @@ try {
     $html2 = [regex]::Replace($html2, '<div id="ds-winners-today"[\s\S]*?(?=<div id="ds-tours")', $top, 1)
   }
   $same = ($html2 -replace "`r","") -eq ($html -replace "`r","")
-  if ($same) { Log "no change" }
+  $finger = ((@($open) | ForEach-Object { "$($_.id)|$($_.h)|$($_.game)|$($_.td)" }) -join ";") + "#" + ((@($todayWins) | ForEach-Object { "$($_.id)|" + (@($_.winners) -join "+") }) -join ";")
+  if ($same -or ($state -and [string]$state.finger -eq $finger)) { Log "no change" }
   else {
     Log "updating the saved copy"
     Run-Quiet $git @("fetch","origin","main")
@@ -509,7 +510,7 @@ try {
   if ($movedDay) { $keepMoved = $movedDay } elseif ($state) { $keepMoved = [string]$state.movedDay }
   $keepCal = if ($doCalendar) { $now.ToString("o") } elseif ($state) { [string]$state.lastCalendar } else { "" }
   $keepFull = if ($full) { $today } else { "" }
-  @{ lastCalendar = $keepCal; fullDay = $keepFull; movedDay = $keepMoved; tours = $tourSave; winners = $winMap } | ConvertTo-Json -Depth 6 | Set-Content -Path $statePath -Encoding UTF8
+  @{ lastCalendar = $keepCal; fullDay = $keepFull; movedDay = $keepMoved; finger = $finger; tours = $tourSave; winners = $winMap } | ConvertTo-Json -Depth 6 | Set-Content -Path $statePath -Encoding UTF8
   Start-LoopIfNeeded
   Log "done"
 }
@@ -531,11 +532,10 @@ if ($script:asLoop) {
       if ($LASTEXITCODE -eq 0 -and (Test-Path $latest) -and $PSCommandPath) {
         $here = (Get-FileHash $PSCommandPath -Algorithm MD5).Hash
         $there = (Get-FileHash $latest -Algorithm MD5).Hash
-        if ($here -ne $there) {
+        $looksRight = (Get-Content $latest -Raw -ErrorAction SilentlyContinue) -match "Invoke-Update"
+        if ($looksRight -and $here -ne $there) {
           Copy-Item $latest $PSCommandPath -Force
-          Remove-Item $lock -Force -ErrorAction SilentlyContinue
-          Start-HiddenLoop
-          exit 0
+          Log "new copy saved for the next start"
         }
       }
       Invoke-Update

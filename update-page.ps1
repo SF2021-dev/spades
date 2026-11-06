@@ -5,60 +5,65 @@ $script:asOnce = $args -contains "-once"
 $root = Join-Path $env:USERPROFILE "diamondspaders"
 $log = Join-Path $env:TEMP "diamondspaders-update-log.txt"
 
-if ($args -notcontains "-noupdate" -and $PSCommandPath) {
-  $latest = Join-Path $env:TEMP "update-page-latest.ps1"
-  & curl.exe -fsSL -o $latest "https://raw.githubusercontent.com/SF2021-dev/spades/main/update-page.ps1"
-  if ($LASTEXITCODE -eq 0 -and (Test-Path $latest)) {
-    $here = (Get-FileHash $PSCommandPath -Algorithm MD5).Hash
-    $there = (Get-FileHash $latest -Algorithm MD5).Hash
-    if ($here -ne $there) {
-      Copy-Item $latest $PSCommandPath -Force
-      $pass = @("-NoProfile","-ExecutionPolicy","Bypass","-File",$PSCommandPath,"-noupdate")
-      if ($script:asLoop) { $pass += "-loop" }
-      if ($script:asOnce) { $pass += "-once" }
-      & powershell.exe @pass
-      exit $LASTEXITCODE
-    }
-  }
-}
-
 function Log($msg) {
   $line = "{0}  {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg
   Add-Content -Path $log -Value $line
   Write-Host $line
 }
 
-function Run-Quiet([string]$File, [string[]]$ArgList) {
+function Run-Quiet([string]$File, [string[]]$ArgList, [switch]$NoWait) {
+  if (-not ("QuietRun" -as [type])) {
+    Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class QuietRun {
+  [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)]
+  public struct STARTUPINFO {
+    public int cb;
+    public string lpReserved;
+    public string lpDesktop;
+    public string lpTitle;
+    public int dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars, dwFillAttribute, dwFlags;
+    public short wShowWindow, cbReserved2;
+    public IntPtr lpReserved2, hStdInput, hStdOutput, hStdError;
+  }
+  [StructLayout(LayoutKind.Sequential)]
+  public struct PROCESS_INFORMATION {
+    public IntPtr hProcess, hThread;
+    public int dwProcessId, dwThreadId;
+  }
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  public static extern bool CreateProcess(string app, string cmd, IntPtr pa, IntPtr ta, bool inherit, uint flags, IntPtr env, string dir, ref STARTUPINFO si, out PROCESS_INFORMATION pi);
+  [DllImport("kernel32.dll")] public static extern uint WaitForSingleObject(IntPtr h, uint ms);
+  [DllImport("kernel32.dll")] public static extern bool GetExitCodeProcess(IntPtr h, out uint code);
+  [DllImport("kernel32.dll")] public static extern bool CloseHandle(IntPtr h);
+}
+"@
+  }
   $parts = foreach ($a in $ArgList) {
     if ($null -eq $a) { $a = "" }
     if ($a -match '[\s"]') { '"' + ($a -replace '"', '\"') + '"' } else { $a }
   }
-  $psi = New-Object System.Diagnostics.ProcessStartInfo
-  $psi.FileName = $File
-  $psi.Arguments = ($parts -join " ")
-  $psi.UseShellExecute = $false
-  $psi.CreateNoWindow = $true
-  $psi.RedirectStandardOutput = $true
-  $psi.RedirectStandardError = $true
-  $p = [System.Diagnostics.Process]::Start($psi)
-  $null = $p.StandardOutput.ReadToEnd()
-  $null = $p.StandardError.ReadToEnd()
-  $p.WaitForExit()
-  $global:LASTEXITCODE = $p.ExitCode
+  $cmd = '"' + $File + '" ' + ($parts -join " ")
+  $si = New-Object QuietRun+STARTUPINFO
+  $si.cb = [Runtime.InteropServices.Marshal]::SizeOf($si)
+  $si.dwFlags = 1
+  $si.wShowWindow = 0
+  $pi = New-Object QuietRun+PROCESS_INFORMATION
+  $ok = [QuietRun]::CreateProcess($File, $cmd, [IntPtr]::Zero, [IntPtr]::Zero, $false, [uint32]134217728, [IntPtr]::Zero, $null, [ref]$si, [ref]$pi)
+  if (-not $ok) { $global:LASTEXITCODE = 1; return }
+  if ($NoWait) { $global:LASTEXITCODE = 0; return }
+  [void][QuietRun]::WaitForSingleObject($pi.hProcess, [uint32]::MaxValue)
+  $code = [uint32]0
+  [void][QuietRun]::GetExitCodeProcess($pi.hProcess, [ref]$code)
+  [void][QuietRun]::CloseHandle($pi.hProcess)
+  [void][QuietRun]::CloseHandle($pi.hThread)
+  $global:LASTEXITCODE = [int]$code
 }
 
 function Start-HiddenLoop {
   if (-not $PSCommandPath) { return }
-  $cmd = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""$PSCommandPath"" -loop"
-  $cmd = $cmd.Replace('"', '""')
-  $vbsPath = Join-Path $env:TEMP "ds-start.vbs"
-  Set-Content -Path $vbsPath -Value "CreateObject(""Wscript.Shell"").Run ""$cmd"", 0, False" -Encoding ASCII
-  $psi = New-Object System.Diagnostics.ProcessStartInfo
-  $psi.FileName = "wscript.exe"
-  $psi.Arguments = "//B //Nologo `"$vbsPath`""
-  $psi.UseShellExecute = $false
-  $psi.CreateNoWindow = $true
-  [void][System.Diagnostics.Process]::Start($psi)
+  Run-Quiet "powershell.exe" @("-NoProfile","-ExecutionPolicy","Bypass","-WindowStyle","Hidden","-File",$PSCommandPath,"-loop") -NoWait
 }
 
 function Register-Always {
@@ -123,10 +128,12 @@ function Find-Git {
 }
 
 function Get-Page([string]$url) {
-  $out = Join-Path $env:TEMP ("ds-page-" + [guid]::NewGuid().ToString() + ".html")
-  Run-Quiet "curl.exe" @("-sS","-L","-A","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36","-o",$out,$url)
-  if ($LASTEXITCODE -ne 0 -or -not (Test-Path $out)) { return "" }
-  return [System.IO.File]::ReadAllText($out)
+  try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $wc = New-Object System.Net.WebClient
+    $wc.Headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    return $wc.DownloadString($url)
+  } catch { return "" }
 }
 
 function Get-StandingsWinner([string]$html) {
@@ -251,11 +258,6 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "clone failed" }
   }
   Set-Location $root
-  Log "updating the saved copy"
-  Run-Quiet $git @("fetch","origin","main")
-  if ($LASTEXITCODE -ne 0) { throw "fetch failed" }
-  Run-Quiet $git @("reset","--hard","origin/main")
-  if ($LASTEXITCODE -ne 0) { throw "reset failed" }
 
   $tz = [TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
   $now = [TimeZoneInfo]::ConvertTime([DateTime]::UtcNow, $tz)
@@ -268,9 +270,14 @@ try {
   if ($doCalendar) {
     $body = "range=daily&strLadder=diamondspaders&DisplayCount=300&page=1&sort=1&sd=$($yestDate.Day)&sm=$($yestDate.Month)&sy=$($yestDate.Year)&ed=$($now.Day)&em=$($now.Month)&ey=$($now.Year)"
     $cal = Join-Path $env:TEMP "diamondspaders-calendar.xml"
-    Run-Quiet "curl.exe" @("-sS","-A","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36","-H","Content-Type: application/x-www-form-urlencoded","--data",$body,"-o",$cal,"https://www.myleague.com/pages/remote/tournamentCalendar.php")
-    if ($LASTEXITCODE -ne 0) { throw "MyLeague did not answer" }
-    $xml = [System.IO.File]::ReadAllText($cal)
+    try {
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      $wc = New-Object System.Net.WebClient
+      $wc.Headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      $wc.Headers["Content-Type"] = "application/x-www-form-urlencoded"
+      $bytes = $wc.UploadData("https://www.myleague.com/pages/remote/tournamentCalendar.php", "POST", [Text.Encoding]::UTF8.GetBytes($body))
+      $xml = [Text.Encoding]::UTF8.GetString($bytes)
+    } catch { throw "MyLeague did not answer" }
     if ($xml -notmatch "SQLResults") { throw "MyLeague did not return the tour list" }
   }
 
@@ -456,6 +463,30 @@ try {
   }
   if ($html2 -eq $html) { Log "no change" }
   else {
+    Log "updating the saved copy"
+    Run-Quiet $git @("fetch","origin","main")
+    if ($LASTEXITCODE -ne 0) { throw "fetch failed" }
+    Run-Quiet $git @("reset","--hard","origin/main")
+    if ($LASTEXITCODE -ne 0) { throw "reset failed" }
+    $html = Get-Content $indexPath -Raw
+    $html2 = [regex]::Replace($html, '<div id="ds-tours" class="ds-tour">[\s\S]*?(?=<div id="ds-winners-yesterday")', $bar, 1)
+    $html2 = [regex]::Replace($html2, '  var TOURS = \[[\s\S]*?\];', $list, 1)
+    if ($todayWins.Count -gt 0) {
+      $alreadyMoved = $state -and [string]$state.movedDay -eq $today
+      if (-not $alreadyMoved) {
+        $oldTop = [regex]::Match($html2, '<div id="ds-winners-today"[^>]*>([\s\S]*?)</div>\s*(?=<div id="ds-tours")')
+        if ($oldTop.Success -and $oldTop.Groups[1].Value.Trim()) {
+          $head = "<div style=`"grid-column:1/-1;padding:12px 10px 4px;font-size:15px;font-weight:800;letter-spacing:0.14em;color:#fbe646;`">Yesterday's Winners</div>"
+          $bot = "<div id=`"ds-winners-yesterday`" style=`"border-top:3px solid #fbe646;display:grid;grid-template-columns:1fr 1fr 1fr;`">`r`n$head`r`n" + $oldTop.Groups[1].Value.Trim() + "`r`n</div>`r`n"
+          $html2 = [regex]::Replace($html2, '<div id="ds-winners-yesterday"[\s\S]*?(?=<div id="ds-rank")', $bot, 1)
+          $movedDay = $today
+        }
+      }
+      $cards = @()
+      for ($i = 0; $i -lt $todayWins.Count; $i++) { $cards += CardOf $todayWins[$i] $i }
+      $top = "<div id=`"ds-winners-today`" style=`"display:grid;grid-template-columns:1fr 1fr 1fr;`">`r`n" + ($cards -join "`r`n") + "`r`n</div>`r`n"
+      $html2 = [regex]::Replace($html2, '<div id="ds-winners-today"[\s\S]*?(?=<div id="ds-tours")', $top, 1)
+    }
     [System.IO.File]::WriteAllText($indexPath, $html2)
     Run-Quiet $git @("add","index.html")
     Run-Quiet $git @("-c","user.name=diamondspaders","-c","user.email=actions@diamondspaders.online","commit","-m","Update the page")

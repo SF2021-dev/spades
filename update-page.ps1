@@ -30,20 +30,34 @@ function Log($msg) {
 
 function Run-Quiet([string]$File, [string[]]$ArgList) {
   $parts = foreach ($a in $ArgList) {
-    if ($a -match '[\s"]') { '"' + ($a -replace '"', '\"') + '"' } else { $a }
+    if ($null -eq $a) { $a = "" }
+    if ($a -match '[\s"&]') { '"' + ($a -replace '"', '\"') + '"' } else { $a }
   }
+  $cmd = ($File + " " + ($parts -join " ")).Replace('"', '""')
+  $vbsPath = Join-Path $env:TEMP "ds-quiet.vbs"
+  Set-Content -Path $vbsPath -Value "WScript.Quit CreateObject(""Wscript.Shell"").Run(""$cmd"", 0, True)" -Encoding ASCII
   $psi = New-Object System.Diagnostics.ProcessStartInfo
-  $psi.FileName = $File
-  $psi.Arguments = ($parts -join " ")
+  $psi.FileName = "wscript.exe"
+  $psi.Arguments = "//B //Nologo `"$vbsPath`""
   $psi.UseShellExecute = $false
   $psi.CreateNoWindow = $true
-  $psi.RedirectStandardOutput = $true
-  $psi.RedirectStandardError = $true
   $p = [System.Diagnostics.Process]::Start($psi)
-  $null = $p.StandardOutput.ReadToEnd()
-  $null = $p.StandardError.ReadToEnd()
   $p.WaitForExit()
   $global:LASTEXITCODE = $p.ExitCode
+}
+
+function Start-HiddenLoop {
+  if (-not $PSCommandPath) { return }
+  $cmd = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""$PSCommandPath"" -loop"
+  $cmd = $cmd.Replace('"', '""')
+  $vbsPath = Join-Path $env:TEMP "ds-start.vbs"
+  Set-Content -Path $vbsPath -Value "CreateObject(""Wscript.Shell"").Run ""$cmd"", 0, False" -Encoding ASCII
+  $psi = New-Object System.Diagnostics.ProcessStartInfo
+  $psi.FileName = "wscript.exe"
+  $psi.Arguments = "//B //Nologo `"$vbsPath`""
+  $psi.UseShellExecute = $false
+  $psi.CreateNoWindow = $true
+  [void][System.Diagnostics.Process]::Start($psi)
 }
 
 function Register-Always {
@@ -74,7 +88,7 @@ function Start-LoopIfNeeded {
   if ($script:asLoop -or $script:asOnce) { return }
   if ((Get-LoopPid) -ne 0) { Log "it is already running"; return }
   if (-not $PSCommandPath) { return }
-  Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-WindowStyle","Hidden","-File",$PSCommandPath,"-loop") -WindowStyle Hidden
+  Start-HiddenLoop
   Log "it stays running"
 }
 
@@ -86,6 +100,9 @@ if ($args -contains "-loop") {
   Set-Content -Path $lock -Value $PID
   Register-Always
   Log "staying running"
+  Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -match 'update-page\.ps1' } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 }
 
 function Find-Git {
@@ -478,7 +495,7 @@ if ($script:asLoop) {
         if ($here -ne $there) {
           Copy-Item $latest $PSCommandPath -Force
           Remove-Item $lock -Force -ErrorAction SilentlyContinue
-          Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-WindowStyle","Hidden","-File",$PSCommandPath,"-loop") -WindowStyle Hidden
+          Start-HiddenLoop
           exit 0
         }
       }

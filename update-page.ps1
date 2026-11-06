@@ -1,5 +1,7 @@
 # Reads today's Diamond Spaders tours from MyLeague and saves them to the page.
 $ErrorActionPreference = "Stop"
+$script:asLoop = $args -contains "-loop"
+$script:asOnce = $args -contains "-once"
 $root = Join-Path $env:USERPROFILE "diamondspaders"
 $log = Join-Path $env:TEMP "diamondspaders-update-log.txt"
 
@@ -11,7 +13,10 @@ if ($args -notcontains "-noupdate" -and $PSCommandPath) {
     $there = (Get-FileHash $latest -Algorithm MD5).Hash
     if ($here -ne $there) {
       Copy-Item $latest $PSCommandPath -Force
-      & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $PSCommandPath -noupdate
+      $pass = @("-NoProfile","-ExecutionPolicy","Bypass","-File",$PSCommandPath,"-noupdate")
+      if ($script:asLoop) { $pass += "-loop" }
+      if ($script:asOnce) { $pass += "-once" }
+      & powershell.exe @pass
       exit $LASTEXITCODE
     }
   }
@@ -21,6 +26,60 @@ function Log($msg) {
   $line = "{0}  {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg
   Add-Content -Path $log -Value $line
   Write-Host $line
+}
+
+function Register-Always {
+  if (-not $PSCommandPath) { return }
+  $tr = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -loop"
+  & schtasks.exe /Create /F /SC ONLOGON /TN "Diamond Spaders update" /TR $tr | Out-Null
+  & schtasks.exe /Create /F /SC MINUTE /MO 5 /TN "Diamond Spaders watchdog" /TR $tr | Out-Null
+}
+
+function Get-LoopPid {
+  $lock = Join-Path $env:TEMP "diamondspaders-loop.pid"
+  if (-not (Test-Path $lock)) { return 0 }
+  $id = 0
+  [void][int]::TryParse((Get-Content $lock -ErrorAction SilentlyContinue | Select-Object -First 1), [ref]$id)
+  if ($id -le 0) { return 0 }
+  if (Get-Process -Id $id -ErrorAction SilentlyContinue) { return $id }
+  return 0
+}
+
+function Start-LoopIfNeeded {
+  Register-Always
+  if ($script:asLoop -or $script:asOnce) { return }
+  if ((Get-LoopPid) -ne 0) { Log "it is already running"; return }
+  if (-not $PSCommandPath) { return }
+  Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-WindowStyle","Hidden","-File",$PSCommandPath,"-loop") -WindowStyle Hidden
+  Log "it stays running"
+}
+
+if ($args -contains "-loop") {
+  if ((Get-LoopPid) -ne 0) { exit 0 }
+  $lock = Join-Path $env:TEMP "diamondspaders-loop.pid"
+  Set-Content -Path $lock -Value $PID
+  Register-Always
+  Log "staying running"
+  while ($true) {
+    try {
+      $latest = Join-Path $env:TEMP "update-page-latest.ps1"
+      & curl.exe -fsSL -o $latest "https://raw.githubusercontent.com/SF2021-dev/spades/main/update-page.ps1"
+      if ($LASTEXITCODE -eq 0 -and (Test-Path $latest) -and $PSCommandPath) {
+        $here = (Get-FileHash $PSCommandPath -Algorithm MD5).Hash
+        $there = (Get-FileHash $latest -Algorithm MD5).Hash
+        if ($here -ne $there) {
+          Copy-Item $latest $PSCommandPath -Force
+          Remove-Item $lock -Force -ErrorAction SilentlyContinue
+          Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-WindowStyle","Hidden","-File",$PSCommandPath,"-loop") -WindowStyle Hidden
+          exit 0
+        }
+      }
+      & powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $PSCommandPath -noupdate -once
+    } catch {
+      Log ("ERROR " + $_.Exception.Message)
+    }
+    Start-Sleep -Seconds 300
+  }
 }
 
 function Find-Git {
@@ -150,10 +209,7 @@ try {
     if ($age -ge 20) { $dueCount++ }
   }
   if (-not $doCalendar -and $dueCount -eq 0) {
-    if ($PSCommandPath) {
-      $task = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -noupdate"
-      & schtasks.exe /Create /F /SC MINUTE /MO 5 /TN "Diamond Spaders update" /TR $task | Out-Null
-    }
+    Start-LoopIfNeeded
     if ($full) { Log "all 16 slots filled, next tour check is after midnight" } else { Log "nothing to check" }
     Log "done"
     exit 0
@@ -382,11 +438,7 @@ try {
   $keepCal = if ($doCalendar) { $now.ToString("o") } elseif ($state) { [string]$state.lastCalendar } else { "" }
   $keepFull = if ($full) { $today } else { "" }
   @{ lastCalendar = $keepCal; fullDay = $keepFull; movedDay = $keepMoved; tours = $tourSave; winners = $winMap } | ConvertTo-Json -Depth 6 | Set-Content -Path $statePath -Encoding UTF8
-  if ($PSCommandPath) {
-    $task = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -noupdate"
-    & schtasks.exe /Create /F /SC MINUTE /MO 5 /TN "Diamond Spaders update" /TR $task | Out-Null
-    Log "tours every 30 minutes, winners every 5 minutes"
-  }
+  Start-LoopIfNeeded
   Log "done"
 }
 catch {

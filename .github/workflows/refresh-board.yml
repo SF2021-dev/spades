@@ -1,9 +1,6 @@
 name: Refresh board
 on:
   workflow_dispatch:
-  schedule:
-    # Every 10 minutes, off the hour. GitHub still drops some of these.
-    - cron: "7,17,27,37,47,57 * * * *"
 permissions:
   contents: write
 concurrency:

@@ -99,7 +99,7 @@
 <div id="ds-rank" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;"></div>
 </div>
 <script src="/chatnotify.js?v=2" defer></script>
-<script src="https://diamondspaders.online/live.js?v=1" defer></script>
+<script src="https://diamondspaders.online/live.js?v=2" defer></script>
 <img src="https://diamondspaders.online/diamondspaderslogo.jpg" alt="Diamond Spaders" style="width:100%;height:auto;display:block;">
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:16px 10px 12px;">
 <a class="ds-link" href="https://diamondspaders.online/howtoplayinadiamondstournament/"><img class="ds-ico" src="https://diamondspaders.online/sign%20up.jpg" alt="">NEW PLAYER GUIDE</a>
@@ -250,6 +250,45 @@
     }
     drawTours();
   }
+  var FEED = "https://preview-sandbox--6aed74ce4028bac92a8ff9d9.base44.app/api/tour-feed";
+  function clockOf(text) {
+    var m = String(text || "").match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (!m) return null;
+    var h = (+m[1]) % 12;
+    if (/pm/i.test(m[3])) h += 12;
+    return { h: h, m: +m[2] };
+  }
+  function fromFeed(data) {
+    var list = (data && data.tournaments) || [];
+    var today = etDate(etNow());
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var t = list[i];
+      var tm = clockOf(t.time);
+      if (!tm && t.h != null) tm = { h: +t.h, m: +(t.m || 0) };
+      if (!tm) continue;
+      out.push({
+        dt: t.dt || t.date || today,
+        h: tm.h,
+        m: tm.m,
+        game: t.game || t.format || "",
+        td: t.td || t.host || "",
+        url: t.url || t.href || "#",
+        ava: t.ava || ""
+      });
+    }
+    return out;
+  }
+  function loadFeed() {
+    fetch(FEED + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      return r.ok ? r.json() : null;
+    }).then(function (data) {
+      var list = fromFeed(data);
+      if (list.length) window.dsSetTours(list);
+    }).catch(function () {});
+  }
+  loadFeed();
+  setInterval(loadFeed, 300000);
   tick();
   setInterval(tick, 1000);
 })();

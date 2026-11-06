@@ -424,7 +424,22 @@ const env = { ASSETS: { fetch: async () => new Response(cfgText, { status: 200 }
 const body = await build(env, "https://diamondspaders.online");
 if (JSON.stringify(disk) !== before) writeFileSync(cacheUrl, JSON.stringify(disk));
 const same = prev && signature(prev) === signature(body);
-if (!same) {
+function plain(html) { return String(html).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(); }
+if (prev?.days) {
+  for (const day of Object.keys(body.days)) {
+    const oldCells = prev.days[day]?.cells || [];
+    const fresh = body.days[day].cells || [];
+    if (oldCells.length <= fresh.length) continue;
+    const merged = oldCells.slice();
+    for (const cell of fresh) {
+      const stamp = plain(cell).slice(0, 28);
+      if (!merged.some(old => plain(old).includes(stamp))) merged.push(cell);
+    }
+    body.days[day].cells = merged;
+    if (prev.days[day]?.heading) body.days[day].heading = prev.days[day].heading;
+  }
+}
+if (!same || (prev && signature(prev) !== signature(body))) {
   writeFileSync(liveUrl, JSON.stringify(body));
   const hers = /^fetch_?it_?up$/i;
   const tomorrow = addDays(body.today, 1);

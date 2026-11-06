@@ -1,8 +1,7 @@
 # Reads today's Diamond Spaders tours from MyLeague and saves them to the page.
 $ErrorActionPreference = "Stop"
 $root = Join-Path $env:USERPROFILE "diamondspaders"
-$log = Join-Path $root "update-log.txt"
-New-Item -ItemType Directory -Force -Path $root | Out-Null
+$log = Join-Path $env:TEMP "diamondspaders-update-log.txt"
 
 function Log($msg) {
   $line = "{0}  {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $msg
@@ -45,6 +44,10 @@ try {
   Log "git $git"
 
   if (-not (Test-Path (Join-Path $root ".git"))) {
+    if (Test-Path $root) {
+      Log "removing the blocked folder"
+      Remove-Item $root -Recurse -Force
+    }
     Log "cloning the site"
     & $git clone https://github.com/SF2021-dev/spades.git $root
     if ($LASTEXITCODE -ne 0) { throw "clone failed" }

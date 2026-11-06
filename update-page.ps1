@@ -222,14 +222,15 @@ try {
     $td = Field "td"
     $id = Field "tcount"
     $game = Label (Field "location") $per
-    $tours += [pscustomobject]@{ date = $date; h = $h; m = $mi; game = $game; td = $td; id = $id; per = $per; status = $status; winners = @(); team = "" }
+    $win = Field "winner"
+    $tours += [pscustomobject]@{ date = $date; h = $h; m = $mi; game = $game; td = $td; id = $id; per = $per; status = $status; win = $win; winners = @(); team = "" }
   }
   $slotHours = @{}
   foreach ($t in $tours) { if ($t.date -eq $today -and $t.m -eq 15 -and $t.h -ge 8 -and $t.h -le 23) { $slotHours[[string]$t.h] = $true } }
   if ($slotHours.Count -ge 16) { $full = $true; Log "all 16 slots are filled" }
   } else {
     foreach ($t in $saved) {
-      $tours += [pscustomobject]@{ date = [string]$t.date; h = [int]$t.h; m = [int]$t.m; game = [string]$t.game; td = [string]$t.td; id = [string]$t.id; per = [int]$t.per; status = [string]$t.status; winners = @(); team = "" }
+      $tours += [pscustomobject]@{ date = [string]$t.date; h = [int]$t.h; m = [int]$t.m; game = [string]$t.game; td = [string]$t.td; id = [string]$t.id; per = [int]$t.per; status = [string]$t.status; win = [string]$t.win; winners = @(); team = "" }
     }
   }
   $nowMin = $now.Hour * 60 + $now.Minute
@@ -242,6 +243,19 @@ try {
       if ($prop) { $knownNames = @($prop.Value.names); $knownTeam = [string]$prop.Value.team }
     }
     if ($knownNames) { $t.winners = @($knownNames); $t.team = $knownTeam; continue }
+    if ($t.status -eq "2" -and $t.win) {
+      $pard = ($t.per -eq 2) -or ($t.game -eq "REG PARTNERS") -or ($t.game -eq "SUI PASS 2")
+      if ($pard) {
+        $wt = Get-WinnerTeam $t.id
+        if ($wt -and @($wt.names).Count -ge 2) {
+          $t.winners = @($wt.names | Select-Object -First 2)
+          $t.team = [string]$wt.team
+          continue
+        }
+      }
+      $t.winners = @($t.win)
+      continue
+    }
     $age = $nowMin - ($t.h * 60 + $t.m)
     if ($age -lt 20) { continue }
     $page = Get-Page "https://cgi6.igl.net/tourneysystem/standings.php?tcount=$($t.id)&path=diamondspaders"
@@ -266,7 +280,7 @@ try {
     }
     $t.team = $team
   }
-  $open = @($tours | Where-Object { $_.date -eq $today -and @($_.winners).Count -eq 0 -and $_.status -ne "2" } | Sort-Object h, m, id)
+  $open = @($tours | Where-Object { $_.date -eq $today -and @($_.winners).Count -eq 0 } | Sort-Object h, m, id)
   $todayWins = @($tours | Where-Object { $_.date -eq $today -and @($_.winners).Count -gt 0 } | Sort-Object h, m, id)
   $yestWins = @($tours | Where-Object { $_.date -eq $yesterday -and @($_.winners).Count -gt 0 } | Sort-Object h, m, id)
   Log ("tours " + $open.Count + " winners " + $todayWins.Count)
@@ -362,7 +376,7 @@ try {
     if (@($t.winners).Count -gt 0) { $winMap[[string]$t.id] = @{ names = @($t.winners); team = [string]$t.team } }
   }
   $tourSave = @()
-  foreach ($t in $tours) { $tourSave += @{ date = $t.date; h = $t.h; m = $t.m; game = $t.game; td = $t.td; id = $t.id; per = $t.per; status = $t.status } }
+  foreach ($t in $tours) { $tourSave += @{ date = $t.date; h = $t.h; m = $t.m; game = $t.game; td = $t.td; id = $t.id; per = $t.per; status = $t.status; win = $t.win } }
   $keepMoved = ""
   if ($movedDay) { $keepMoved = $movedDay } elseif ($state) { $keepMoved = [string]$state.movedDay }
   $keepCal = if ($doCalendar) { $now.ToString("o") } elseif ($state) { [string]$state.lastCalendar } else { "" }

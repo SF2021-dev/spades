@@ -342,15 +342,16 @@ async function build(env, origin) {
   const R = makeRenderer(cfg, names), hidden = new Set((cfg.hidden || []).map(String));
   const days = {};
   for (const d of [today, addDays(today, -1), addDays(today, -2)]) days[d] = R.day(tours, d, today);
-    // Keep every today tour with no standings/user winner. Never drop based on calendar feed status.
-    const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && !t.winners.length && t.status !== "extra")
+    // A tour leaves the list 75 minutes after it starts unless it is still the live one. Canceled tours are in hidden.
+    const liveSlot = t => t.date === today && !t.winners.length && et.min <= t.h * 60 + t.m + 75;
+    const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.status !== "extra" && liveSlot(t))
     .map(t => ({ dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td, url: t.url || (cfg.tour_url || "").replace("%s", t.id), ava: R.avatar(t.td) || "", ...(R.subtitle(t) ? { sub: R.subtitle(t) } : {}) }));
   const board = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && t.status !== "extra").map(t => ({
     date: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td,
     url: t.url || (cfg.tour_url || "https://www.myleague.com/diamondspaders/tournament/%s/").replace("%s", t.id),
     id: t.id, winners: t.winners || [], pending: !!t.pending,
   }));
-  const schedule = tours.filter(t => !hidden.has(String(t.id)) && t.status !== "extra" && t.date >= today).map(t => ({
+  const schedule = tours.filter(t => !hidden.has(String(t.id)) && t.status !== "extra" && (t.date > today || liveSlot(t))).map(t => ({
     dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td,
     url: t.url || (cfg.tour_url || "https://www.myleague.com/diamondspaders/tournament/%s/").replace("%s", t.id),
   }));

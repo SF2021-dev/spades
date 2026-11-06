@@ -1,6 +1,5 @@
-/* Diamond Spaders live results: polls /api/live and refreshes winners grids + tour list.
-   As soon as today has any winners, yesterday's winners cards are placed in the lower grid
-   (below the tours list), replacing whatever was previously there. */
+/* Asks /api/live when the page is open. That function reads MyLeague and returns today's tours.
+   If the ask fails, the list already on the page is left alone. */
 (function () {
   var POLL = 60000, BG_EVEN = "#1a1200";
   var lastTours = null;
@@ -47,7 +46,7 @@
   function poll() {
     if (busy || document.hidden) return;
     busy = true;
-    fetch("/update/live.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; })
+    fetch("/api/live?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; })
       .then(apply).catch(function () {}).then(function () { busy = false; });
   }
   poll();

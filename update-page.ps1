@@ -53,8 +53,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "clone failed" }
   }
   Set-Location $root
-  & $git pull --rebase origin main
-  if ($LASTEXITCODE -ne 0) { throw "pull failed" }
+  Log "updating the saved copy"
+  & $git fetch origin main
+  if ($LASTEXITCODE -ne 0) { throw "fetch failed" }
+  & $git reset --hard origin/main
+  if ($LASTEXITCODE -ne 0) { throw "reset failed" }
 
   $tz = [TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
   $now = [TimeZoneInfo]::ConvertTime([DateTime]::UtcNow, $tz)

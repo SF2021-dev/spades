@@ -1,5 +1,5 @@
 /* Diamond Spaders message box: fills <div id="ds-msgbox">.
-   Messages are saved to the site's own API (/api/messages, Cloudflare D1) so every visitor sees them,
+   Messages are saved to the site's own API (/api/messages, site storage) so every visitor sees them,
    then also emailed via FormSubmit as a notification. /messages.json is a backup archive, shown only if the API is down.
    Shown oldest first; under the list a compose line reads "username: <type here>" (Enter sends, Shift+Enter newline, click the name to change it). Hint "type here (enter to send)" shows only until first typing/send (localStorage ds-mb-hint-seen).
    PIN: each name has a 3-digit PIN on the server (/api/pin, hashed in D1). First time a name is used the box asks to create

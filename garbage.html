@@ -172,7 +172,7 @@
     });
   }
   var GAMES = mkGames(TOURS);
-  /* live.js (always-on Cloudflare /api/live) swaps in the current tour list when the feed has news */
+  /* live.js (the update file) swaps in the current tour list when the feed has news */
   window.dsSetTours = function (list) { TOURS = list; GAMES = mkGames(TOURS); tick(); };
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function etDate(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }

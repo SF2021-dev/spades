@@ -30,7 +30,7 @@ function Log($msg) {
 
 function Register-Always {
   if (-not $PSCommandPath) { return }
-  $tr = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -loop"
+  $tr = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $PSCommandPath -loop"
   & schtasks.exe /Create /F /SC ONLOGON /TN "Diamond Spaders update" /TR $tr | Out-Null
   & schtasks.exe /Create /F /SC MINUTE /MO 5 /TN "Diamond Spaders watchdog" /TR $tr | Out-Null
 }

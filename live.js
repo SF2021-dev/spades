@@ -3,6 +3,7 @@
    (below the tours list), replacing whatever was previously there. */
 (function () {
   var POLL = 60000, BG_EVEN = "#1a1200";
+  var lastTours = null;
   function norm(html) { var t = document.createElement("template"); t.innerHTML = html; return t.innerHTML; }
   function trail(grid, bg) {
     var a = grid && grid.lastElementChild && grid.lastElementChild.querySelector('a[href*="diamondspaders.online/"]');
@@ -34,6 +35,12 @@
     if (gY && lower) {
       var wantY = norm(body(lower, true) + (lower.cells.length ? trail(gY, lower.cells.length % 2 === 0 ? BG_EVEN : "#000") : ""));
       if (norm(gY.innerHTML) !== wantY) gY.innerHTML = wantY;
+    }
+
+    if (d.tours && window.dsSetTours) {
+      var j = JSON.stringify(d.tours);
+      if (j !== lastTours) window.dsSetTours(d.tours);
+      lastTours = j;
     }
   }
   var busy = false;

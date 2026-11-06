@@ -125,6 +125,40 @@ try {
   if (-not $git) { throw "Git is not installed. Install GitHub Desktop, sign in, then run this again." }
   Log "git $git"
 
+  $tz = [TimeZoneInfo]::FindSystemTimeZoneById("Eastern Standard Time")
+  $now = [TimeZoneInfo]::ConvertTime([DateTime]::UtcNow, $tz)
+  $today = $now.ToString("yyyy-MM-dd")
+  $statePath = Join-Path $env:TEMP "diamondspaders-update-state.json"
+  $state = $null
+  if (Test-Path $statePath) { try { $state = Get-Content $statePath -Raw | ConvertFrom-Json } catch { $state = $null } }
+  $full = $false
+  if ($state -and [string]$state.fullDay -eq $today) { $full = $true }
+  $lastCal = $null
+  if ($state -and $state.lastCalendar) { try { $lastCal = [datetime]$state.lastCalendar } catch { $lastCal = $null } }
+  $doCalendar = (-not $full) -and ((-not $lastCal) -or (($now - $lastCal).TotalMinutes -ge 30))
+  if (-not $doCalendar -and (-not $state -or -not $state.tours)) { $doCalendar = $true }
+  $nowMin = $now.Hour * 60 + $now.Minute
+  $saved = @()
+  if ($state -and $state.tours) { $saved = @($state.tours) }
+  $dueCount = 0
+  foreach ($t in $saved) {
+    if ([string]$t.date -ne $today) { continue }
+    $known = $false
+    if ($state.winners) { $known = [bool]($state.winners.PSObject.Properties.Name -contains [string]$t.id) }
+    if ($known) { continue }
+    $age = $nowMin - ([int]$t.h * 60 + [int]$t.m)
+    if ($age -ge 20 -and [string]$t.status -ne "2") { $dueCount++ }
+  }
+  if (-not $doCalendar -and $dueCount -eq 0) {
+    if ($PSCommandPath) {
+      $task = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -noupdate"
+      & schtasks.exe /Create /F /SC MINUTE /MO 5 /TN "Diamond Spaders update" /TR $task | Out-Null
+    }
+    if ($full) { Log "all 16 slots filled, next tour check is after midnight" } else { Log "nothing to check" }
+    Log "done"
+    exit 0
+  }
+
   if (-not (Test-Path (Join-Path $root ".git"))) {
     if (Test-Path $root) {
       Log "removing the blocked folder"
@@ -145,15 +179,18 @@ try {
   $now = [TimeZoneInfo]::ConvertTime([DateTime]::UtcNow, $tz)
   $today = $now.ToString("yyyy-MM-dd")
   Log "today $today Eastern"
+  if ($doCalendar) { Log "checking MyLeague for tours" } else { Log "using the saved tour list" }
 
   $yestDate = $now.AddDays(-1)
   $yesterday = $yestDate.ToString("yyyy-MM-dd")
-  $body = "range=daily&strLadder=diamondspaders&DisplayCount=300&page=1&sort=1&sd=$($yestDate.Day)&sm=$($yestDate.Month)&sy=$($yestDate.Year)&ed=$($now.Day)&em=$($now.Month)&ey=$($now.Year)"
-  $cal = Join-Path $env:TEMP "diamondspaders-calendar.xml"
-  & curl.exe -sS -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded" --data $body -o $cal "https://www.myleague.com/pages/remote/tournamentCalendar.php"
-  if ($LASTEXITCODE -ne 0) { throw "MyLeague did not answer" }
-  $xml = [System.IO.File]::ReadAllText($cal)
-  if ($xml -notmatch "SQLResults") { throw "MyLeague did not return the tour list" }
+  if ($doCalendar) {
+    $body = "range=daily&strLadder=diamondspaders&DisplayCount=300&page=1&sort=1&sd=$($yestDate.Day)&sm=$($yestDate.Month)&sy=$($yestDate.Year)&ed=$($now.Day)&em=$($now.Month)&ey=$($now.Year)"
+    $cal = Join-Path $env:TEMP "diamondspaders-calendar.xml"
+    & curl.exe -sS -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -H "Content-Type: application/x-www-form-urlencoded" --data $body -o $cal "https://www.myleague.com/pages/remote/tournamentCalendar.php"
+    if ($LASTEXITCODE -ne 0) { throw "MyLeague did not answer" }
+    $xml = [System.IO.File]::ReadAllText($cal)
+    if ($xml -notmatch "SQLResults") { throw "MyLeague did not return the tour list" }
+  }
 
   $avatars = @{}
   $cfgPath = Join-Path $root "live\config.json"
@@ -165,6 +202,7 @@ try {
   }
 
   $tours = @()
+  if ($doCalendar) {
   foreach ($rec in [regex]::Matches($xml, "<objRecord>([\s\S]*?)</objRecord>")) {
     $chunk = $rec.Groups[1].Value
     function Field([string]$name) {
@@ -186,10 +224,26 @@ try {
     $game = Label (Field "location") $per
     $tours += [pscustomobject]@{ date = $date; h = $h; m = $mi; game = $game; td = $td; id = $id; per = $per; status = $status; winners = @(); team = "" }
   }
+  $slotHours = @{}
+  foreach ($t in $tours) { if ($t.date -eq $today -and $t.m -eq 15 -and $t.h -ge 8 -and $t.h -le 23) { $slotHours[[string]$t.h] = $true } }
+  if ($slotHours.Count -ge 16) { $full = $true; Log "all 16 slots are filled" }
+  } else {
+    foreach ($t in $saved) {
+      $tours += [pscustomobject]@{ date = [string]$t.date; h = [int]$t.h; m = [int]$t.m; game = [string]$t.game; td = [string]$t.td; id = [string]$t.id; per = [int]$t.per; status = [string]$t.status; winners = @(); team = "" }
+    }
+  }
   $nowMin = $now.Hour * 60 + $now.Minute
   foreach ($t in $tours) {
-    $started = ($t.date -lt $today) -or ($t.date -eq $today -and $nowMin -ge ($t.h * 60 + $t.m))
-    if (-not $started -or -not $t.id) { continue }
+    if ($t.date -ne $today -or -not $t.id) { continue }
+    $knownNames = $null
+    $knownTeam = ""
+    if ($state -and $state.winners) {
+      $prop = $state.winners.PSObject.Properties | Where-Object { $_.Name -eq [string]$t.id } | Select-Object -First 1
+      if ($prop) { $knownNames = @($prop.Value.names); $knownTeam = [string]$prop.Value.team }
+    }
+    if ($knownNames) { $t.winners = @($knownNames); $t.team = $knownTeam; continue }
+    $age = $nowMin - ($t.h * 60 + $t.m)
+    if ($age -lt 20 -or $t.status -eq "2") { continue }
     $page = Get-Page "https://cgi6.igl.net/tourneysystem/standings.php?tcount=$($t.id)&path=diamondspaders"
     $names = @(Get-StandingsWinner $page)
     $pard = ($t.per -eq 2) -or ($t.game -eq "REG PARTNERS") -or ($t.game -eq "SUI PASS 2")
@@ -275,17 +329,20 @@ try {
   $list = "  var TOURS = [`r`n" + ($js -join ",`r`n") + "`r`n  ];"
   $html2 = [regex]::Replace($html2, '  var TOURS = \[[\s\S]*?\];', $list, 1)
   if ($todayWins.Count -gt 0) {
+    $alreadyMoved = $state -and [string]$state.movedDay -eq $today
+    if (-not $alreadyMoved) {
+      $oldTop = [regex]::Match($html2, '<div id="ds-winners-today"[^>]*>([\s\S]*?)</div>\s*(?=<div id="ds-tours")')
+      if ($oldTop.Success -and $oldTop.Groups[1].Value.Trim()) {
+        $head = "<div style=`"grid-column:1/-1;padding:12px 10px 4px;font-size:15px;font-weight:800;letter-spacing:0.14em;color:#fbe646;`">Yesterday's Winners</div>"
+        $bot = "<div id=`"ds-winners-yesterday`" style=`"border-top:3px solid #fbe646;display:grid;grid-template-columns:1fr 1fr 1fr;`">`r`n$head`r`n" + $oldTop.Groups[1].Value.Trim() + "`r`n</div>`r`n"
+        $html2 = [regex]::Replace($html2, '<div id="ds-winners-yesterday"[\s\S]*?(?=<div id="ds-rank")', $bot, 1)
+        $movedDay = $today
+      }
+    }
     $cards = @()
     for ($i = 0; $i -lt $todayWins.Count; $i++) { $cards += CardOf $todayWins[$i] $i }
     $top = "<div id=`"ds-winners-today`" style=`"display:grid;grid-template-columns:1fr 1fr 1fr;`">`r`n" + ($cards -join "`r`n") + "`r`n</div>`r`n"
     $html2 = [regex]::Replace($html2, '<div id="ds-winners-today"[\s\S]*?(?=<div id="ds-tours")', $top, 1)
-    if ($yestWins.Count -gt 0) {
-      $yc = @()
-      for ($i = 0; $i -lt $yestWins.Count; $i++) { $yc += CardOf $yestWins[$i] $i }
-      $head = "<div style=`"grid-column:1/-1;padding:12px 10px 4px;font-size:15px;font-weight:800;letter-spacing:0.14em;color:#fbe646;`">Yesterday's Winners</div>"
-      $bot = "<div id=`"ds-winners-yesterday`" style=`"border-top:3px solid #fbe646;display:grid;grid-template-columns:1fr 1fr 1fr;`">`r`n$head`r`n" + ($yc -join "`r`n") + "`r`n</div>`r`n"
-      $html2 = [regex]::Replace($html2, '<div id="ds-winners-yesterday"[\s\S]*?(?=<div id="ds-rank")', $bot, 1)
-    }
   }
   if ($html2 -eq $html) { Log "no change" }
   else {
@@ -297,10 +354,24 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "push failed. Sign in to GitHub on this computer and run this again." }
     Log "saved"
   }
+  $winMap = @{}
+  if ($state -and $state.winners) {
+    foreach ($p in $state.winners.PSObject.Properties) { $winMap[$p.Name] = $p.Value }
+  }
+  foreach ($t in $tours) {
+    if (@($t.winners).Count -gt 0) { $winMap[[string]$t.id] = @{ names = @($t.winners); team = [string]$t.team } }
+  }
+  $tourSave = @()
+  foreach ($t in $tours) { $tourSave += @{ date = $t.date; h = $t.h; m = $t.m; game = $t.game; td = $t.td; id = $t.id; per = $t.per; status = $t.status } }
+  $keepMoved = ""
+  if ($movedDay) { $keepMoved = $movedDay } elseif ($state) { $keepMoved = [string]$state.movedDay }
+  $keepCal = if ($doCalendar) { $now.ToString("o") } elseif ($state) { [string]$state.lastCalendar } else { "" }
+  $keepFull = if ($full) { $today } else { "" }
+  @{ lastCalendar = $keepCal; fullDay = $keepFull; movedDay = $keepMoved; tours = $tourSave; winners = $winMap } | ConvertTo-Json -Depth 6 | Set-Content -Path $statePath -Encoding UTF8
   if ($PSCommandPath) {
     $task = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -noupdate"
-    & schtasks.exe /Create /F /SC MINUTE /MO 15 /TN "Diamond Spaders update" /TR $task | Out-Null
-    Log "will check again every 15 minutes"
+    & schtasks.exe /Create /F /SC MINUTE /MO 5 /TN "Diamond Spaders update" /TR $task | Out-Null
+    Log "tours every 30 minutes, winners every 5 minutes"
   }
   Log "done"
 }

@@ -268,12 +268,37 @@
     });
   }
 
-  function editIcon(icon) {
-    var current = icon.getAttribute("href") || "https://";
-    var url = prompt("URL", current);
-    if (!url) return;
-    url = url.trim();
+  function validUrl(raw) {
+    var url = String(raw || "").trim();
+    if (!url) return "";
     if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    try {
+      var u = new URL(url);
+      if (u.protocol !== "http:" && u.protocol !== "https:") return "";
+      var host = u.hostname;
+      if (!host || host === "https" || host === "http") return "";
+      if (host !== "localhost" && host.indexOf(".") < 0) return "";
+      if (/[<>\s]/.test(u.href)) return "";
+      return u.href;
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function askUrl(current) {
+    var entered = prompt("URL", current || "https://");
+    if (entered == null) return "";
+    var good = validUrl(entered);
+    if (!good) {
+      alert("That is not a valid web address. Use a full address like https://example.com");
+      return askUrl(entered.trim() || "https://");
+    }
+    return good;
+  }
+
+  function editIcon(icon) {
+    var url = askUrl(icon.getAttribute("href") || "https://");
+    if (!url) return;
     chooseImage().then(function (dataUrl) {
       if (!dataUrl) return;
       icon.setAttribute("href", url);
@@ -429,10 +454,8 @@
     add.className = "new-icon";
     add.textContent = "new icon";
     add.addEventListener("click", function () {
-      var url = prompt("URL", "https://");
+      var url = askUrl("https://");
       if (!url) return;
-      url = url.trim();
-      if (!/^https?:\/\//i.test(url)) url = "https://" + url;
       chooseImage().then(function (dataUrl) {
         if (!dataUrl) return;
         var name = "";

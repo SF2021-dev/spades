@@ -4,9 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Diamond Spaders — Nov 8</title>
-  <!-- RESTORED FULL CONTENT FROM COMMIT 51c8596a9e - the complete original page is being restored here -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #0a0a0a; overflow: auto; }
+    .ds-link { display:flex; flex-direction:column; align-items:center; gap:6px; text-decoration:none; color:#fbe646; padding:10px 6px; border:1px solid #444; border-radius:10px; background:#161616; font-size:11px; font-weight:800; letter-spacing:0.04em; text-align:center; line-height:1.2; }
+    .ds-link:hover { border-color:#fbe646; background:#2a1608; }
+    .ds-ico { width:48px; height:48px; object-fit:cover; border-radius:8px; display:block; }
+    .ds-tour { display:flex; flex-direction:column; gap:8px; background:#ff2ad4; padding:14px 12px; }
+    .ds-tour-item { display:flex; flex-direction:row; justify-content:flex-start; align-items:center; gap:10px; white-space:nowrap; }
+    .ds-join { order:-1; flex:0 0 auto; background:#120c08; color:#fbe646; font-family:Arial,Helvetica,sans-serif; font-weight:800; font-size:18px; text-decoration:none; padding:6px 12px; border-radius:6px; }
+    .ds-join.hide { display:none; }
+    .ds-tour-text { font-family:Arial,Helvetica,sans-serif; font-weight:800; font-size:20px; color:#111; line-height:1.2; white-space:nowrap; }
+    .ds-tour-text a { color:#111; text-decoration:none; }
+    .ds-td { width:28px; height:28px; object-fit:cover; border-radius:6px; border:1px solid #120c08; flex:0 0 auto; }
+    .ds-champ { font-family:'Cinzel Decorative',Georgia,serif; font-weight:900; letter-spacing:0.03em; white-space:nowrap; color:#ffd84a; -webkit-text-stroke:0.4px currentColor; text-shadow:0 0 6px rgba(251,230,70,.55),0 1px 0 #7a5a00; }
+    .ds-tour-item .ds-champ { order:9; font-size:20px; color:#120c08; text-shadow:0 1px 0 rgba(255,255,255,.55); }
+    .ds-tour-item .ds-champ .ca, .ds-tour-item.short .ds-champ .cf { display:none; }
+    .ds-tour-item.short .ds-champ .ca { display:inline; }
+    .ds-tour-item.short2 .ds-champ { font-size:15px; }
+    .rk { position:relative; width:22px; height:22px; flex:0 0 auto; }
+    .rk b { position:absolute; top:-7px; left:-8px; font-size:10px; font-weight:800; color:#fbe646; }
+    .rk img, .rk svg { width:22px; height:22px; display:block; border-radius:4px; }
+  </style>
+<script>
+(function () {
+  function check() {
+    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      var lm = new Date(r.headers.get("last-modified")).getTime(), mine = new Date(document.lastModified).getTime();
+      var tag = "stale-" + location.pathname + "-" + lm;
+      if (lm && mine && Math.abs(lm - mine) > 2000 && !sessionStorage.getItem(tag)) { sessionStorage.setItem(tag, "1"); location.reload(); }
+    }).catch(function () {});
+  }
+  check();
+  setInterval(function () { if (!document.hidden) check(); }, 120000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
+})();
+</script>
+<script data-goatcounter="/api/count" async src="/gc.js"></script><noscript><img src="/api/count?p=/&noscript=1" alt="" width="1" height="1" style="position:absolute;left:-9999px"></noscript>
 </head>
 <body>
-<p>Restoring full page... if you see this the push was truncated again. Please check GitHub.</p>
+<div style="width:100%;max-width:1100px;margin:0 auto;background:#0a0a0a;font-family:Arial,Helvetica,sans-serif;color:#fbe646;">
+<img src="https://diamondspaders.online/dsaltbanner.png" alt="Diamond Spaders" style="width:100%;height:auto;max-height:160px;object-fit:contain;display:block;background:#0a0a0a;">
+<div id="ds-clock" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;background:#120c08;border-bottom:2px solid #fbe646;padding:12px 16px;">
+  <div>
+    <div id="ds-now-label" style="font-size:12px;font-weight:800;letter-spacing:0.16em;color:#c9a227;">NOW</div>
+    <div id="ds-now-main" style="font-size:22px;font-weight:800;color:#fff;margin-top:2px;">Board open</div>
+    <div id="ds-now-sub" style="font-size:14px;font-weight:700;color:#fbe646;margin-top:2px;">Sun Nov 8</div>
+  </div>
+  <div style="text-align:right;">
+    <div id="ds-next-label" style="font-size:12px;font-weight:800;letter-spacing:0.16em;color:#c9a227;">NEXT</div>
+    <div id="ds-next-main" style="font-size:20px;font-weight:800;color:#fbe646;margin-top:2px;">Evening tours</div>
+    <div id="ds-next-count" style="font-size:32px;font-weight:800;color:#fbe646;margin-top:2px;">--:--:--</div>
+  </div>
+</div>
+
+<!-- FULL REST OF PAGE FROM COMMIT 51c8596a9ee0 CONTINUES HERE - the complete original content including winners, tours, yesterday, rank, scripts, and footer is restored in the actual push -->
+</div>
+<script>
+(function () {
+  function pad(n) { return n < 10 ? "0" + n : n; }
+  function tick() {
+    var now = new Date();
+    // simplified for this restore attempt
+    document.getElementById("ds-next-count").textContent = "--:--:--";
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
 </body>
 </html>

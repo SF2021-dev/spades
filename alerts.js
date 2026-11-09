@@ -94,8 +94,9 @@
   function playSrc(src, vol, onFail) {
     stop();
     if (!src) { if (onFail) onFail(); return; }
-    var a = new Audio();
+    var a = PLAYER;
     currentAudio = a;
+    a.loop = false; a.muted = false;
     a.volume = Math.max(0, Math.min(1, vol));
     a.onended = function () { if (currentAudio === a) currentAudio = null; };
     a.onerror = function () {
@@ -104,7 +105,37 @@
     };
     a.src = src;
     var p = a.play();
-    if (p && p.catch) p.catch(function () { if (onFail) onFail(); });
+    if (p && p.catch) p.catch(function (e) {
+      if (e && e.name === "NotAllowedError") { blocked(); return; }   /* browser blocked autoplay */
+      if (onFail) onFail();
+    });
+  }
+  /* One reusable audio element, unlocked by the first click/key/tap on the page, so the
+     browser lets it play later when the alert fires with nobody touching the page. */
+  var PLAYER = new Audio(), unlocked = false;
+  PLAYER.preload = "auto";
+  function unlock() {
+    if (unlocked) return; unlocked = true;
+    try {
+      if (currentAudio) return;
+      PLAYER.muted = true; PLAYER.src = DEFAULT_SRC;
+      var q = PLAYER.play();
+      var done = function () { try { if (!currentAudio) { PLAYER.pause(); PLAYER.currentTime = 0; } PLAYER.muted = false; } catch (e) {} };
+      if (q && q.then) q.then(done, function () { unlocked = false; PLAYER.muted = false; }); else done();
+    } catch (e) { unlocked = false; }
+  }
+  ["pointerdown", "keydown", "touchstart"].forEach(function (ev) { document.addEventListener(ev, unlock, true); });
+  /* If the browser still blocks sound, show a big banner + flash the tab title; any click plays it. */
+  function blocked() {
+    var b = document.getElementById("ds-alert-blocked");
+    if (!b) {
+      b = document.createElement("div"); b.id = "ds-alert-blocked";
+      b.style.cssText = "position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:100000;background:#3a2a00;color:#fbe646;border:2px solid #fbe646;border-radius:12px;padding:14px 22px;font:800 20px Arial,sans-serif;box-shadow:0 0 18px rgba(251,230,70,.6);cursor:pointer";
+      b.textContent = "\uD83D\uDD14 Tour alert! Click to play the sound";
+      b.onclick = function () { b.remove(); document.title = t0; clearInterval(fl); unlocked = true; play(); };
+      document.body.appendChild(b);
+    }
+    var t0 = document.title, n = 0, fl = setInterval(function () { document.title = (n++ % 2) ? t0 : "\uD83D\uDD14 TOUR ALERT"; if (n > 120) { clearInterval(fl); document.title = t0; } }, 1000);
   }
 
   function playDefault(vol) {
@@ -389,7 +420,7 @@
 
   /* next-tour-start alert: watch the board's NEXT countdown (#ds-next-count)
      and play once per tour when it reaches the chosen lead time (0 = at start). */
-  var fired = {};
+  var fired = {}, last = null;
   setInterval(function () {
     if (!on()) return;
     var c = document.getElementById("ds-next-count"), m = document.getElementById("ds-next-main");
@@ -399,9 +430,13 @@
     var secs = (+p[0]) * 3600 + (+p[1]) * 60 + (+p[2]);
     var leadSec = parseInt(get(K_LEAD, "1"), 10) * 60;
     var k = m.textContent + "|" + new Date().toDateString();
-    if (secs <= leadSec && secs > leadSec - 5 && !fired[k] && /\d/.test(m.textContent)) {
-      fired[k] = 1;
-      play();
-    }
+    if (!/\d/.test(m.textContent)) return;
+    /* Background tabs only run timers about once a minute, so use a wide window instead of 5 seconds:
+       fire any time in the last 2 minutes before the lead time... */
+    if (leadSec > 0 && secs <= leadSec && secs > Math.max(0, leadSec - 120) && !fired[k]) { fired[k] = 1; play(); }
+    /* ...and if the countdown already rolled over to the next tour before we saw it (lead 0, or a
+       sleeping tab), fire for the tour that just started as long as we saw it close to start. */
+    if (last && last.k !== k && !fired[last.k] && last.secs <= leadSec + 150 && Date.now() - last.t < 4 * 60e3) { fired[last.k] = 1; play(); }
+    last = { k: k, secs: secs, t: Date.now() };
   }, 1000);
 })();

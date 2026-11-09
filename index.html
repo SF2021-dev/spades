@@ -193,7 +193,7 @@
       html += '<a class="ds-join' + (gone ? " hide" : "") + '" href="' + t.url + '" target="_blank">JOIN</a>';
       html += '<div class="ds-tour-text">' + dayTag + amp(t.h, t.m) + '</div>';
       html += '<div class="ds-tour-text"><a href="' + t.url + '" target="_blank">' + t.game + " w/ " + t.td + "</a></div>";
-      html += '<span style="margin-left:-6px;display:flex;">' + (t.ava ? '<img class="ds-td" src="' + t.ava + '" alt="" onerror="this.onerror=null;this.outerHTML=\'' + SPADE_TD.replace(/'/g,"\\'") + '\'">' : SPADE_TD) + '</span>';
+      html += '<span style="margin-left:-6px;display:flex;">' + (t.ava ? '<img class="ds-td" src="' + t.ava + '" alt="" onerror="this.onerror=null;this.outerHTML=\'' + SPADE_TD.replace(/'/g,"\\'").replace(/"/g,"&quot;") + '\'">' : SPADE_TD) + '</span>';
       if (t.sub) {
         var sub = String(t.sub).replace(/&/g, "&amp;").replace(/</g, "&lt;");
         var ab = String(t.sub).split(/\s+/).filter(Boolean).map(function (w) { return w[0]; }).join("").toUpperCase();

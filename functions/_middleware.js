@@ -1,6 +1,6 @@
 // Site-wide registration gate: every page and API needs a valid ds_session (D1 sessions table),
 // except the sign-up/login page, the auth API, and the few assets that page uses.
-import { currentUser } from "./_shared/auth.js";
+import { currentUser, renewSession } from "./_shared/auth.js";
 
 const OPEN = [/^\/downloads\/Buzz(Christine|Judy|Dennis)-Windows\.zip$/, /^\/admin\/?$/, /^\/register(\.html)?\/?$/, /^\/api\/auth\//, /^\/dsaltbanner\.png$/, /^\/gc\.js$/, /^\/chat\/empty-bg\.(jpg|svg|png)$/, /^\/api\/count/,
   /^\/favicon\.ico$/, /^\/fonts\//, /^\/CNAME$/,
@@ -25,7 +25,14 @@ export async function onRequest(ctx) {
   if (svc && env.SERVICE_TOKEN && svc === env.SERVICE_TOKEN) return next();
   let user = null;
   try { if (env.DB) user = await currentUser(request, env); } catch (e) { console.error("gate", e); }
-  if (user) return next();
+  if (user) {
+    const res = await next();
+    try {
+      const c = await renewSession(request, env);
+      if (c) { const r = new Response(res.body, res); r.headers.append("Set-Cookie", c); return r; }
+    } catch (e) { console.error("renew", e); }
+    return res;
+  }
   if (path.startsWith("/api/")) {
     return new Response(JSON.stringify({ error: "Registration required", login: "/register" }), {
       status: 401, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });

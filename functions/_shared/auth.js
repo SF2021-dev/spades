@@ -1,7 +1,7 @@
 // Shared helpers for /api/auth/* (Cloudflare Pages Functions + D1 binding "DB").
 // Secrets/vars: RESEND_API_KEY (secret, needed to send confirmation email), EMAIL_FROM (optional).
 export const COOKIE = "ds_session";
-const SESSION_DAYS = 30, TOKEN_HOURS = 24, PBKDF2_ITER = 100000;
+const SESSION_DAYS = 400, TOKEN_HOURS = 24, PBKDF2_ITER = 100000;
 const enc = new TextEncoder();
 
 export function json(data, status = 200, headers = {}) {
@@ -82,6 +82,19 @@ export async function currentUser(request, env) {
   return env.DB.prepare(
     "SELECT u.id, u.email, u.username, u.verified_at, u.created_at FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > ?"
   ).bind(await sha256(id), Date.now()).first();
+}
+// Sliding renewal: a remembered session used again after a day gets pushed back out to the full SESSION_DAYS,
+// so anyone who visits at least once a year stays logged in. Returns a Set-Cookie value or null.
+export async function renewSession(request, env) {
+  const id = readCookie(request);
+  if (!id) return null;
+  const h = await sha256(id), now = Date.now();
+  const s = await env.DB.prepare("SELECT expires_at, created_at FROM sessions WHERE id = ?").bind(h).first();
+  if (!s || s.expires_at <= now) return null;
+  if (s.expires_at - s.created_at < 2 * 864e5) return null;          // browser-session login (Remember me unchecked)
+  if (now + SESSION_DAYS * 864e5 - s.expires_at < 864e5) return null; // renewed within the last day
+  await env.DB.prepare("UPDATE sessions SET expires_at = ? WHERE id = ?").bind(now + SESSION_DAYS * 864e5, h).run();
+  return cookie(id, SESSION_DAYS * 86400);
 }
 export async function destroySession(request, env) {
   const id = readCookie(request);

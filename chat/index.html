@@ -75,7 +75,7 @@ function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"
 
 // ---- login ----
 function start(){
-  api("action=me").then(function(j){ ME = j.name; afterLogin(); }).catch(function(){ show($("login"), true); $("lname").value = localStorage.getItem("ds-mb-name") || ""; });
+  api("action=me").then(function(j){ ME = j.name; afterLogin(); }).catch(function(){ location.replace("/register?gate=1&next=" + encodeURIComponent(location.pathname + location.search)); });
 }
 $("lgo").onclick = function(){
   var n = $("lname").value.trim(), p = $("lpin").value.trim(); $("lerr").textContent = "";

@@ -4,7 +4,7 @@
 // that script exports on every publish). Winners shown are ONLY those in the feed or the manual files - never guessed.
 // Response (cached ~60 s at the edge):
 //   {ok, now, today, days:{ "YYYY-MM-DD": {heading, cells:[html...], keys:[...]} } (today, yesterday, day before),
-//    tours:[{dt,h,m,game,td,url,ava}]}
+//    tours:[{dt,h,m,game,td,url,ava}]  (today + tomorrow upcoming/in-progress)}
 const CAL_URL = "https://www.myleague.com/pages/remote/tournamentCalendar.php";
 const UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120";
 const TTL = 60;
@@ -286,8 +286,10 @@ async function build(env, origin) {
   const R = makeRenderer(cfg, names), hidden = new Set((cfg.hidden || []).map(String));
   const days = {};
   for (const d of [today, addDays(today, -1), addDays(today, -2)]) days[d] = R.day(tours, d, today);
-    // Keep every today tour with no standings/user winner. Never drop based on calendar feed status.
-    const upcoming = tours.filter(t => !hidden.has(String(t.id)) && t.date === today && !t.winners.length && t.status !== "extra")
+    // Today + tomorrow tours with no standings/user winner (start pages need tomorrow for overnight "next").
+    // Never drop based on calendar feed status.
+    const tomorrow = addDays(today, 1);
+    const upcoming = tours.filter(t => !hidden.has(String(t.id)) && (t.date === today || t.date === tomorrow) && !t.winners.length && t.status !== "extra")
     .map(t => ({ dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td, url: (cfg.tour_url || "").replace("%s", t.id), ava: R.avatar(t.td) || "", ...(R.subtitle(t) ? { sub: R.subtitle(t) } : {}) }));
   return { ok: true, now: now.toISOString(), today, days, tours: upcoming };
 }

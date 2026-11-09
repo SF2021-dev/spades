@@ -1,4 +1,4 @@
-/* Asks /api/live when the page is open. That function reads MyLeague and returns today's tours.
+/* Asks /api/live when the page is open. That function reads MyLeague and returns today+tomorrow tours.
    If the ask fails, the list already on the page is left alone. */
 (function () {
   var POLL = 60000, BG_EVEN = "#1a1200";

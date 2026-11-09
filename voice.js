@@ -5,7 +5,7 @@ document.head.appendChild(css);
 var GM=!!document.querySelector("link[href*='gm-chat.css']");var w=document.createElement("div");w.id="dsv";w.setAttribute("data-lobby","1");w.innerHTML='<div id="dsvp"><button id="dsvj">Join</button> <label><input type="checkbox" id="dsvo"> listen only</label><div id="dsvs" style="font-size:12px;color:#666"></div><div id="dsvl"></div></div><a id="dsva" style="display:block;line-height:1.15;cursor:pointer"><span style="display:block;font-size:18px;font-weight:bold">Diamond Spaders lobby</span><span style="display:block;font-size:13px">shared audio</span></a>';
 document.body.appendChild(w);
 if(GM){var _a=w.querySelector("#dsva");_a.style.setProperty("display","none","important");w.style.position="static";var _f=document.getElementById("gm-aud");if(_f)_f.insertBefore(w,_f.firstChild);else w.style.setProperty("display","none","important");}
-var $=function(i){return w.querySelector("#"+i)},on=false,ME="",stream=null,pcs={},timer=null,ICE=[{urls:"stun:stun.l.google.com:19302"}];
+var $=function(i){return w.querySelector("#"+i)},on=false,ME="",stream=null,pcs={},timer=null,ICE=[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun.cloudflare.com:3478"}];
 w.querySelector("#dsva").onclick=function(){var p=$("dsvp");p.style.display=p.style.display==="block"?"none":"block";};
 function post(b){return fetch("/api/voice",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}).then(function(r){return r.json();});}
 function sig(to,type,data){post({action:"signal",to:to,type:type,data:JSON.stringify(data)});}

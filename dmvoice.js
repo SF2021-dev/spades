@@ -5,7 +5,7 @@ var css=document.createElement("style");css.textContent="#dsv{position:fixed;lef
 document.head.appendChild(css);
 var w=document.createElement("div");w.id="dsv";w.style.display="none";w.innerHTML='<div id="dsvp"><button id="dsvj">Join</button> <label><input type="checkbox" id="dsvo"> listen only</label><div id="dsvs" style="font-size:12px;color:#666"></div><div id="dsvl"></div></div><a id="dsva" style="display:block;line-height:1.15;cursor:pointer"><span style="display:block;font-size:18px;font-weight:bold">Shared audio with <span id="dsvw"></span></span><span style="display:block;font-size:13px">just the two of you</span></a>';
 document.body.appendChild(w);
-var $=function(i){return document.getElementById(i)},on=false,ME="",stream=null,pcs={},timer=null,ICE=[{urls:"stun:stun.l.google.com:19302"}];
+var $=function(i){return document.getElementById(i)},on=false,ME="",stream=null,pcs={},timer=null,ICE=[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun.cloudflare.com:3478"}];
 $("dsva").onclick=function(){var p=$("dsvp");p.style.display=p.style.display==="block"?"none":"block";};
 function post(b){return fetch("/api/dmvoice",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.assign({with:WITH},b))}).then(function(r){return r.json();});}
 function sig(to,type,data){post({action:"signal",to:to,type:type,data:JSON.stringify(data)});}

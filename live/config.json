@@ -88,8 +88,11 @@
 "11958215": "LETS BE THANKFUL",
 "11958329": "Okie Dokie",
 "11958601": "Northern Exposure",
+"11958613": "EanME",
+"11958615": "ROLL WITH IT",
 "11958669": "Gammer Mel",
-"11958689": "ROLL WITH IT"
+"11958689": "ROLL WITH IT",
+"11958823": "Eagerly Zappy"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png"
@@ -256,10 +259,8 @@
 "10:15 AM|looks__": 22,
 "10:15 AM|lunatic20ca": 20,
 "10:15 AM|makinpa": 22,
-"10:15 AM|o_siris": 22,
 "10:15 AM|ochwiay": 22,
 "10:15 AM|potsayhitokettle": 16,
-"10:15 AM|soloryder": 22,
 "10:15 AM|tatsujin": 22,
 "10:15 AM|trifolium": 22,
 "10:15 AM|untouchable_one": 18,
@@ -267,6 +268,7 @@
 "10:15 PM|artistandwriter": 18,
 "10:15 PM|bluangel1950": 20,
 "10:15 PM|diamondslgirl": 18,
+"10:15 PM|gryzzlybear": 20,
 "10:15 PM|im_already_gone": 18,
 "10:15 PM|lunatic20ca": 20,
 "10:15 PM|melicious_1": 20,
@@ -284,11 +286,9 @@
 "11:15 AM|gizimo": 22,
 "11:15 AM|gryzzlybear": 20,
 "11:15 AM|jaws33": 22,
-"11:15 AM|lil_shopper": 20,
 "11:15 AM|looks__": 22,
 "11:15 AM|lunatic20ca": 20,
 "11:15 AM|ochwiay": 22,
-"11:15 AM|soloryder": 22,
 "11:15 AM|sumpin2du": 22,
 "11:15 AM|tatsujin": 22,
 "11:15 AM|treco521": 22,
@@ -303,7 +303,6 @@
 "11:15 PM|huskernut50265": 18,
 "11:15 PM|jays_26": 22,
 "11:15 PM|lunatic20ca": 20,
-"11:15 PM|makinpa": 22,
 "11:15 PM|melicious_1": 20,
 "11:15 PM|mybagsrgucci": 20,
 "11:15 PM|ochwiay": 22,
@@ -325,6 +324,7 @@
 "1:15 PM|bluangel1950": 20,
 "1:15 PM|easyone23": 22,
 "1:15 PM|ellisandrew80": 18,
+"1:15 PM|gobblebags": 20,
 "1:15 PM|lunatic20ca": 20,
 "1:15 PM|makinpa": 22,
 "1:15 PM|melicious_1": 20,
@@ -340,7 +340,6 @@
 "1:15 PM|untouchable_one": 18,
 "1:15 PM|whocantplay": 20,
 "2:15 PM|bigdaddykool68": 18,
-"2:15 PM|bluangel1950": 20,
 "2:15 PM|ellisandrew80": 18,
 "2:15 PM|huskernut50265": 18,
 "2:15 PM|lewisrulz55": 20,
@@ -365,9 +364,7 @@
 "3:15 PM|makinpa": 22,
 "3:15 PM|melicious_1": 20,
 "3:15 PM|ochwiay": 22,
-"3:15 PM|really_why": 20,
-"3:15 PM|soloryder": 22,
-"4:30 PM|im_already_gone": 18,
+"3:15 PM|wezee": 22,
 "6:15 PM|bigdaddykool68": 18,
 "6:15 PM|dahwrookie": 20,
 "6:15 PM|devilsnitebaby": 18,
@@ -375,6 +372,7 @@
 "6:15 PM|easyone23": 22,
 "6:15 PM|flipflopgirlsc": 18,
 "6:15 PM|flowerbill2": 20,
+"6:15 PM|gobblebags": 20,
 "6:15 PM|huskernut50265": 18,
 "6:15 PM|jays_26": 22,
 "6:15 PM|madrat": 22,
@@ -402,7 +400,6 @@
 "8:15 PM|easyone23": 22,
 "8:15 PM|gryzzlybear": 20,
 "8:15 PM|huskernut50265": 18,
-"8:15 PM|jays_26": 22,
 "8:15 PM|ochwiay": 22,
 "8:15 PM|really_why": 20,
 "8:15 PM|sadiee": 22,
@@ -424,7 +421,6 @@
 "9:15 AM|ochwiay": 22,
 "9:15 AM|soloryder": 22,
 "9:15 AM|trifolium": 22,
-"9:15 AM|untouchable_one": 18,
 "9:15 AM|waskelwabbit": 20
 },
 "hidden": [
@@ -1045,6 +1041,10 @@
 "11957599": "SUI PASS 2 PAB",
 "11957600": "SINGLES",
 "11957650": "REG PARTNERS",
+"11957651": "CUT",
+"11957652": "SUI PASS 2",
+"11957653": "CUT",
+"11957654": "REG PARTNERS",
 "11957727": "CUT",
 "11957729": "CUT",
 "11957754": "CUT",
@@ -1061,6 +1061,7 @@
 "11957951": "CUT",
 "11957974": "REG PARTNERS",
 "11958070": "CUT",
+"11958083": "SINGLES",
 "11958092": "SUI PASS 2 PAB",
 "11958149": "REG PARTNERS",
 "11958150": "REG PARTNERS",
@@ -1090,18 +1091,23 @@
 "11958406": "CUT",
 "11958407": "SUI PASS 2 RANDOM",
 "11958408": "CUT",
+"11958573": "CUT",
 "11958601": "REG PARTNERS",
 "11958613": "SUI PASS 2",
-"11958614": "SINGLES",
 "11958615": "REG PARTNERS",
 "11958616": "LOSER WINS",
 "11958617": "CUT",
 "11958669": "SUI PASS 2",
 "11958689": "REG PARTNERS",
 "11958701": "SINGLES",
+"11958702": "REG PARTNERS",
+"11958703": "LOSER WINS",
+"11958704": "CUT",
 "11958757": "SINGLES",
 "11958778": "CUT MIRRORS",
+"11958792": "CUT",
 "11958803": "REG SPADES PAB",
+"11958823": "REG PARTNERS",
 "manual-20261021-1015": "CUT",
 "manual-20261021-1115": "CUT",
 "manual-20261021-1315": "CUT",
@@ -1168,7 +1174,8 @@
 "11955697": "HotEgammer",
 "11956057": "Old Pw",
 "11956059": "Northern Exposure",
-"11956987": "muziklvr & Untouchable_One"
+"11956987": "muziklvr & Untouchable_One",
+"11958615": "ROLL WITH IT"
 },
 "manual_winners": {
 "11923667": [
@@ -1929,9 +1936,33 @@
 "11958396": [
 "trifolium"
 ],
+"11958406": [
+"Ellisandrew80"
+],
+"11958407": [
+"MsZigs",
+"Jays26"
+],
+"11958408": [
+"Lookslikeapickel"
+],
 "11958601": [
 "Ochwiay",
 "peakoh"
+],
+"11958613": [
+"EgammeR",
+"MEL1c1ous_1"
+],
+"11958615": [
+"SILKROLLZ",
+"Huskernut50265"
+],
+"11958616": [
+"REALLY_WHY"
+],
+"11958617": [
+"Lunatic20ca"
 ],
 "11958669": [
 "MEL1c1ous_1",
@@ -1947,8 +1978,15 @@
 "11958757": [
 "waskelwabbit"
 ],
+"11958778": [
+"HapEturkeyDay"
+],
 "11958803": [
 "Ochwiay"
+],
+"11958823": [
+"Zappycow",
+"Eager_1"
 ]
 },
 "subtitles": {

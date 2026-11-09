@@ -81,6 +81,7 @@
 
   var currentAudio = null;
   function stop() {
+    try { var bb = document.getElementById("ds-alert-blocked"); if (bb) bb.remove(); } catch (e) {}
     try {
       if (currentAudio) {
         currentAudio.pause();
@@ -297,8 +298,7 @@
   btn.onchange = function () {
     set(K_ON, btn.checked ? "1" : "0");
     w.classList.toggle("open", btn.checked);
-    if (btn.checked) play();
-    else stop();
+    stop();   /* flipping the switch either way silences a ringing alert; use the Test button to preview */
     refresh();
   };
   w.querySelector(".ck").addEventListener("click", function (e) {

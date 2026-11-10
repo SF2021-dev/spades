@@ -92,6 +92,7 @@
 "11958615": "ROLL WITH IT",
 "11958669": "Gammer Mel",
 "11958689": "ROLL WITH IT",
+"11958702": "Egame/mel",
 "11958823": "Eagerly Zappy"
 },
 "avatar_overrides": {
@@ -1091,7 +1092,6 @@
 "11958803": "REG SPADES PAB",
 "11958823": "REG PARTNERS",
 "11958918": "SUI PASS 2 PAB",
-"11958920": "CUT",
 "11958937": "CUT",
 "11958938": "CUT",
 "11958940": "SUI PASS 2",
@@ -1967,6 +1967,10 @@
 ],
 "11958701": [
 "Gryzzlybear"
+],
+"11958702": [
+"MEL1c1ous_1",
+"EgammeR"
 ],
 "11958757": [
 "waskelwabbit"

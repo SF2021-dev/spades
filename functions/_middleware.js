@@ -13,7 +13,7 @@ const OPEN = [/^\/downloads\/Buzz(Christine|Judy|Dennis)-Windows\.zip$/, /^\/adm
 // Turn off with one small change: set MAINTENANCE to false below and push to main.
 // Or, without a code change, set the Pages env var MAINTENANCE=off (or 0) and redeploy.
 // MAINTENANCE=1 or "on" forces it on even if this constant is false.
-const MAINTENANCE = true;
+const MAINTENANCE = false;
 const OWNER_NAME = "ochwiay";
 
 // Login page, login/session APIs, and assets the maintenance + login pages need.

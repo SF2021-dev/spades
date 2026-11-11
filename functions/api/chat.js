@@ -117,8 +117,13 @@ export const onRequestPost = wrap(async ({ request, env }) => {
   const my = await me(env, request), b = await readJson(request) || {}, now = Date.now();
   if (b.action === "answer") {
     const f = normName(b.from);
-    await env.DB.prepare("UPDATE chat_perms SET status = ?, t = ? WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(b.ok ? "ok" : "no", now, f, my).run();
-    return json({ ok: true });
+    if (!f) throw new HttpError(400, "Who are you answering?");
+    if (b.ok) {
+      await approveBoth(env, my, f);   // accept: both directions ok, so the Allow? prompt cannot come back
+      return json({ ok: true, status: "ok", incoming: false });
+    }
+    await env.DB.prepare("INSERT INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'no', ?) ON CONFLICT(from_name, to_name) DO UPDATE SET status='no', t=excluded.t").bind(f, my, now).run();
+    return json({ ok: true, status: "no", incoming: false });
   }
   if (b.action === "fav") {   // star/unstar a contact (per user)
     const w = normName(b.with); if (!w) throw new HttpError(400, "Who?");
@@ -169,7 +174,10 @@ export const onRequestPost = wrap(async ({ request, env }) => {
     if (!body || body.length > MAX_TXT) throw new HttpError(400, "Message must be 1-" + MAX_TXT + " characters.");
     const id = mid(now);
     await env.DB.prepare("INSERT INTO chat_msgs (id, from_name, to_name, kind, body, t) VALUES (?, ?, ?, ?, ?, ?)").bind(id, my, to, kind, body, now).run();
-    await env.DB.prepare("INSERT OR IGNORE INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'pending', ?)").bind(my, to, now).run();   // first message: they get Allow? Y/N
+    // If they already asked me and I hadn't clicked Y yet, a reply is an accept (clears the Allow? prompt).
+    const inc = await env.DB.prepare("SELECT status FROM chat_perms WHERE from_name = ? COLLATE NOCASE AND to_name = ? COLLATE NOCASE").bind(to, my).first();
+    if (inc && inc.status === "pending") await approveBoth(env, my, to);
+    else await env.DB.prepare("INSERT OR IGNORE INTO chat_perms (from_name, to_name, status, t) VALUES (?, ?, 'pending', ?)").bind(my, to, now).run();   // first message: they get Allow? Y/N
     return json({ ok: true, id }, 201);
   }
   if (b.action === "buzz") {

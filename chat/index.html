@@ -66,9 +66,9 @@ button:hover{background:#2a1608}
 <script>
 (function(){
 var $ = function(i){ return document.getElementById(i); }, show = function(el, on){ el.classList.toggle("hide", !on); };
-var ME = "", WITH = "", since = 0, seen = {}, poll = null;
+var ME = "", WITH = "", since = 0, seen = {}, poll = null, accepted = {}, acceptAt = 0, pendingSeq = 0;
 function api(q, body){
-  return fetch("/api/chat" + (body ? "" : "?" + q), body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body), credentials:"same-origin"} : {credentials:"same-origin", cache:"no-store"})
+  return fetch("/api/chat" + (body ? "" : "?" + q + (q ? "&" : "") + "_=" + Date.now()), body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body), credentials:"same-origin"} : {credentials:"same-origin", cache:"no-store"})
     .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if (!r.ok) { var e = new Error(j.error || ("Error " + r.status)); e.status = r.status; throw e; } return j; }); });
 }
 function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
@@ -88,17 +88,24 @@ $("lpin").onkeydown = function(e){ if (e.key === "Enter") $("lgo").click(); };
 
 // ---- permission requests waiting for me ("on next login") ----
 function loadPending(){
+  var seq = ++pendingSeq;
   return api("action=pending").then(function(j){
+    if (seq !== pendingSeq) return;   // a newer refresh already ran (ignore stale pre-accept results)
     var b = $("pending"); b.innerHTML = "";
-    show(b, j.requests.length > 0);
-    if (j.requests.length) b.insertAdjacentHTML("beforeend", "<b>New messages</b>");
-    j.requests.forEach(function(r){
+    var reqs = (j.requests || []).filter(function(r){ return !accepted[String(r.from).toLowerCase()]; });
+    show(b, reqs.length > 0);
+    if (reqs.length) b.insertAdjacentHTML("beforeend", "<b>New messages</b>");
+    reqs.forEach(function(r){
       var d = document.createElement("div"); d.className = "req";
       d.innerHTML = "<span><b>" + esc(r.from) + "</b> messaged you. Allow?</span>";
       [["Y", true], ["N (block)", false]].forEach(function(o){
         var bt = document.createElement("button"); bt.textContent = o[0];
-        bt.onclick = function(){ api(null, {action:"answer", from:r.from, ok:o[1]}).then(function(){
-          if (o[1]) location.href = "/chat?to=" + encodeURIComponent(r.from); else if (WITH && WITH.toLowerCase() === String(r.from).toLowerCase()) location.href = "/chat"; else { loadPending(); loadPartners(); } }); };
+        bt.onclick = function(){ d.querySelectorAll("button").forEach(function(x){ x.disabled = true; });
+          api(null, {action:"answer", from:r.from, ok:o[1]}).then(function(){
+          if (o[1]) { accepted[String(r.from).toLowerCase()] = 1; acceptAt = Date.now(); d.remove(); if (!b.querySelector(".req")) show(b, false); location.href = "/chat?to=" + encodeURIComponent(r.from); }
+          else if (WITH && WITH.toLowerCase() === String(r.from).toLowerCase()) location.href = "/chat";
+          else { loadPending(); loadPartners(); } })
+          .catch(function(){ d.querySelectorAll("button").forEach(function(x){ x.disabled = false; }); }); };
         d.appendChild(bt);
       });
       b.appendChild(d);
@@ -130,7 +137,7 @@ function pick(n){
   if (!n) return;
   api("action=check&name=" + encodeURIComponent(n)).then(function(j){
     if (!j.exists) { $("nfmsg").textContent = "\"" + n + "\" isn't on the Diamond Spaders player list."; show($("notfound"), true); return; }
-    return api(null, {action:"request", to:j.name}).then(function(r){ openChat(j.name, r.status); });
+    return api(null, {action:"request", to:j.name}).then(function(r){ openChat(j.name, r.status); loadPending(); });
   }).catch(function(e){ $("perr").textContent = e.message; });
 }
 // Add button removed: Enter adds
@@ -177,13 +184,18 @@ function openChat(name, status){
 }
 var lastTick = 0, lastStatus = "";
 function askAllow(on){   // first message from someone new: Allow? Y / N (N blocks them)
+  if (WITH && accepted[String(WITH).toLowerCase()]) on = false;
   var a = $("allowAsk");
   if (!on) { if (a) a.remove(); return; }
   if (a) return;
   a = document.createElement("div"); a.id = "allowAsk"; a.className = "panel"; a.style.cssText = "display:flex;gap:10px;align-items:center;margin:6px 0;flex-wrap:wrap";
   a.innerHTML = "<span><b>" + esc(WITH) + "</b> messaged you. Allow?</span>";
   [["Y", true], ["N (block)", false]].forEach(function(o){ var bt = document.createElement("button"); bt.textContent = o[0];
-    bt.onclick = function(){ api(null, {action:"answer", from:WITH, ok:o[1]}).then(function(){ if (o[1]) { a.remove(); loadPending(); } else location.href = "/chat"; }); };
+    bt.onclick = function(){ a.querySelectorAll("button").forEach(function(x){ x.disabled = true; });
+      api(null, {action:"answer", from:WITH, ok:o[1]}).then(function(){
+        if (o[1]) { accepted[String(WITH).toLowerCase()] = 1; acceptAt = Date.now(); a.remove(); loadPending(); }
+        else location.href = "/chat";
+      }).catch(function(){ a.querySelectorAll("button").forEach(function(x){ x.disabled = false; }); }); };
     a.appendChild(bt); });
   $("chat").insertBefore(a, $("chat").firstChild);
 }
@@ -194,8 +206,9 @@ function setStatus(s){
     "Waiting for " + WITH + " to allow chatting with you. They'll be asked the next time they log in.";
 }
 function tick(){
-  lastTick = Date.now();
+  var started = Date.now(); lastTick = started;
   api("action=status&with=" + encodeURIComponent(WITH)).then(function(s){
+    if (started < acceptAt) return;   // stale poll from before this accept
     if (s.status !== lastStatus) setStatus(s.status); lastStatus = s.status; askAllow(!!s.incoming); if (s.status !== "ok") return;
     loadMB(chatAdapter(function(){ return "action=list&with=" + encodeURIComponent(WITH); }, function(){ return {to:WITH}; })); return;
     return api("action=list&with=" + encodeURIComponent(WITH) + "&since=" + since).then(function(j){ j.messages.forEach(render); });

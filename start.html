@@ -190,7 +190,7 @@
     <div class="wx" id="wx"></div>
     <div class="hint">Press <span style="color:var(--accent)">Enter</span> to search Google • <span style="color:var(--accent)">Esc</span> to clear</div>
     <script>
-        (function () { document.body.style.backgroundImage = 'url(/start-bg.jpg?v=20261026-mtshasta)'; })();
+        (function () { document.body.style.backgroundImage = 'url(/start-bg/lake-near-forest.jpg?v=20261111-lake)'; })();
         (function(){var g=document.getElementById('ticks'),h='';for(var i=0;i<12;i++){var a=i*Math.PI/6;h+='<line x1="'+(50+40*Math.sin(a))+'" y1="'+(50-40*Math.cos(a))+'" x2="'+(50+45*Math.sin(a))+'" y2="'+(50-45*Math.cos(a))+'" stroke="#ccc" stroke-width="'+(i%3?1.5:3)+'"/>';}g.innerHTML=h;})();
         var SKEW=0;function SNOW(){return new Date(Date.now()+SKEW);}function syncSkew(){var t0=Date.now();fetch('/api/live?skew='+t0,{method:'HEAD',cache:'no-store'}).then(function(r){var d=Date.parse(r.headers.get('date'));if(d)SKEW=d-(t0+Date.now())/2;if(Math.abs(SKEW)<3000)SKEW=0;updateClock();}).catch(function(){});}setTimeout(syncSkew,0);setInterval(syncSkew,600000);
         function tzParts(tz){var p={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(SNOW()).forEach(function(x){p[x.type]=x.value;});p.hour=(+p.hour)%24;return p;}

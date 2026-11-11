@@ -7,7 +7,7 @@ const OPEN = [/^\/downloads\/Buzz(Christine|Judy|Dennis)-Windows\.zip$/, /^\/adm
   // Public start pages (no login) + the assets they load.
   /^\/start2?(\.html)?\/?$/, /^\/start2\/(index\.html)?$/, /^\/start2\/icons\//, /^\/icons\//,
     /^\/startb(\.html)?\/?$/, /^\/startb\/(index\.html)?$/,
-  /^\/api\/live\/?$/, /^\/api\/startbuzz\/?$/, /^\/startbuzz\.js$/, /^\/buzz\.wav$/, /^\/buzz\.mp3$/, /^\/startmenu\.js$/, /^\/wxloc\.js$/, /^\/alerts\.js$/, /^\/alert-sounds\//, /^\/[^\/]+-ava\.png$/, /^\/avatars\.json$/, /^\/start-bg\.jpg$/, /^\/start2-bg\.jpg$/, /^\/bing-today\.jpg$/];
+  /^\/api\/live\/?$/, /^\/api\/startbuzz\/?$/, /^\/startbuzz\.js$/, /^\/buzz\.wav$/, /^\/buzz\.mp3$/, /^\/startmenu\.js$/, /^\/wxloc\.js$/, /^\/alerts\.js$/, /^\/alert-sounds\//, /^\/[^\/]+-ava\.png$/, /^\/avatars\.json$/, /^\/start-bg\.jpg$/, /^\/start-bg\//, /^\/start2-bg\.jpg$/, /^\/bing-today\.jpg$/];
 
 // MAINTENANCE MODE (temporary): when on, only the site owner (Ochwiay) sees the normal site.
 // Turn off with one small change: set MAINTENANCE to false below and push to main.

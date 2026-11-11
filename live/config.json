@@ -256,7 +256,6 @@
 }
 ],
 "fonts": {
-"10:15 AM|coastalkat": 20,
 "10:15 AM|diamondslgirl": 18,
 "10:15 AM|ellisandrew80": 18,
 "10:15 AM|flipflopgirlsc": 18,
@@ -289,7 +288,6 @@
 "10:15 PM|va_country_guy": 18,
 "11:15 AM|aceinblack": 20,
 "11:15 AM|bluangel1950": 20,
-"11:15 AM|gizimo": 22,
 "11:15 AM|gobblebags": 20,
 "11:15 AM|gryzzlybear": 20,
 "11:15 AM|jaws33": 22,
@@ -364,7 +362,6 @@
 "3:15 PM|flipflopgirlsc": 18,
 "3:15 PM|gryzzlybear": 20,
 "3:15 PM|lewisrulz55": 20,
-"3:15 PM|loffe_dawg": 20,
 "3:15 PM|looks__": 22,
 "3:15 PM|makinpa": 22,
 "3:15 PM|melicious_1": 20,
@@ -416,7 +413,6 @@
 "9:15 AM|bob2112": 22,
 "9:15 AM|deaddly": 22,
 "9:15 AM|gryzzlybear": 20,
-"9:15 AM|im_already_gone": 18,
 "9:15 AM|lewisrulz55": 20,
 "9:15 AM|looks__": 22,
 "9:15 AM|maggie_may": 20,
@@ -2039,6 +2035,9 @@
 "11958940": [
 "slovell_too",
 "DementedWench"
+],
+"11959009": [
+"MaKinpa"
 ],
 "11959101": [
 "BeKindToMe"

@@ -78,7 +78,8 @@
             position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
             font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15; white-space: nowrap;
         }
-    </style>
+    a.tlink{display:block;color:inherit;text-decoration:none}a.tlink[href]{cursor:pointer}a.tlink[href]:hover{text-decoration:underline}
+</style>
 <script>
 (function () {
   function check() {
@@ -104,12 +105,12 @@
         <line id="sh" x1="50" y1="55" x2="50" y2="10" stroke="#00d4ff" stroke-width="1"/>
         <circle cx="50" cy="50" r="2.5" fill="#00d4ff"/></svg>
         <div class="tz last" id="est">--:-- EST</div>
-        <div class="lbl">next Diamond Spaders tour</div>
-        <div class="big" id="nextName">&mdash;</div>
-        <div class="big" id="nextTime"></div>
-        <div class="lbl">Judy&rsquo;s tours</div>
-        <div class="host" id="hostName">&mdash;</div>
-        <div class="host" id="hostTime"></div>
+        <div class="lbl">my next tour:</div>
+        <a class="tlink" id="nextLink"><div class="big" id="nextName">&mdash;</div>
+        <div class="big" id="nextTime"></div></a>
+        <div class="lbl">Judy&rsquo;s next tour:</div>
+        <a class="tlink" id="hostLink"><div class="host" id="hostName">&mdash;</div>
+        <div class="host" id="hostTime"></div></a>
         <div class="more" id="more"></div>
     </div>
     <div class="search">
@@ -159,7 +160,7 @@
         function hh(h,m){return hm(+h,+m);}
         function esc(x){return String(x==null?'':x).replace(/[&<>\"]/g,function(c){return '&#'+c.charCodeAt(0)+';';});}
         function estAbbr(){var t=SNOW().toLocaleTimeString('en-US',{timeZone:'America/New_York',timeZoneName:'short'});return (t.match(/E[SD]T/)||['EST'])[0];}
-        var TOURS=[],TERR=false;
+        var TOURS=[],TERR=false;function setL(id,u){var a=document.getElementById(id);if(u)a.href=u;else a.removeAttribute('href');}
         function rot(id,deg){document.getElementById(id).setAttribute('transform','rotate('+deg+' 50 50)');}
         function updateClock(){
             var v=tzParts('America/Los_Angeles');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
@@ -169,8 +170,8 @@
             var up=TOURS.filter(function(t){if(!t.dt||t.dt===today)return (+t.h)*60+(+t.m)>nowMin;return t.dt>today;}).sort(function(a,b){return String(a.dt||today).localeCompare(String(b.dt||today))||((a.h*60+ +a.m)-(b.h*60+ +b.m));});
             var nxt=up[0]||null;
             var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');
-            if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!nxt){nn.textContent='8:15 AM';nx.textContent='';}else{nn.textContent=nxt.game+(nxt.td?' w/ '+nxt.td:'');var when=hh(+nxt.h,+nxt.m)+' '+ab;if(nxt.dt&&nxt.dt!==today)when=nxt.dt.slice(5).replace('-','/')+' '+when;nx.textContent=when;}
-            var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
+            setL('nextLink',(!TERR&&nxt)?nxt.url:'');if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!nxt){nn.textContent='8:15 AM';nx.textContent='';}else{nn.textContent=nxt.game+(nxt.td?' w/ '+nxt.td:'');var when=hh(+nxt.h,+nxt.m)+' '+ab;if(nxt.dt&&nxt.dt!==today)when=nxt.dt.slice(5).replace('-','/')+' '+when;nx.textContent=when;}
+            setL('hostLink','');var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
             if(TERR){hn.textContent='sign in for tours';ht.textContent='';mo.innerHTML='';return;}
             var mine=TOURS.filter(function(t){
                 if(!/^fetch_?it_?up$/i.test(String(t.td||'').trim())) return false;
@@ -180,8 +181,8 @@
             }).sort(function(a,b){return String(a.dt||'').localeCompare(String(b.dt||''))||((a.h*60+ +a.m)-(b.h*60+ +b.m));});
             if(!mine.length){hn.textContent='none today';ht.textContent='';mo.innerHTML='';return;}
             function stamp(t, timeOnly){var day=t.dt&&t.dt!==today?t.dt.slice(5).replace('-','/')+' ':'';return day+hh(+t.h,+t.m)+' '+ab+(timeOnly?'':' '+t.game);}
-            hn.textContent=mine[0].game;ht.textContent=stamp(mine[0], true);
-            mo.innerHTML=mine.slice(1).map(function(t){return esc(stamp(t));}).join('<br>');
+            hn.textContent=mine[0].game;ht.textContent=stamp(mine[0], true);setL('hostLink',mine[0].url);
+            mo.innerHTML=mine.slice(1).map(function(t){return t.url?'<a class="tlink" style="display:inline" href="'+esc(t.url)+'">'+esc(stamp(t))+'</a>':esc(stamp(t));}).join('<br>');
         }
         function loadTours(){
   fetch('/api/live?v='+Date.now(),{cache:'no-store'}).then(function(r){

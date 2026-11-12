@@ -266,20 +266,29 @@
 <script>
 (function () {
   if (document.body.classList.contains("icon-edit")) return;
-  fetch("https://raw.githubusercontent.com/SF2021-dev/spades/main/start.html?v=" + Date.now(), { cache: "no-store" })
-    .then(function (r) { return r.ok ? r.text() : ""; })
-    .then(function (html) {
-      var key = '<div class="icons-area">', start = html.indexOf(key);
-      if (start < 0) return;
-      var i = start + key.length, depth = 1;
-      while (i < html.length && depth) {
-        var open = html.indexOf("<div", i), close = html.indexOf("</div>", i);
-        if (close < 0) return;
-        if (open !== -1 && open < close) { depth++; i = open + 4; }
-        else { depth--; i = close + 6; }
-      }
+  fetch("/api/startlayout?page=start", { credentials: "same-origin", cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
       var area = document.querySelector(".icons-area");
-      if (area) area.innerHTML = html.slice(start + key.length, i - 6);
+      var layout = data && data.layout;
+      if (!area || !layout || !layout.length) return;
+      area.innerHTML = "";
+      layout.forEach(function (row) {
+        var div = document.createElement("div");
+        div.className = "icon-row";
+        (row.items || []).forEach(function (it) {
+          var a = document.createElement("a");
+          a.className = "icon-sq";
+          a.href = it.href;
+          a.title = it.title || "";
+          var img = document.createElement("img");
+          img.src = it.img;
+          img.alt = it.title || it.label || "";
+          a.appendChild(img);
+          div.appendChild(a);
+        });
+        area.appendChild(div);
+      });
     }).catch(function () {});
 })();
 </script>

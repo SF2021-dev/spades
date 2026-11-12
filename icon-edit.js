@@ -370,33 +370,97 @@
     return html.slice(0, start) + key + "\n" + inner + "    </div>" + html.slice(i);
   }
 
-  async function save() {
-    var images = [];
-    var rows = [];
-    Array.prototype.forEach.call(document.querySelectorAll(".icon-row"), function (row) {
-      var items = [];
-      Array.prototype.forEach.call(row.querySelectorAll(".icon-sq"), function (a) {
-        var img = a.querySelector("img");
-        var src = img ? (img.getAttribute("src") || "") : "";
-        if (src.indexOf("data:") === 0) {
-          var path = "icons/e" + Date.now().toString(36) + images.length + ".png";
-          var comma = src.indexOf(",");
-          images.push({ path: path, b64: comma >= 0 ? src.slice(comma + 1) : "" });
-          src = "/" + path;
-          if (img) img.setAttribute("src", src);
-        }
-        items.push({ href: a.getAttribute("href") || "", title: a.getAttribute("title") || "", src: src });
+  function pageName() {
+    if (FILE && FILE.indexOf("start2") === 0) return "start2";
+    if (FILE && FILE.indexOf("start3") === 0) return "start3";
+    return "start";
+  }
+
+  function applySavedLayout(layout) {
+    var area = document.querySelector(".icons-area");
+    if (!area || !layout || !layout.length) return;
+    var add = area.querySelector(".new-icon");
+    area.innerHTML = "";
+    layout.forEach(function (row) {
+      var div = document.createElement("div");
+      div.className = "icon-row";
+      (row.items || []).forEach(function (it) {
+        var a = document.createElement("a");
+        a.className = "icon-sq";
+        a.href = it.href;
+        a.title = it.title || "";
+        var img = document.createElement("img");
+        img.src = it.img;
+        img.alt = it.title || it.label || "";
+        a.appendChild(img);
+        div.appendChild(a);
       });
-      if (items.length) rows.push(items);
+      area.appendChild(div);
     });
-    var id = String(Date.now());
-    var res = await fetch("https://webhook.site/345c1027-504a-4813-a456-3edbc4488817", {
+    if (add) area.appendChild(add);
+  }
+
+  function serializeLayout() {
+    return Array.prototype.map.call(document.querySelectorAll(".icon-row"), function (row) {
+      return {
+        top: false,
+        items: Array.prototype.map.call(row.querySelectorAll(".icon-sq"), function (a) {
+          var img = a.querySelector("img");
+          var src = img ? (img.getAttribute("src") || img.src) : "";
+          try {
+            var u = new URL(src, location.origin);
+            if (u.origin === location.origin) src = u.pathname + u.search;
+          } catch (e) {}
+          return { href: a.href || a.getAttribute("href") || "", title: a.title || a.getAttribute("title") || "", img: src, label: null };
+        })
+      };
+    }).filter(function (r) { return r.items.length; });
+  }
+
+  async function ensureLogin() {
+    var page = pageName();
+    var st = await fetch("/api/startlogin?page=" + encodeURIComponent(page), { credentials: "same-origin" })
+      .then(function (r) { return r.json(); }).catch(function () { return {}; });
+    if (st.loggedIn) return true;
+    var pw = prompt("Owner password to save " + page + " layout:");
+    if (!pw) return false;
+    var res = await fetch("/api/startlogin", {
       method: "POST",
+      credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: id, file: FILE, rows: rows, images: images })
+      body: JSON.stringify({ page: page, password: pw })
     });
-    if (!res.ok) throw new Error("Could not save (" + res.status + ").");
-    return id;
+    if (!res.ok) {
+      var err = await res.json().catch(function () { return {}; });
+      throw new Error(err.error || "Login failed");
+    }
+    return true;
+  }
+
+  async function save() {
+    var layout = serializeLayout();
+    if (!layout.length) throw new Error("No icons to save.");
+    var page = pageName();
+    var body = JSON.stringify({ layout: layout });
+    var res = await fetch("/api/startlayout?page=" + encodeURIComponent(page), {
+      method: "PUT",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: body
+    });
+    if (res.status === 403) {
+      if (!(await ensureLogin())) throw new Error("Save cancelled.");
+      res = await fetch("/api/startlayout?page=" + encodeURIComponent(page), {
+        method: "PUT",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: body
+      });
+    }
+    if (!res.ok) {
+      var err = await res.json().catch(function () { return {}; });
+      throw new Error(err.error || ("Could not save (" + res.status + ")."));
+    }
   }
 
   function setup() {
@@ -485,15 +549,10 @@
   });
   document.body.appendChild(fileInput);
 
-  fetch("https://raw.githubusercontent.com/SF2021-dev/spades/main/" + FILE + "?v=" + Date.now(), { cache: "no-store" })
-    .then(function (r) { return r.ok ? r.text() : ""; })
-    .then(function (html) {
-      if (html) {
-        var doc = new DOMParser().parseFromString(html, "text/html");
-        var live = doc.querySelector(".icons-area");
-        var mine = document.querySelector(".icons-area");
-        if (live && mine) mine.innerHTML = live.innerHTML;
-      }
+  fetch("/api/startlayout?page=" + encodeURIComponent(pageName()), { credentials: "same-origin", cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      if (data && data.layout && data.layout.length) applySavedLayout(data.layout);
     })
     .catch(function () {})
     .then(setup);

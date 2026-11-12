@@ -1,8 +1,8 @@
 // Start-page layouts. GET ?page=start|start2|start3 (public) -> {page, layout|null, updated_at}
-// PUT ?page=... (owner cookie ds_start_<page> required) body {layout:[{top,items:[{href,title,img,label}]}]}
+// PUT ?page=... (owner cookie ds_start_<page>, or site login as Ochwiay) body {layout:[{top,items:[{href,title,img,label}]}]}
 //   Uploaded/generated icons arrive as data:image/... URLs; they are stored in D1 msg_images (<=600 KB each)
 //   and replaced with /api/img/<id>. Returns the stored layout.
-import { wrap, json, readJson, HttpError } from "../_shared/auth.js";
+import { wrap, json, readJson, HttpError, currentUser } from "../_shared/auth.js";
 import { pageParam, isOwner } from "../_shared/startpages.js";
 const MAX_JSON = 400 * 1024, MAX_IMG = 600 * 1024, MAX_ITEMS = 120, MAX_ROWS = 12;
 
@@ -31,10 +31,17 @@ function decodeImg(v) {
   return { mime, data: b };
 }
 
+const SITE_OWNER = "ochwiay";
+async function canEdit(request, env, page) {
+  if (await isOwner(request, env, page)) return true;
+  const user = await currentUser(request, env);
+  return !!(user && String(user.username || "").trim().toLowerCase() === SITE_OWNER);
+}
+
 export const onRequestPut = wrap(async ({ request, env }) => {
   const page = pageParam(new URL(request.url).searchParams.get("page"));
   if (!page) throw new HttpError(400, "Unknown page");
-  if (!(await isOwner(request, env, page))) throw new HttpError(403, "Only this page's owner can save it. Log in first.");
+  if (!(await canEdit(request, env, page))) throw new HttpError(403, "Only this page's owner can save it. Log in first.");
   if (Number(request.headers.get("Content-Length") || 0) > 6 * 1024 * 1024) throw new HttpError(413, "Too big");
   const b = await readJson(request), now = Date.now(), inserts = [];
   if (!Array.isArray(b.layout) || !b.layout.length || b.layout.length > MAX_ROWS) throw new HttpError(400, "Bad layout");

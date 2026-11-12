@@ -10,9 +10,9 @@
   var IDB_NAME = "dsAlertDB", IDB_STORE = "sounds", IDB_KEY = "custom";
   var DEFAULT_ID = "ballgame";
   var SOUNDS = [
-    { id: "ballgame", name: "Retro \"Take Me Out to the Ball Game\"", src: "/alert-sounds/ballgame-retro.mp3" },
-    { id: "bell", name: "Simple bell", src: "/alert-sounds/bell.mp3" },
-    { id: "birds", name: "Birds chirping", src: "/alert-sounds/birds.mp3" },
+    { id: "ballgame", name: "Retro \"Take Me Out to the Ball Game\"", src: "/alert-sounds/v19/ballgame.mp3" },
+    { id: "bell", name: "Simple bell", src: "/alert-sounds/v19/bell.mp3" },
+    { id: "birds", name: "Birds chirping", src: "/alert-sounds/v19/birds.mp3" },
     { id: "upload", name: "Upload a file…" },
     { id: "url", name: "From a URL…" }
   ];

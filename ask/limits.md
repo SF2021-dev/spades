@@ -10,10 +10,13 @@ Works (any league in leagues.json, last ~60 days, times in ET):
 - Tours-played questions that say any/all/every league, or name no league, search every league in leagues.json and answer per league (leagues with none are named). Naming a league searches only that league.
 - When a player last won a tour in a league (searches back up to 60 days).
 
+- Which tours a player played in a period (today, yesterday, this/last week, a date, up to 31 days): "what tours did X play today", "how many tours did X play this week", "did X win any tours". Lists each tour with start time (ET), board label, TD and result (won / 2nd / 3rd / played), plus the partner and team name in partner tours, across every league unless one is named. Source: the player's Ladderbux log (which tours charged an entry fee, and placing) joined to the league calendar by tour id, and the tour's TEAMS page for partners and not-yet-finished registrations. Aliases in leagues.json are honored.
+- Who played in a tour: "who played in the 6:15" (a start time, today unless a date is given): the entrant list from the tour's TEAMS page, with teams for partner tours and the winner.
+
 Not reachable / not supported yet:
 - "I"/"me" questions: the page can't know who is asking; name the player.
 - Played-tour dates/times are when the entry was made (Ladderbux log), not the tour's start; the log has no partner names. Tours entered for free (no entry fee) would not be counted.
-- Anything about players who played but did not win (who entered, placings, scores, hands): the calendar feed only has winners. The per-tour TEAMS page has the entrant list, but only one tour is looked up per question.
+- Scores and hands. Placings below 3rd are not in the log (shown as "played, did not place"). Entrant lists are one tour per question.
 - Ladder standings, ratings, Ladderbux balances, player profiles.
 - Leagues not in leagues.json (add them there).
 - Tour names that exist only on the tour's own page (the feed has the format text, e.g. "2 VS 2").

@@ -23,6 +23,15 @@
       "Hardwood",
       "J4F",
       "HW"
+    ],
+    "dagreathoudini": [
+      "da Great Houdini",
+      "Great Houdini",
+      "Houdini"
+    ],
+    "fantasyspaders": [
+      "Fantasy Spaders",
+      "Fantasy"
     ]
   },
   "default": "diamondspaders",

@@ -58,7 +58,7 @@ async function calendar(slug, start, end) {
     const [sy, sm, sd] = start.split("-").map(Number), [ey, em, ed] = end.split("-").map(Number);
     const body = new URLSearchParams({ range: "daily", strLadder: slug, DisplayCount: "300", page: "1", sort: "1", sd, sm, sy, ed, em, ey });
     let t = "";
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 3; i++) {
       const r = await fetch(CAL_URL, { method: "POST", body, headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" } });
       t = await r.text();
       if (r.ok && /<SQLResults/.test(t)) break;
@@ -120,7 +120,7 @@ Fields:
 - "league": league name or abbreviation exactly as written in the question, or "" if none mentioned.
 - "date_from","date_to": YYYY-MM-DD in US Eastern time. "last night"/"yesterday" = yesterday. A late-night time "last night" (e.g. 11pm) = yesterday. No date mentioned = today, except "last time"/"most recent" questions: for "player_tours" leave both dates "" (whole history); for "last_win" use the last 60 days. Weekday names = most recent such day (today or earlier).
 - "time": "HH:MM" 24-hour ET if a time is mentioned, else "". A time with no AM/PM from 1:00 to 7:59 means PM (e.g. "1:15" = "13:15"); 8:00 to 11:59 means AM.
-- "ask": one of "winner" (who won), "players" (who was on the winning team), "td" (who ran/hosted), "game" (game type/format/rules), "count_tours" (how many tours), "player_wins" (how many / which tours a player won), "last_win" (when a player last won), "list" (what tours ran / all winners), "player_tours" (how many / which tours a player played, entered or joined, when a player last played, a player's placings / 2nd / 3rd places / bux won), "unsupported" (anything else, e.g. standings, ratings, who played, scores).
+- "ask": one of "winner" (who won), "players" (who was on the winning team), "td" (who ran/hosted), "game" (game type/format/rules), "count_tours" (how many tours), "player_wins" (how many / which tours a player won), "last_win" (when a player last won), "list" (what tours ran / all winners), "player_tours" (how many / which / what tours a player played, entered or joined, e.g. "what tours did X play in today", when a player last played, a player's placings / 2nd / 3rd places / bux won), "participants" (who played / who entered / who is in a specific tour, e.g. "who played in the 6:15"; set "time" and no player), "unsupported" (anything else, e.g. standings, ratings, scores, hands).
 - "player": player name exactly as written, or "". If the question says "I"/"me"/"my" and gives no name, use "".
 - For "player_tours": if no date or period is mentioned, set "date_from" and "date_to" to "" (meaning all time).
 Today is {TODAY} ({WEEKDAY}), current ET time {NOW}. Known leagues: {LEAGUES}.`;
@@ -149,9 +149,16 @@ async function parse(env, q, now) {
 async function buxlog(slug, player) {
   return cached(`bux/${slug}/${player.toLowerCase()}`, 300, async () => {
     const body = new URLSearchParams({ name: "", pass: "", final: "1", path: slug, playername: player, timespan: "all" });
-    const t = await (await fetch(`https://${(REG.servers||{})[slug]||"cgi6"}.igl.net/tourneysystem/buxlog.php`, { method: "POST", body,
-      headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" } })).text();
-    const nm = t.match(/([^\s>|]+) LadderBux Log \(Player I\.D\. is (\d+)\)/);
+    const first = (REG.servers || {})[slug] || "cgi6";
+    let t = "", nm = null;
+    for (const srv of [first, first === "cgi6" ? "plus2" : "cgi6"]) {
+      try {
+        t = await (await fetch(`https://${srv}.igl.net/tourneysystem/buxlog.php`, { method: "POST", body,
+          headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" } })).text();
+        nm = t.match(/([^\s>|]+) LadderBux Log \(Player I\.D\. is (\d+)\)/);
+      } catch (_) { nm = null; }
+      if (nm) break;
+    }
     if (!nm) return null;
     const cells = [...t.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(m => m[1].replace(/<[^>]+>/g, "").trim());
     const tours = {};
@@ -189,11 +196,181 @@ async function playerTours(slug, Q) {
   return r;
 }
 
+
+// ---------------- player participation (which tours did X play): Ladderbux log (ids the player was charged an entry fee for)
+// joined to the league calendar (start time, game, TD) and the tour's TEAMS page (partner / entrants).
+const ETC = { cfg: null };
+async function loadCfg(ctx) {
+  if (ETC.cfg && Date.now() - ETC.cfg.t < 60000) return ETC.cfg.v;
+  let v = {};
+  try { const r = await ctx.env.ASSETS.fetch(new Request(new URL("/live/config.json", ctx.url))); if (r.ok) v = await r.json(); } catch (_) {}
+  ETC.cfg = { t: Date.now(), v };
+  return v;
+}
+// Same board labels as /api/live (labels.json rules); other leagues use the feed's own game text, tidied.
+function makeLabeler(cfg) {
+  const L = cfg.labels || {}, noC = o => Object.fromEntries(Object.entries(o || {}).filter(([k]) => !k.startsWith("_")));
+  const byId = noC(L.by_id), slot = Object.fromEntries(Object.entries(noC(L.by_slot)).map(([k, v]) => [k.toLowerCase(), v]));
+  const rx = x => new RegExp(x, "i"), pad = n => String(n).padStart(2, "0");
+  const raw = (L.raw_rules || []).map(r => [rx(r.match), r.perteam ?? null, r.label]);
+  const rules = (L.rules || []).map(r => [rx(r.match), r.match2 ? rx(r.match2) : null, r.not ? rx(r.not) : null, r.perteam ?? null, r.label]);
+  const norm = x => x.toUpperCase().replace(/\d+\s*\/\s*\d+/g, " ").replace(/\s+/g, " ").trim();
+  function plain(text) {
+    let x = norm(text);
+    if (/^\d\s*VS\s*\d$/.test(x)) return "PARDS";
+    x = x.replace(/\bPARD A BOT SUI(CIDE)?\b/g, "SUI PAB").replace(/\bPARD A BOT\b/g, "PAB").replace(/\bSUICIDE\b/g, "SUI").replace(/^REG(ULAR)? /, "");
+    return x.replace(/\s+/g, " ").trim() || "SPADES";
+  }
+  function mapped(t) {
+    if (byId[t.id] != null) return byId[t.id];
+    const n = norm(t.game), k = `${t.td}|${pad(t.h)}:${pad(t.m)}|${n}`.toLowerCase();
+    if (slot[k] != null) return slot[k];
+    const pt = parseInt(t.perteam, 10) || 0;
+    for (const [r, p, lab] of raw) if (r.test(t.game) && (p === null || p === pt)) return lab;
+    for (const [r, r2, rn, p, lab] of rules) if (r.test(n) && (!r2 || r2.test(n)) && (!rn || !rn.test(n)) && (p === null || p === pt)) return lab;
+    return null;
+  }
+  return (t, slug) => slug === (cfg.league || "diamondspaders") ? ((cfg.labels_by_id || {})[t.id] ?? mapped(t) ?? plain(t.game)) : plain(t.game);
+}
+function namesMatch(keys, n) { return keys.has(String(n || "").toLowerCase().replace(/\s+/g, "")) || keys.has(String(n || "").toLowerCase()); }
+function keySet(name, canon) {
+  const k = new Set();
+  for (const x of [name, canon]) if (x) for (const y of playerKeys(x)) { k.add(y); k.add(y.replace(/\s+/g, "")); }
+  return k;
+}
+const ordinal = p => p === "1" ? "won (1st place)" : p === "2" ? "2nd place" : p === "3" ? "3rd place" : `place ${p}`;
+function periodFromQ(q, now) {
+  const wd = new Date(now.date + "T12:00:00Z").getUTCDay(), mon = addDays(now.date, -((wd + 6) % 7));
+  if (/\byesterday\b|\blast night\b/i.test(q)) return [addDays(now.date, -1), addDays(now.date, -1)];
+  if (/\blast week\b/i.test(q)) return [addDays(mon, -7), addDays(mon, -1)];
+  if (/\b(past|last)\s+(week|7 days)\b|\bpast\s+seven\s+days\b/i.test(q)) return [addDays(now.date, -6), now.date];
+  if (/\bthis week\b/i.test(q)) return [mon, now.date];
+  if (/\blast month\b|\bpast month\b|\bpast 30 days\b|\blast 30 days\b/i.test(q)) return [addDays(now.date, -29), now.date];
+  if (/\btoday\b|\btonight\b/i.test(q)) return [now.date, now.date];
+  return null;
+}
+
+// Every tour the player played in [from,to] across the given leagues, newest info first from the logs.
+async function playerDetail(Q, now, slugs, ctx) {
+  const cfg = await loadCfg(ctx), labelOf = makeLabeler(cfg), hidden = new Set((cfg.hidden || []).map(String));
+  let from = validDate(Q.date_from) ? Q.date_from : now.date, to = validDate(Q.date_to) ? Q.date_to : from;
+  if (to < from) [from, to] = [to, from];
+  if (to > now.date) to = now.date > from ? now.date : from;           // played = today or earlier (plus today's not-yet-finished)
+  if (from < addDays(now.date, -MAX_DAYS)) return { info: `Only the last ${MAX_DAYS} days of tours can be searched for who played.`, final: true };
+  let regBudget = 10, partnerBudget = 12;                               // max TEAMS-page lookups per question (registration / partner checks)
+  const out = { player: display(Q.player), from, to, leagues: [], notfound: [], err: [] };
+  await Promise.all(slugs.map(async slug => {
+    try {
+      let h = null, canon = null;
+      for (const nm of [Q.player, ...[...playerKeys(Q.player)].filter(x => x !== Q.player.toLowerCase())]) { h = await buxlog(slug, nm); if (h) break; }
+      if (h) canon = h.name;
+      const keys = keySet(Q.player, canon);
+      if (canon) out.player = display(canon);
+      const cal = await range(slug, from, to);
+      const logged = new Map((h ? h.list : []).map(x => [String(x.id), x]));
+      const rows = []; let leagueReg = 0;
+      for (const t of cal) {
+        if (t.status === "cancelled") continue;
+        const lg = logged.get(String(t.id));
+        const base = { slug, league: leagueName(slug), id: t.id, date: t.date, h: t.h, m: t.m, td: t.td, game: labelOf(t, slug), perteam: +t.perteam || 1,
+          status: t.status, winners: t.winners, place: lg ? lg.place : "" };
+        if (hidden.has(String(t.id)) && !(lg && lg.place)) continue; // hidden = cancelled/withdrawn from the board
+        if (lg) { rows.push({ ...base, how: "log" }); continue; }
+        const feedWin = t.winners.some(w => namesMatch(keys, w));
+        if (feedWin) { rows.push({ ...base, how: "feed", place: "1" }); continue; }
+        if (t.status === "not finished" && t.date >= addDays(now.date, -1) && ++leagueReg <= 4 && regBudget-- > 0) {   // registered but no fee/placing yet
+          const ts = await teams(t, slug).catch(() => null);
+          if (ts && ts.some(x => x.players.some(p => namesMatch(keys, p)))) rows.push({ ...base, how: "reg" });
+        }
+      }
+      // partner / team for team tours
+      await Promise.all(rows.filter(r => r.perteam > 1).map(async r => {
+        if (partnerBudget-- <= 0) return;
+        const t = cal.find(x => String(x.id) === String(r.id));
+        const ts = await teams(t, slug).catch(() => null);
+        const mine = ts && ts.find(x => x.players.some(p => namesMatch(keys, p)));
+        if (mine) { r.team = mine.team; r.partners = mine.players.filter(p => !namesMatch(keys, p)).map(display); if (r.place === "" && t.winners.length === 1 && mine.team.toLowerCase().replace(/\s*\(\d+\)$/, "") === t.winners[0].toLowerCase().replace(/\s*\(\d+\)$/, "")) r.place = "1"; }
+      }));
+      rows.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.h * 60 + a.m) - (b.h * 60 + b.m));
+      if (!h && !rows.length) out.notfound.push(leagueName(slug)); else out.leagues.push({ slug, league: leagueName(slug), rows, known: !!h });
+    } catch (e) { out.err.push(leagueName(slug)); if (ctx.debug) console.log("ERR", slug, e && e.stack); }
+  }));
+  const ord = Object.keys(REG.leagues); out.leagues.sort((a, b) => ord.indexOf(a.slug) - ord.indexOf(b.slug));
+  return out;
+}
+function rowLine(r, multiday) {
+  let res;
+  if (r.place) res = ordinal(r.place);
+  else if (r.how === "reg") res = "registered, not finished yet";
+  else if (r.status === "finished") res = "played, did not place";
+  else res = "in progress / no result yet";
+  const bits = [`${multiday ? fmtDate(r.date).replace(/, \d{4}$/, "") + " " : ""}${fmtTime(r.h, r.m)}`, r.game + (r.td ? ` (TD ${display(r.td)})` : ""), res];
+  if (r.partners && r.partners.length) bits.push(`with ${r.partners.join(" & ")}${r.team ? ` as "${r.team}"` : ""}`);
+  return "• " + bits.join(" — ");
+}
+function playedAnswer(D, Q, mode) {
+  const period = D.from === D.to ? (D.to === etNow().date ? `today (${fmtDate(D.to)})` : `on ${fmtDate(D.to)}`) : `from ${fmtDate(D.from)} to ${fmtDate(D.to)}`;
+  const multiday = D.from !== D.to, who = D.player;
+  let rows = D.leagues.flatMap(l => l.rows);
+  if (mode === "wins") rows = rows.filter(r => r.place === "1");
+  const nl = D.leagues.filter(l => (mode === "wins" ? l.rows.some(r => r.place === "1") : l.rows.length)).length;
+  if (!rows.length) {
+    if (!D.leagues.some(l => l.known) && D.leagues.length === 0 && D.err.length === 0) return `No player named ${who} was found in ${D.notfound.join(", ")}.`;
+    return `${who} ${mode === "wins" ? "didn't win any tours" : "didn't play in any tours"} ${period} (searched ${[...D.leagues.map(l => l.league), ...D.notfound].join(", ")}).`
+      + (D.err.length ? ` Could not be read: ${D.err.join(", ")}.` : "");
+  }
+  const won = rows.filter(r => r.place === "1").length;
+  let txt = mode === "wins"
+    ? `${who} won ${rows.length} tour${rows.length > 1 ? "s" : ""} ${period}:`
+    : `${who} played ${rows.length} tour${rows.length > 1 ? "s" : ""} ${period}${won ? ` and won ${won}` : ""}:`;
+  for (const l of D.leagues) {
+    const rs = mode === "wins" ? l.rows.filter(r => r.place === "1") : l.rows;
+    if (!rs.length) continue;
+    if (nl > 1) txt += `\n${l.league}:`;
+    txt += "\n" + rs.map(r => rowLine(r, multiday)).join("\n");
+  }
+  if (D.err.length) txt += `\n(Could not be read: ${D.err.join(", ")}.)`;
+  return txt;
+}
+
+// Who played in a tour: the tour's TEAMS page.
+async function participants(Q, now, slug, ctx) {
+  const cfg = await loadCfg(ctx), labelOf = makeLabeler(cfg), lname = leagueName(slug);
+  const day = validDate(Q.date_to) ? Q.date_to : validDate(Q.date_from) ? Q.date_from : now.date;
+  const tours = (await range(slug, day, day)).filter(t => t.status !== "cancelled");
+  if (!tours.length) return { info: `No ${lname} tours are listed for ${fmtDate(day)}.`, final: true };
+  if (!/^\d{1,2}:\d{2}$/.test(Q.time || "")) return { info: `Which tour? Name its start time, for example "who played in the 6:15" (${lname} tours on ${fmtDate(day)}: ${tours.map(t => fmtTime(t.h, t.m).replace(" ET", "")).join(", ")}).`, final: true };
+  const [hh, mm] = Q.time.split(":").map(Number), want = hh * 60 + mm;
+  let best = tours[0];
+  for (const t of tours) if (Math.abs(t.h * 60 + t.m - want) < Math.abs(best.h * 60 + best.m - want)) best = t;
+  const near = Math.abs(best.h * 60 + best.m - want) > 20 ? `No ${lname} tour at ${fmtTime(hh, mm)}; nearest is ` : "";
+  const head = `${fmtTime(best.h, best.m)} ${labelOf(best, slug)} (TD ${display(best.td)}, ${fmtDate(best.date)}, ${lname})`;
+  const ts = await teams(best, slug).catch(() => null);
+  if (!ts || !ts.length) return { info: `${near}${head}: the entrant list could not be read.`, final: true };
+  const n = ts.reduce((a, x) => a + x.players.length, 0);
+  const lines = ts.map(x => x.players.length > 1 || best.perteam > 1 ? `${x.team ? x.team + ": " : ""}${x.players.map(display).join(" & ")}` : x.players.map(display).join(""));
+  const sep = best.perteam > 1 ? "\n• " : ", ";
+  let txt = `${near}${head} has ${n} player${n === 1 ? "" : "s"} entered${best.perteam > 1 ? ` (${ts.length} teams)` : ""}:${best.perteam > 1 ? sep : " "}${lines.join(sep)}`;
+  if (best.winners.length) txt += `\nWinner: ${best.winners.map(display).join(" & ")}.`;
+  else if (best.status === "not finished") txt += "\nNo winner yet.";
+  return { info: txt, final: true };
+}
+
 // ---------------- run the query
-async function run(Q, now) {
+async function run(Q, now, ctx) {
   const slug = leagueFor(Q.league);
   if (!slug) return { info: `The league "${Q.league}" is not in the list of leagues this page can read.` };
   const lname = leagueName(slug);
+  if (Q.ask === "participants") {
+    if (!Q.player) return participants(Q, now, slug, ctx);
+    Q.ask = "player_tours";
+  }
+  if (Q.ask === "player_tours" && Q.detail) {
+    if (!Q.player) return { league: lname, info: "The question does not name a player (\"I\" or \"me\" can't be identified here), so no player's tours could be listed.", final: true };
+    const D = await playerDetail(Q, now, Q.all_leagues ? Object.keys(REG.leagues) : [slug], ctx);
+    if (D.final) return D;
+    return { info: playedAnswer(D, Q, Q.wins ? "wins" : "played"), final: true };
+  }
   if (Q.ask === "player_tours") {
     if (!Q.player) return { league: lname, info: "The question does not name a player (\"I\" or \"me\" can't be identified here), so no player's tours could be counted." };
     if (Q.latest) { // "last/most recent tour": answer only the single newest tour
@@ -313,7 +490,27 @@ export async function onRequestPost({ request, env, waitUntil }) {
   // Tours-played questions: "any/all/every league" or no league named -> search every league
   if (Q.ask === "player_tours" && (/\b(any|all|every|each)\s+(of\s+the\s+)?leagues?\b|\bleagues\b/i.test(q) || !String(Q.league || "").trim())) { Q.all_leagues = true; Q.league = ""; }
   if (Q.ask === "player_tours" && /\b(last|latest|most\s+recent(ly)?|recent|newest)\b/i.test(q) && !/\b(all|every|list|how many)\b/i.test(q)) Q.latest = true;
-  try { data = await run(Q, now); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now." }; }
+  // Player-participation questions: which tours did X play / win in a period, who played in a given tour
+  if (Q.ask === "unsupported" && /\b(play(ed|ing)?|entered|joined|participat\w*)\b/i.test(q)) {
+    const m = q.match(/\b(?:did|has|have|was|is|does)\s+@?([\w.\-]+)\s+(?:play|enter|join|participate|win|won)/i);
+    if (!Q.player && m && !/^(i|we|you|anyone|anybody|everyone|he|she|they)$/i.test(m[1])) Q.player = m[1];
+    if (Q.player) Q.ask = "player_tours"; else if (Q.time) Q.ask = "participants";
+  }
+  if (Q.ask === "participants" && Q.player) Q.ask = "player_tours";
+  if (Q.ask === "player_wins" && Q.player && (/\b(any|all|every|each)\s+(of\s+the\s+)?leagues?\b|\bleagues\b/i.test(q) || !String(Q.league || "").trim())) { Q.all_leagues = true; Q.league = ""; }
+  if (Q.player && (Q.ask === "player_tours" || Q.ask === "player_wins") && !Q.latest) {
+    const per = periodFromQ(q, now);
+    let f = validDate(Q.date_from) ? Q.date_from : "", t2 = validDate(Q.date_to) ? Q.date_to : f;
+    if (per) [f, t2] = per;
+    if (Q.ask === "player_wins" && !PERIOD.test(q)) { f = addDays(now.date, -29); t2 = now.date; }
+    if (f && t2 && t2 >= f && f >= addDays(now.date, -MAX_DAYS) && Math.round((Date.parse(t2) - Date.parse(f)) / 864e5) <= 31 && (Q.ask === "player_wins" || PERIOD.test(q))) {
+      Q.detail = true; Q.date_from = f; Q.date_to = t2; Q.ask = "player_tours"; Q.wins = /\b(win|won|wins|winner|winners|winning)\b/i.test(q) && !/\bplay(ed)?\b/i.test(q);
+      if (!Q.all_leagues && !String(Q.league || "").trim()) Q.all_leagues = true;
+    }
+  }
+  if (Q.ask === "participants" && !Q.player) { const per = periodFromQ(q, now); if (per) { Q.date_from = per[0]; Q.date_to = per[1]; } }
+  const ctx = { env, url: request.url, debug: !!env.DEBUG };
+  try { data = await run(Q, now, ctx); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now." }; }
   if (data.final) answer = data.info;
   else if (data.info && Object.keys(data).every(k => ["info", "league", "dates", "player"].includes(k))) answer = data.info;
   else try {

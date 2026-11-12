@@ -12,6 +12,9 @@ Works (any league in leagues.json, last ~60 days, times in ET):
 
 - Which tours a player played in a period (today, yesterday, this/last week, a date, up to 31 days): "what tours did X play today", "how many tours did X play this week", "did X win any tours". Lists each tour with start time (ET), board label, TD and result (won / 2nd / 3rd / played), plus the partner and team name in partner tours, across every league unless one is named. Source: the player's Ladderbux log (which tours charged an entry fee, and placing) joined to the league calendar by tour id, and the tour's TEAMS page for partners and not-yet-finished registrations. Aliases in leagues.json are honored.
 - Who played in a tour: "who played in the 6:15" (a start time, today unless a date is given): the entrant list from the tour's TEAMS page, with teams for partner tours and the winner.
+- Leaderboard (no player name needed): "who won the most CUT tours at Diamond Spaders in October", "most wins", "top 5 winners", "who hosted the most", optionally filtered by game type (board labels such as CUT, SINGLES, SUI PASS 2, REG PARTNERS; case-insensitive) or TD/host. Default league is Diamond Spaders. Periods: month names (most recent such month), "this week", "last month" (the previous calendar month), "today", "yesterday", and date ranges. The answer names the leader (or a tie), the win count, and a top-5 list (ties at the cutoff are included). Partner tours credit each winner; cancelled/hidden tours are excluded. Game-type matching is exact on the board label ("CUT" is not "CUT MIRRORS"). When MyLeague's calendar no longer lists older days, Diamond Spaders days are filled from published daily reports when those exist.
+- Who played the most tours on a single day, when that day's daily report is available (all game types together). A month-long "who played the most" is not available.
+
 
 Not reachable / not supported yet:
 - "I"/"me" questions: the page can't know who is asking; name the player.
@@ -20,5 +23,6 @@ Not reachable / not supported yet:
 - Ladder standings, ratings, Ladderbux balances, player profiles.
 - Leagues not in leagues.json (add them there).
 - Tour names that exist only on the tour's own page (the feed has the format text, e.g. "2 VS 2").
-- More than 60 days back for winner/calendar questions (player tours-played history has no limit).
+- More than 60 days back for winner/calendar questions (player tours-played history has no limit). Leaderboards can reach a named month a bit further back when daily reports exist (Diamond Spaders, roughly the last few months).
+- "Who played the most" over more than one day (no complete entrant lists for a whole month).
 - Player wins inside team tours where the feed lists only the team name (counted only when the TEAMS page is checked, which is done for single-tour questions).

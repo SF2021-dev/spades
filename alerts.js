@@ -426,6 +426,19 @@
     var secs = (+p[0]) * 3600 + (+p[1]) * 60 + (+p[2]);
     if (!/\d/.test(m.textContent) || isNaN(secs)) return;
     var k = m.textContent + "|" + new Date().toDateString();
-    if (secs > 0 && secs <= 60 && !fired[k]) { fired[k] = 1; play(); }
+    if (secs > 0 && secs <= 60 && !fired[k]) { fired[k] = 1; autoTill = Date.now() + 75000; play(); }
   }, 1000);
+  /* 2026-11-12: auto alerts stop the moment the switch is off in ANY tab, and never ring past the start. */
+  var autoTill = 0;
+  setInterval(function () {
+    if (!autoTill) return;
+    if (!on() || Date.now() > autoTill) { autoTill = 0; stop(); }
+  }, 500);
+  window.addEventListener("storage", function (e) {
+    if (e.key === K_ON) {
+      stop(); autoTill = 0;
+      try { btn.checked = on(); } catch (x) {}
+      try { refresh(); } catch (x) {}
+    }
+  });
 })();

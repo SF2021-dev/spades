@@ -37,7 +37,8 @@
     }).catch(function () {});
   }
   check();
-  setInterval(function () { if (!document.hidden) check(); }, 120000);
+  setInterval(check, 120000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
   document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
 })();
 </script>
@@ -242,6 +243,6 @@
   setInterval(tick, 1000);
 })();
 </script>
-<script src="/alerts.js?v=17"></script>
+<script src="/alerts.js?v=18"></script>
 </body>
 </html>

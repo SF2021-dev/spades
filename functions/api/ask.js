@@ -297,6 +297,7 @@ function leaderboardIntent(q, Q) {
     || /\bwho\s+(?:has|have|had|got)\s+(?:the\s+)?most\b/i.test(q)
     || /\b(?:which|what)\s+player\s+(?:won|has|have|had|played|hosted|ran)\s+(?:the\s+)?most\b/i.test(q)
     || /\b(?:most\s+wins?|winningest|leaderboard)\b/i.test(q)
+    || /\bmost\s+(?:[\w']+\s+){0,6}wins?\b/i.test(q)
     || /\btop\s+\d+\b/i.test(q) && /\b(?:winners?|wins?|players?|hosts?|tds?|leaders?)\b/i.test(q)
     || /\bmost\s+[\w][\w\s]{0,40}\btours\b/i.test(q)
     || /\bwho\s+(?:played|entered|hosted|ran|td'?d?)\s+the\s+most\b/i.test(q)
@@ -855,7 +856,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   let perr = "";
   try { Q = await parse(env, q, now); } catch (e) { perr = String(e && e.message || e).slice(0, 200); }
   if (!Q) return json({ answer: "The question could not be read.", error: perr });
-  const lb = leaderboardIntent(q, Q);
+  const lb = leaderboardIntent(q, Q) || (Q.ask === "leaderboard" ? { metric: /played|hosted/.test(String(Q.metric||"")) ? Q.metric : "wins", top: Math.max(3, Math.min(15, +Q.top || 5)) } : null);
   if (lb) {
     const ctx = { env, url: request.url, debug: !!env.DEBUG };
     try { data = await leaderboard(q, Q, now, lb, ctx); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now.", final: true }; }

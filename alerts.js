@@ -135,6 +135,7 @@
       b.textContent = "\uD83D\uDD14 Tour alert! Click to play the sound";
       b.onclick = function () { b.remove(); document.title = t0; clearInterval(fl); unlocked = true; play(); };
       document.body.appendChild(b);
+      setTimeout(function () { if (b.parentNode) b.remove(); }, 60000);   /* never play late */
     }
     var t0 = document.title, n = 0, fl = setInterval(function () { document.title = (n++ % 2) ? t0 : "\uD83D\uDD14 TOUR ALERT"; if (n > 120) { clearInterval(fl); document.title = t0; } }, 1000);
   }
@@ -219,9 +220,6 @@
     + '<div style="font-size:13px;margin-top:6px">Play</div>'
     + '<select id="ds-alert-lead">'
     + '<option value="1">1 min before start</option>'
-    + '<option value="0">when the next tour starts</option>'
-    + '<option value="5">5 min before start</option>'
-    + '<option value="10">10 min before start</option>'
     + '</select>'
     + '<div style="font-size:13px;margin-top:6px">Volume</div>'
     + '<input type="range" id="ds-alert-vol" min="0" max="1" step="0.05">'
@@ -292,7 +290,7 @@
       cn.textContent = "";
     }
     vol.value = get(K_VOL, "0.8");
-    lead.value = get(K_LEAD, "1");
+    lead.value = "1"; set(K_LEAD, "1");
   }
 
   btn.onchange = function () {
@@ -325,7 +323,6 @@
       set(K_URL, urlInput.value.trim());
       set(K_SND, "url");
       refresh();
-      play();
     }
   });
 
@@ -343,12 +340,10 @@
       set(K_SND, "url");
       refresh();
       setTimeout(function () { urlInput.focus(); }, 0);
-      if (get(K_URL, "").trim()) play();
       return;
     }
     set(K_SND, val);
     refresh();
-    play();
   });
 
   /* click the upload label again to re-pick */
@@ -375,7 +370,6 @@
       set(K_SND, "upload");
       try { LS.removeItem("dsAlertCustom"); } catch (e) {}
       refresh();
-      play();
     }).catch(function () {
       if (f.size > 1500000) {
         alert("That file is too big for this browser to save. Try a smaller clip (under 1.5 MB), or use a URL.");
@@ -396,7 +390,6 @@
         set(K_CUS_NAME, f.name);
         set(K_SND, "upload");
         refresh();
-        play();
       };
       reader.onerror = function () { alert("Could not read that file."); };
       reader.readAsDataURL(f);
@@ -420,23 +413,19 @@
 
   /* next-tour-start alert: watch the board's NEXT countdown (#ds-next-count)
      and play once per tour when it reaches the chosen lead time (0 = at start). */
-  var fired = {}, last = null;
+  /* 2026-11-11: plays ONLY on the main page, ONLY with the switch on, and ONLY in the final minute
+     before a tour's start time (never after a tour has started). Test button previews by hand. */
+  var fired = {};
+  var MAIN = location.pathname === "/" || location.pathname === "/index.html";
   setInterval(function () {
-    if (!on()) return;
+    if (!MAIN || !on()) return;
     var c = document.getElementById("ds-next-count"), m = document.getElementById("ds-next-main");
     if (!c || !m) return;
     var p = c.textContent.split(":");
     if (p.length !== 3) return;
     var secs = (+p[0]) * 3600 + (+p[1]) * 60 + (+p[2]);
-    var leadSec = parseInt(get(K_LEAD, "1"), 10) * 60;
+    if (!/\d/.test(m.textContent) || isNaN(secs)) return;
     var k = m.textContent + "|" + new Date().toDateString();
-    if (!/\d/.test(m.textContent)) return;
-    /* Background tabs only run timers about once a minute, so use a wide window instead of 5 seconds:
-       fire any time in the last 2 minutes before the lead time... */
-    if (leadSec > 0 && secs <= leadSec && secs > Math.max(0, leadSec - 120) && !fired[k]) { fired[k] = 1; play(); }
-    /* ...and if the countdown already rolled over to the next tour before we saw it (lead 0, or a
-       sleeping tab), fire for the tour that just started as long as we saw it close to start. */
-    if (last && last.k !== k && !fired[last.k] && last.secs <= leadSec + 150 && Date.now() - last.t < 4 * 60e3) { fired[last.k] = 1; play(); }
-    last = { k: k, secs: secs, t: Date.now() };
+    if (secs > 0 && secs <= 60 && !fired[k]) { fired[k] = 1; play(); }
   }, 1000);
 })();

@@ -463,7 +463,8 @@
 "_11953321": "2026-10-10: Sat Oct 10 9:15 PM ET Ellisandrew80 feed was just 500/100 (2 per team) => REG PARTNERS",
 "_11953546": "2026-10-12: AceyLynn 22:15 ET feed '1 vs 1' / CHOICE SINGLES => SINGLES (was stuck as PARDS)",
 "_11953891": "2026-10-16: user set 22:15 ET LW Singles => LOSER WINS",
-"_11954156": "2026-10-16: user set 14:15 ET => SUI PASS 2 PAB"
+"_11954156": "2026-10-16: user set 14:15 ET => SUI PASS 2 PAB",
+"11958274": "SUI PASS 2 PAB"
 },
 "by_slot": {
 "AceyLynn|22:15|1 VS 1": "LOSER WINS"
@@ -532,6 +533,27 @@
 "label": "SUI PASS 2 PAB",
 "match": "PARD ?A ?BOT|PARTNER ?A ?BOT|\\bPAB\\b",
 "match2": "SUI"
+},
+{
+"_comment": "2026-11-13: perteam=1 + Pass 2 is Pard-A-Bot (Ellisandrew80 12:15).",
+"match": "PASS\\s*2",
+"perteam": 1,
+"not": "RANDOM|MIRROR|CUT|SINGLE",
+"label": "SUI PASS 2 PAB"
+},
+{
+"_comment": "perteam=1 suicide (one human + bot) even when the feed omits PAB.",
+"match": "SUI",
+"perteam": 1,
+"not": "RANDOM|MIRROR|CUT|SINGLE|LOSER",
+"label": "SUI PASS 2 PAB"
+},
+{
+"_comment": "perteam=1 regular partners / bare partner text is REG SPADES PAB.",
+"match": "PARD|PARTNER|\\bPAB\\b",
+"perteam": 1,
+"not": "SUI|CUT|SINGLE|MIRROR|LOSER|RANDOM|PASS\\s*2",
+"label": "REG SPADES PAB"
 },
 {
 "_comment": "User 2026-10-08: SUI + Random Partners",
@@ -1007,7 +1029,7 @@
 "11958245": "CUT",
 "11958246": "CUT",
 "11958273": "CUT",
-"11958274": "PASS 2",
+"11958274": "SUI PASS 2 PAB",
 "11958275": "REG PARTNERS",
 "11958322": "CUT",
 "11958329": "SUI PASS 2",

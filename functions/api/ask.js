@@ -752,8 +752,11 @@ async function playerRate(q, Q, now, intent, ctx) {
     if (!playerIn(t.players, keys)) continue;
     if (t.status && t.status !== "finished") { openN++; continue; }
     if (!t.winners || !t.winners.length) { pending++; continue; }
-    const LABEL_FIX = { "PASS 2": "SUI PASS 2", "SETTERS CHOICE SINGLES": "SETTER'S CHOICE SINGLES", "PARTNERS": "REG PARTNERS", "CUT 400100": "CUT" };
-    const label = officialize(LABEL_FIX[t.label] || t.label || "", official) || t.label || "UNKNOWN";
+    const LABEL_FIX = { "SETTERS CHOICE SINGLES": "SETTER'S CHOICE SINGLES", "PARTNERS": "REG PARTNERS", "CUT 400100": "CUT" };
+    let rawLab = t.label || "";
+    if (String(rawLab).toUpperCase() === "PASS 2")
+      rawLab = String(t.perteam) === "1" ? "SUI PASS 2 PAB" : "SUI PASS 2";
+    const label = officialize(LABEL_FIX[rawLab] || rawLab, official) || rawLab || "UNKNOWN";
     if (wantGame && !labelsMatch(wantGame, label)) { skipped++; continue; }
     const rec = by.get(label) || { label, played: 0, wins: 0 };
     rec.played++;

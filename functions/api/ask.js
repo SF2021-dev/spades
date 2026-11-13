@@ -1011,7 +1011,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { q = String((await request.json()).q || "").trim().slice(0, 300); } catch (_) {}
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
-  const ansKey = `ans/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v2/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());

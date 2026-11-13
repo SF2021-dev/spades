@@ -18,7 +18,22 @@ button:disabled{opacity:.5;cursor:wait}
 <div id="a"></div>
 <script>
 const f=document.getElementById("f"),q=document.getElementById("q"),a=document.getElementById("a"),b=document.getElementById("b");
-f.onsubmit=async e=>{e.preventDefault();const v=q.value.trim();if(!v)return;b.disabled=true;a.style.display="block";a.className="searching";a.textContent="♠ Searching";
-try{const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({q:v})});const d=await r.json();a.className="";a.textContent=d.answer||"No answer."}
-catch(_){a.className="";a.textContent="The answer service could not be reached."}b.disabled=false};
+f.onsubmit=async e=>{
+  e.preventDefault();
+  const v=q.value.trim();
+  a.style.display="block";
+  if(!v){a.className="";a.textContent="Type a question first — the grey text in the box is only an example.";return;}
+  b.disabled=true;a.className="searching";a.textContent="♠ Searching";
+  const ac=new AbortController();const to=setTimeout(()=>ac.abort(),20000);
+  try{
+    const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({q:v}),signal:ac.signal});
+    const d=await r.json();
+    a.className="";
+    a.textContent=r.status===401?"Please sign in to ask a question.":(d.answer||"No answer.");
+  }catch(err){
+    a.className="";
+    a.textContent=(err&&err.name==="AbortError")?"The answer is taking too long. Please try again.":"The answer service could not be reached.";
+  }
+  clearTimeout(to);b.disabled=false;
+};
 </script></main></body></html>

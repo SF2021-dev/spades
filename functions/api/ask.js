@@ -2,6 +2,7 @@
 // Workers AI turns the question into a structured query; code runs it; the model phrases the answer ONLY from the result.
 // Leagues: /ask/leagues.json. Limits: /ask/limits.md.
 import REG from "../../ask/leagues.json";
+import RATES from "../../ask/player_tours.json";
 
 const CAL_URL = "https://www.myleague.com/pages/remote/tournamentCalendar.php";
 const UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120";
@@ -713,6 +714,8 @@ async function loadRates(ctx) {
     const r = await ctx.env.ASSETS.fetch(new Request(new URL("/ask/player_tours.json", ctx.url)));
     if (r.ok) v = await r.json();
   } catch (_) {}
+  // Bundled copy: always available even if the asset fetch is gated or fails.
+  if (!v || !Array.isArray(v.tours) || !v.tours.length) v = RATES;
   ETC.rates = { t: Date.now(), v };
   return v;
 }
@@ -1032,13 +1035,58 @@ async function run(Q, now, ctx) {
   return { info: "That question could not be matched to MyLeague tour data." };
 }
 
+
+function phraseTour(Q, data) {
+  if (!data) return "";
+  if (data.info && (data.final || !data.tour)) return data.info;
+  const t = data.tour;
+  if (!t) return data.info || "";
+  const when = `${t.date} ${t.time}`, game = t.game || "tour", td = t.td ? `, hosted by ${t.td}` : "";
+  const st = String(t.status || "");
+  if (/cancel/i.test(st)) return `The ${when} ${game}${td} was cancelled.`;
+  const wins = (t.winners || []).filter(Boolean);
+  const team = Array.isArray(t.winning_team_players) ? t.winning_team_players.filter(Boolean) : [];
+  const who = (team.length ? team : wins).join(" and ");
+  if (Q.ask === "td") return `The ${when} ${game} was hosted by ${t.td || "an unlisted TD"}.`;
+  if (Q.ask === "game") return `The ${when} tour${td} is ${game}.`;
+  if (!wins.length) return `The ${when} ${game}${td} has no winner posted yet.`;
+  const near = t.nearest ? ` ${t.nearest}` : "";
+  const extra = team.length && team.join(" and ") !== wins.join(" and ") ? ` The winning team was ${team.join(" and ")}.` : "";
+  return `The ${when} ${game}${td} was won by ${who}.${extra}${near}`.replace(/\.\s*\./g, ".").trim();
+}
+
+// Classify common questions without waiting on Workers AI (which can hang and freeze the page).
+function simpleTourQ(q, now) {
+  const tm = q.match(/\b(?:the\s+)?(\d{1,2}):(\d{2})\s*(am|pm)?\b/i);
+  if (!tm) return null;
+  let h = +tm[1], mi = +tm[2];
+  const ap = (tm[3] || "").toLowerCase();
+  if (ap === "pm" && h < 12) h += 12;
+  if (ap === "am" && h === 12) h = 0;
+  if (!ap && h >= 1 && h <= 7) h += 12; // same convention as PARSE_SYS
+  let ask = "";
+  if (/\bwho\s+(?:ran|hosted)\b|\bwho\s+was\s+the\s+td\b|\bwhich\s+td\b/i.test(q)) ask = "td";
+  else if (/\b(?:what|which)\s+(?:game|format|variation|type)\b/i.test(q)) ask = "game";
+  else if (/\bwho\s+(?:played|entered|is\s+in|was\s+in)\b/i.test(q)) ask = "participants";
+  else if (/\bwho\s+won\b|\bwinners?\b/i.test(q)) ask = "winner";
+  else return null;
+  const per = periodFromQ(q, now);
+  const from = per ? per[0] : now.date, to = per ? per[1] : now.date;
+  return { ask, player: "", date_from: from, date_to: to, league: "", game: "", time: `${String(h).padStart(2, "0")}:${String(mi).padStart(2, "0")}`, td: "" };
+}
+
+function shouldCacheAnswer(answer) {
+  const t = String(answer || "");
+  return t && !/could not be reached/i.test(t) && !/not configured/i.test(t) && !/taking too long/i.test(t);
+}
+
 // ---------------- handler
 export async function onRequestPost({ request, env, waitUntil }) {
   let q = "";
   try { q = String((await request.json()).q || "").trim().slice(0, 300); } catch (_) {}
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
-  const ansKey = `ans/v4/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v5/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());
@@ -1048,32 +1096,49 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const n = +(await (await c.match(rk))?.text() || 0);
   if (n >= RATE_PER_HOUR) return json({ answer: "Too many questions from this connection this hour." }, 429);
   await c.put(rk, new Response(String(n + 1), { headers: { "cache-control": "max-age=3600" } }));
-  if (!env.AI) return json({ answer: "The answer service is not configured." }, 500);
 
   let Q, data, answer;
-  let perr = "";
-  try { Q = await parse(env, q, now); } catch (e) { perr = String(e && e.message || e).slice(0, 200); }
-  if (!Q) return json({ answer: "The question could not be read.", error: perr });
-  // I/me/my on this page is Ochwiay (the site owner), unless another player is named.
-  if (isMePronoun(Q.player) || (!Q.player && SAYS_ME.test(q))) Q.player = ME;
-  const rateIntent = successRateIntent(q, Q);
+  // Fast path first — never block these on Workers AI.
+  const stub = { ask: "", player: "", date_from: "", date_to: "", league: "", game: "", time: "", td: "", metric: "", top: 5 };
+  stub.player = resolveAskPlayer(q, stub);
+  const rateIntent = successRateIntent(q, stub);
   if (rateIntent) {
+    Q = stub;
+    Q.ask = "player_rate";
     const ctx = { env, url: request.url, debug: !!env.DEBUG };
     try { data = await playerRate(q, Q, now, rateIntent, ctx); } catch (_) { data = { info: "The tour-entry records this page uses for win rates could not be read right now.", final: true }; }
     answer = data.info || "The answer could not be produced.";
     const out = { answer, query: { ...Q, ask: "player_rate", player: data.player || Q.player }, data };
-    waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
+    if (shouldCacheAnswer(out.answer)) waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
     return json(out);
   }
-  const lb = leaderboardIntent(q, Q) || (Q.ask === "leaderboard" ? { metric: /played|hosted/.test(String(Q.metric||"")) ? Q.metric : "wins", top: Math.max(3, Math.min(15, +Q.top || 5)) } : null);
+  const lb = leaderboardIntent(q, stub) || (stub.ask === "leaderboard" ? { metric: /played|hosted/.test(String(stub.metric||"")) ? stub.metric : "wins", top: Math.max(3, Math.min(15, +stub.top || 5)) } : null);
   if (lb) {
+    Q = stub;
     const ctx = { env, url: request.url, debug: !!env.DEBUG };
     try { data = await leaderboard(q, Q, now, lb, ctx); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now.", final: true }; }
     answer = data.info || "The answer could not be produced.";
     const out = { answer, query: { ...Q, ask: "leaderboard", metric: lb.metric, top: lb.top }, data };
-    waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
+    if (shouldCacheAnswer(out.answer)) waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
     return json(out);
   }
+  const simple = simpleTourQ(q, now);
+  if (simple) {
+    Q = simple;
+    const ctx = { env, url: request.url, debug: !!env.DEBUG };
+    try { data = await run(Q, now, ctx); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now.", final: true }; }
+    answer = phraseTour(Q, data) || data.info || "The answer could not be produced.";
+    const out = { answer, query: Q, data };
+    if (shouldCacheAnswer(out.answer)) waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
+    return json(out);
+  }
+
+  // Other questions still use Workers AI to classify, then to phrase if needed.
+  if (!env.AI) return json({ answer: "The answer service is not configured." }, 500);
+  let perr = "";
+  try { Q = await parse(env, q, now); } catch (e) { perr = String(e && e.message || e).slice(0, 200); }
+  if (!Q) return json({ answer: "The question could not be read.", error: perr });
+  if (isMePronoun(Q.player) || (!Q.player && SAYS_ME.test(q))) Q.player = ME;
   // Player-history questions with no period in the question: search the whole log, never a default window
   const PERIOD = /\b(today|tonight|yesterday|night|morning|afternoon|evening|week|month|year|since|between|before|after|until|days?|ago|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december|monday|tuesday|wednesday|thursday|friday|saturday|sunday|20\d\d)\b|\d{1,2}\/\d{1,2}/i;
   if (Q.ask === "player_tours" && !PERIOD.test(q)) { Q.date_from = ""; Q.date_to = ""; }
@@ -1108,7 +1173,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   } catch (_) {}
   if (!answer) answer = data.info || "The answer could not be produced.";
   const out = { answer, query: Q, data };
-  waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
+  if (shouldCacheAnswer(out.answer)) waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
   return json(out);
 }
 export const onRequestGet = () => json({ answer: "Use POST with {\"q\": \"your question\"}." });

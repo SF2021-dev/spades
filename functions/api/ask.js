@@ -486,6 +486,11 @@ function topTied(rows, n) {
 function boardLine(list) {
   return list.map(r => `${r.rank}. ${r.name} — ${r.count}`).join("\n");
 }
+function joinAnd(arr) {
+  if (arr.length <= 1) return arr[0] || "";
+  if (arr.length === 2) return arr[0] + " and " + arr[1];
+  return arr.slice(0, -1).join(", ") + ", and " + arr[arr.length - 1];
+}
 async function toursForBoard(slug, from, to, now, official, ctx) {
   let cal = [];
   try { cal = await range(slug, from, to); } catch (_) { cal = []; }
@@ -775,11 +780,11 @@ async function playerRate(q, Q, now, intent, ctx) {
   } else if (intent.worst) {
     head = leads.length === 1
       ? `${disp}'s worst ${kind} at ${lname} ${when} is ${one(leads[0])}.`
-      : `${disp}'s worst ${kind}s at ${lname} ${when} are tied: ${leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`).join(", ").replace(/, ([^,]*)$/, " and $1")}.`;
+      : `${disp}'s worst ${kind}s at ${lname} ${when} are tied: ${joinAnd(leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`))}.`;
   } else {
     head = leads.length === 1
       ? `${disp}'s best ${kind} at ${lname} ${when} is ${one(leads[0])}.`
-      : `${disp}'s best ${kind}s at ${lname} ${when} are tied: ${leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`).join(", ").replace(/, ([^,]*)$/, " and $1")}.`;
+      : `${disp}'s best ${kind}s at ${lname} ${when} are tied: ${joinAnd(leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`))}.`;
   }
   // If the leader is a 1-tour sample, mention the best among types played more than once.
   if (!intent.worst && !wantGame && leads.length === 1 && leads[0].played === 1) {

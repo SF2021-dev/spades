@@ -180,7 +180,29 @@ function makeRenderer(cfg, names = {}) {
     }
     return mapped(t);
   }
-  const label = t => (cfg.labels_by_id || {})[t.id] ?? mapped2(t) ?? gameLabel(t.game);
+  function standardLabel(lab, perteam) {
+    let u = String(lab || "").toUpperCase().replace(/\bSUICIDE\b/g, "SUI").replace(/\s+/g, " ").trim();
+    const SIX = ["CUT", "SINGLES", "PAB SUI PASS 2", "REG PARTNERS", "SUI PASS 2", "LOSER WINS"];
+    const MAP = {
+      "SUI PASS 2 PAB": "PAB SUI PASS 2", "REG SPADES PAB": "PAB SUI PASS 2", "SUI PAB": "PAB SUI PASS 2", "PAB": "PAB SUI PASS 2",
+      "CUT MIRRORS": "CUT", "CUT MIRRIORS": "CUT", "CUT NIL": "CUT", "CUT NBN": "CUT", "CUT 400100": "CUT",
+      "SUI PASS 2 RANDOM": "SUI PASS 2", "PARDS SUI": "SUI PASS 2",
+      "REG SPADES RANDOM": "REG PARTNERS", "REG SPADES": "REG PARTNERS", "REG PARDS": "REG PARTNERS", "PARDS": "REG PARTNERS", "PARTNERS": "REG PARTNERS",
+      "SETTER'S CHOICE SINGLES": "SINGLES", "SETTERS CHOICE SINGLES": "SINGLES", "IND TO NBN CDO": "SINGLES",
+      "LOSER WIN": "LOSER WINS"
+    };
+    if (!u) return u;
+    if (SIX.includes(u)) return u;
+    if (MAP[u]) return MAP[u];
+    if (/\bPAB\b|PARD ?A ?BOT|PARTNER ?A ?BOT/.test(u)) return "PAB SUI PASS 2";
+    if (/\bPASS\s*2\b|\bSUI\b/.test(u) && !/\bCUT\b|\bSINGLE/.test(u)) return parseInt(perteam, 10) === 1 ? "PAB SUI PASS 2" : "SUI PASS 2";
+    if (/MIRROR|\bCUT\b|1\s*VS\s*1\s*VS\s*1/.test(u)) return "CUT";
+    if (/LOSER|LOSRER|LOSWR|LOSER WIM/.test(u)) return "LOSER WINS";
+    if (/SINGLE|\bIND\b/.test(u)) return "SINGLES";
+    if (/PARD|PARTNER|\d\s*VS\s*\d|\bREG\b/.test(u)) return "REG PARTNERS";
+    return u;
+  }
+  const label = t => standardLabel((cfg.labels_by_id || {})[t.id] ?? mapped2(t) ?? gameLabel(t.game), t.perteam);
   const clock12 = (h, m) => `${h % 12 || 12}:${pad(m)} ${h >= 12 ? "PM" : "AM"}`;
   const nameSize = n => n.length <= 9 ? 22 : n.length <= 12 ? 20 : n.length <= 15 ? 18 : 16;
   function avatar(name) {

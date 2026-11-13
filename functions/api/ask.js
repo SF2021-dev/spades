@@ -235,7 +235,7 @@ function makeLabeler(cfg) {
     for (const [r, r2, rn, p, lab] of rules) if (r.test(n) && (!r2 || r2.test(n)) && (!rn || !rn.test(n)) && (p === null || p === pt)) return lab;
     return null;
   }
-  return (t, slug) => slug === (cfg.league || "diamondspaders") ? ((cfg.labels_by_id || {})[t.id] ?? mapped(t) ?? plain(t.game)) : plain(t.game);
+  return (t, slug) => slug === (cfg.league || "diamondspaders") ? standardLabel((cfg.labels_by_id || {})[t.id] ?? mapped(t) ?? plain(t.game), t.perteam) : plain(t.game);
 }
 function namesMatch(keys, n) { return keys.has(String(n || "").toLowerCase().replace(/\s+/g, "")) || keys.has(String(n || "").toLowerCase()); }
 function keySet(name, canon) {
@@ -319,35 +319,74 @@ function leaderboardIntent(q, Q) {
   const top = topM ? Math.max(3, Math.min(15, +topM[1])) : 5;
   return { metric, top };
 }
-function officialize(label, official) {
-  const u = String(label || "").toUpperCase().replace(/\s+/g, " ").trim();
+const SIX_LABELS = ["CUT", "SINGLES", "PAB SUI PASS 2", "REG PARTNERS", "SUI PASS 2", "LOSER WINS"];
+const LABEL_ALIASES = {
+  "SUI PASS 2 PAB": "PAB SUI PASS 2",
+  "REG SPADES PAB": "PAB SUI PASS 2",
+  "SUI PAB": "PAB SUI PASS 2",
+  "PAB": "PAB SUI PASS 2",
+  "CUT MIRRORS": "CUT",
+  "CUT MIRRIORS": "CUT",
+  "CUT MIRIORS": "CUT",
+  "CUT NIL": "CUT",
+  "CUT NBN": "CUT",
+  "CUT 400100": "CUT",
+  "SUI PASS 2 RANDOM": "SUI PASS 2",
+  "PARDS SUI": "SUI PASS 2",
+  "PARDS SUI PASS 2": "SUI PASS 2",
+  "REG SPADES RANDOM": "REG PARTNERS",
+  "REG SPADES": "REG PARTNERS",
+  "REG PARDS": "REG PARTNERS",
+  "PARDS": "REG PARTNERS",
+  "PARTNERS": "REG PARTNERS",
+  "SETTER'S CHOICE SINGLES": "SINGLES",
+  "SETTERS CHOICE SINGLES": "SINGLES",
+  "IND TO NBN CDO": "SINGLES",
+  "SINGLES TO NBN CDO": "SINGLES",
+  "LOSER WIN": "LOSER WINS"
+};
+function officialNames() { return SIX_LABELS.slice(); }
+function standardLabel(lab, perteam) {
+  let u = String(lab || "").toUpperCase().replace(/\bSUICIDE\b/g, "SUI").replace(/\s+/g, " ").trim();
   if (!u) return u;
-  if (official.includes(u)) return u;
-  const s = u.replace(/\s+PARTNERS$/, "");
-  if (official.includes(s)) return s;
+  if (SIX_LABELS.includes(u)) return u;
+  if (LABEL_ALIASES[u]) return LABEL_ALIASES[u];
+  if (/\bPAB\b|PARD ?A ?BOT|PARTNER ?A ?BOT/.test(u)) return "PAB SUI PASS 2";
+  if (/\bPASS\s*2\b|\bSUI\b/.test(u) && !/\bCUT\b|\bSINGLE/.test(u)) {
+    const pt = parseInt(perteam, 10);
+    return pt === 1 ? "PAB SUI PASS 2" : "SUI PASS 2";
+  }
+  if (/MIRROR|\bCUT\b|1\s*VS\s*1\s*VS\s*1/.test(u)) return "CUT";
+  if (/LOSER|LOSRER|LOSWR|LOSER WIM/.test(u)) return "LOSER WINS";
+  if (/SINGLE|\bIND\b/.test(u)) return "SINGLES";
+  if (/PARD|PARTNER|\d\s*VS\s*\d|\bREG\b/.test(u)) return "REG PARTNERS";
+  return u;
+}
+function officialize(label, official, perteam) {
+  const u = standardLabel(label, perteam);
+  if (!u) return u;
+  const off = official && official.length ? official : SIX_LABELS;
+  if (off.includes(u)) return u;
   return u;
 }
 function gameFromQ(q, official, Q) {
   const aliases = [
-    ["SETTER'S CHOICE SINGLES", /\bsetters?'?\s+choice(\s+singles)?\b/i],
-    ["CUT MIRRORS", /\bcut\s+mirrors?\b|\bmirrors?\b/i],
-    ["SUI PASS 2 RANDOM", /\b(?:sui(?:cide)?\s+)?pass\s*2\s+random\b/i],
-    ["SUI PASS 2 PAB", /\b(?:sui(?:cide)?\s+)?(?:pass\s*2\s+)?pab\b|\bpard\s+a\s+bot\b/i],
-    ["REG SPADES PAB", /\breg(?:ular)?\s+(?:spades\s+)?pab\b/i],
-    ["REG SPADES RANDOM", /\breg(?:ular)?\s+(?:spades\s+)?random\b/i],
-    ["REG PARTNERS", /\breg(?:ular)?\s+(?:partners|pards)\b|\b(?:partners|pards)\b/i],
-    ["SUI PASS 2", /\bsui(?:cide)?(?:\s+pass\s*2)?\b|\bpass\s*2\b/i],
+    ["PAB SUI PASS 2", /\bpab\s+sui|\bsui(?:cide)?\s+pass\s*2\s+pab\b|\b(?:sui(?:cide)?\s+)?(?:pass\s*2\s+)?pab\b|\bpard\s+a\s+bot\b|\bpartner\s+a\s+bot\b|\breg(?:ular)?\s+(?:spades\s+)?pab\b/i],
+    ["SUI PASS 2", /\b(?:sui(?:cide)?\s+)?pass\s*2\s+random\b|\bsui(?:cide)?(?:\s+pass\s*2)?\b|\bpass\s*2\b/i],
+    ["REG PARTNERS", /\breg(?:ular)?\s+(?:spades\s+)?random\b|\breg(?:ular)?\s+(?:partners|pards|spades)\b|\b(?:partners|pards)\b/i],
     ["LOSER WINS", /\bloser\s+wins?\b/i],
-    ["SINGLES", /\bsingles\b|\b1\s*v(?:s)?\s*1\s*v(?:s)?\s*1\b/i],
-    ["CUT", /\bcutthroat\b|\bcut\b/i]
+    ["SINGLES", /\bsetters?'?\s+choice(\s+singles)?\b|\bsingles\b/i],
+    ["CUT", /\bcut\s+mirrors?\b|\bmirrors?\b|\bcutthroat\b|\b1\s*v(?:s)?\s*1\s*v(?:s)?\s*1\b|\bcut\b/i]
   ];
   const off = official || [];
-  // Prefer an official label mentioned verbatim (longest first) so "SUI PASS 2" does not also catch PAB/RANDOM.
-  const mentioned = off.slice().sort((a, b) => b.length - a.length).find(lab => {
-    const rx = new RegExp("\\b" + lab.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+") + "\\b", "i");
-    return rx.test(q);
-  });
-  if (mentioned) return mentioned;
+  // Longest phrase first, including old aliases (so "SUI PASS 2 PAB" maps to PAB SUI PASS 2, not SUI PASS 2).
+  const mentioned = [...off.map(lab => [lab, lab]), ...Object.entries(LABEL_ALIASES)]
+    .sort((a, b) => b[0].length - a[0].length)
+    .find(([lab]) => {
+      const rx = new RegExp("\\b" + lab.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+") + "\\b", "i");
+      return rx.test(q);
+    });
+  if (mentioned) return officialize(mentioned[0], off) || mentioned[1];
   if (Q && Q.game) {
     const g = officialize(Q.game, off);
     if (off.includes(g)) return g;
@@ -526,7 +565,7 @@ async function leaderboard(q, Q, now, intent, ctx) {
   if (from < addDays(now.date, -120))
     return { info: `Leaderboard questions can go back as far as daily reports and the recent MyLeague calendar allow (about the last few months), not all the way to ${fmtDate(from)}.`, final: true };
   const cfg = await loadCfg(ctx);
-  const official = (cfg.labels && cfg.labels.official) || [];
+  const official = officialNames(cfg);
   const labelOf = makeLabeler(cfg);
   const wantGame = gameFromQ(q, official, Q);
   const host = hostFromQ(q, Q);
@@ -738,7 +777,7 @@ async function playerRate(q, Q, now, intent, ctx) {
   if (!data || !Array.isArray(data.tours) || !data.tours.length)
     return { info: "The tour-entry records this page uses for win rates are not available right now.", final: true };
   const cfg = await loadCfg(ctx);
-  const official = ((cfg.labels || {}).official) || [];
+  const official = officialNames(cfg);
   const [from, to] = boardPeriod(q, now, Q);
   const coverFrom = data.from, coverTo = data.to;
   const lname = data.league_name || "Diamond Spaders";
@@ -755,11 +794,7 @@ async function playerRate(q, Q, now, intent, ctx) {
     if (!playerIn(t.players, keys)) continue;
     if (t.status && t.status !== "finished") { openN++; continue; }
     if (!t.winners || !t.winners.length) { pending++; continue; }
-    const LABEL_FIX = { "SETTERS CHOICE SINGLES": "SETTER'S CHOICE SINGLES", "PARTNERS": "REG PARTNERS", "CUT 400100": "CUT" };
-    let rawLab = t.label || "";
-    if (String(rawLab).toUpperCase() === "PASS 2")
-      rawLab = String(t.perteam) === "1" ? "SUI PASS 2 PAB" : "SUI PASS 2";
-    const label = officialize(LABEL_FIX[rawLab] || rawLab, official) || rawLab || "UNKNOWN";
+    const label = officialize(t.label || "", official, t.perteam) || "UNKNOWN";
     if (wantGame && !labelsMatch(wantGame, label)) { skipped++; continue; }
     const rec = by.get(label) || { label, played: 0, wins: 0 };
     rec.played++;

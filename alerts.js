@@ -1,3 +1,4 @@
+window.DS_ALERT_V = 20;
 /* Diamond Spaders tour alerts: "alert" switch right of the NEXT countdown.
    When ON, a sound menu appears; the chosen sound plays when the next tour
    starts (or N min before). Settings: localStorage (dsAlertOn, dsAlertSound,
@@ -115,16 +116,7 @@
      browser lets it play later when the alert fires with nobody touching the page. */
   var PLAYER = new Audio(), unlocked = false;
   PLAYER.preload = "auto";
-  function unlock() {
-    if (unlocked) return; unlocked = true;
-    try {
-      if (currentAudio) return;
-      PLAYER.muted = true; PLAYER.src = DEFAULT_SRC;
-      var q = PLAYER.play();
-      var done = function () { try { if (!currentAudio) { PLAYER.pause(); PLAYER.currentTime = 0; } PLAYER.muted = false; } catch (e) {} };
-      if (q && q.then) q.then(done, function () { unlocked = false; PLAYER.muted = false; }); else done();
-    } catch (e) { unlocked = false; }
-  }
+  function unlock() { unlocked = true; }   /* v20: never plays anything to 'unlock' audio */
   ["pointerdown", "keydown", "touchstart"].forEach(function (ev) { document.addEventListener(ev, unlock, true); });
   /* If the browser still blocks sound, show a big banner + flash the tab title; any click plays it. */
   function blocked() {
@@ -133,7 +125,7 @@
       b = document.createElement("div"); b.id = "ds-alert-blocked";
       b.style.cssText = "position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:100000;background:#3a2a00;color:#fbe646;border:2px solid #fbe646;border-radius:12px;padding:14px 22px;font:800 20px Arial,sans-serif;box-shadow:0 0 18px rgba(251,230,70,.6);cursor:pointer";
       b.textContent = "\uD83D\uDD14 Tour alert! Click to play the sound";
-      b.onclick = function () { b.remove(); document.title = t0; clearInterval(fl); unlocked = true; play(); };
+      b.onclick = function () { b.remove(); document.title = t0; clearInterval(fl); unlocked = true; if (Date.now() < autoTill) play(); };
       document.body.appendChild(b);
       setTimeout(function () { if (b.parentNode) b.remove(); }, 60000);   /* never play late */
     }
@@ -309,7 +301,7 @@
     w.classList.remove("open");
     stop();
   };
-  w.querySelector("#ds-alert-test").onclick = function () { play(); };
+  w.querySelector("#ds-alert-test").onclick = function () { testTill = Date.now() + 120000; play(); };
   w.querySelector("#ds-alert-stop").onclick = function () { stop(); };
   vol.oninput = function () { set(K_VOL, vol.value); };
   lead.onchange = function () { set(K_LEAD, lead.value); };
@@ -429,11 +421,20 @@
     if (secs > 0 && secs <= 60 && !fired[k]) { fired[k] = 1; autoTill = Date.now() + 75000; play(); }
   }, 1000);
   /* 2026-11-12: auto alerts stop the moment the switch is off in ANY tab, and never ring past the start. */
-  var autoTill = 0;
-  setInterval(function () {
-    if (!autoTill) return;
-    if (!on() || Date.now() > autoTill) { autoTill = 0; stop(); }
-  }, 500);
+  var autoTill = 0, testTill = 0;
+  /* v20 hard guard: the player may only make sound during a due automatic alert (switch on, main page)
+     or within 2 minutes of pressing Test. Anything else is silenced at once. */
+  function allowed() {
+    var n = Date.now();
+    if (n < testTill) return true;
+    return MAIN && on() && n < autoTill;
+  }
+  function guard() {
+    try { if (!PLAYER.paused && !allowed()) { autoTill = 0; stop(); try { PLAYER.pause(); } catch (e) {} } } catch (e) {}
+  }
+  PLAYER.addEventListener("play", guard);
+  PLAYER.addEventListener("playing", guard);
+  setInterval(guard, 250);
   window.addEventListener("storage", function (e) {
     if (e.key === K_ON) {
       stop(); autoTill = 0;

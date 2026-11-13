@@ -120,8 +120,8 @@ Fields:
 - "league": league name or abbreviation exactly as written in the question, or "" if none mentioned.
 - "date_from","date_to": YYYY-MM-DD in US Eastern time. "last night"/"yesterday" = yesterday. A late-night time "last night" (e.g. 11pm) = yesterday. No date mentioned = today, except "last time"/"most recent" questions: for "player_tours" leave both dates "" (whole history); for "last_win" use the last 60 days. Weekday names = most recent such day (today or earlier).
 - "time": "HH:MM" 24-hour ET if a time is mentioned, else "". A time with no AM/PM from 1:00 to 7:59 means PM (e.g. "1:15" = "13:15"); 8:00 to 11:59 means AM.
-- "ask": one of "winner" (who won a specific tour), "players" (who was on the winning team of a specific tour), "td" (who ran/hosted a specific tour), "game" (game type/format/rules of a specific tour), "count_tours" (how many tours), "player_wins" (how many / which tours a named player won), "last_win" (when a named player last won), "list" (what tours ran / all winners), "player_tours" (how many / which / what tours a named player played, entered or joined, e.g. "what tours did X play in today", when a player last played, a player's placings / 2nd / 3rd places / bux won), "participants" (who played / who entered / who is in a specific tour, e.g. "who played in the 6:15"; set "time" and no player), "leaderboard" (who won / played / hosted the most tours, most wins, top winners; no player name needed), "unsupported" (anything else, e.g. ratings, scores, hands).
-- "player": player name exactly as written, or "". If the question says "I"/"me"/"my" and gives no name, use "". For "leaderboard" leave "player" "".
+- "ask": one of "winner" (who won a specific tour), "players" (who was on the winning team of a specific tour), "td" (who ran/hosted a specific tour), "game" (game type/format/rules of a specific tour), "count_tours" (how many tours), "player_wins" (how many / which tours a named player won), "last_win" (when a named player last won), "list" (what tours ran / all winners), "player_tours" (how many / which / what tours a named player played, entered or joined, e.g. "what tours did X play in today", when a player last played, a player's placings / 2nd / 3rd places / bux won), "participants" (who played / who entered / who is in a specific tour, e.g. "who played in the 6:15"; set "time" and no player), "leaderboard" (who won / played / hosted the most tours, most wins, top winners; no player name needed), "player_rate" (a named player's win rate / success rate / best or worst game type or variation, record by variation, percentage of wins; set "player"), "unsupported" (anything else, e.g. ratings, scores, hands).
+- "player": player name exactly as written, or "". If the question says "I"/"me"/"my" and gives no name, use "Ochwiay". For "leaderboard" leave "player" "".
 - "game": game type if mentioned (CUT, SINGLES, SUI PASS 2, REG PARTNERS, etc.), else "".
 - "td": host/TD name if the question filters to tours hosted by someone, else "".
 - "metric": for "leaderboard" only: "wins" (default), "played", or "hosted".
@@ -281,6 +281,11 @@ function boardPeriod(q, now, Q) {
   if (isoRng && validDate(isoRng[1]) && validDate(isoRng[2])) {
     const a = isoRng[1], b = isoRng[2];
     return a <= b ? [a, b > now.date ? now.date : b] : [b, a > now.date ? now.date : a];
+  }
+  const lastN = q.match(/\b(?:last|past)\s+(\d{1,3})\s+days?\b/i);
+  if (lastN) {
+    const n = Math.max(1, Math.min(180, +lastN[1]));
+    return [addDays(now.date, -(n - 1)), now.date];
   }
   const per = periodFromQ(q, now);
   if (per) return per;
@@ -622,6 +627,168 @@ async function leaderboard(q, Q, now, intent, ctx) {
   return { info: `${lead}\n\nTop ${intent.top}:\n${boardLine(ranked)}\n\n(${extra}.)` + gap, final: true, from, to, metric: "wins", game: wantGame, credited, ranked };
 }
 
+// ---------------- per-player win rate by game variation (from /ask/player_tours.json)
+const ME = "Ochwiay";
+const SAYS_ME = /\b(?:i|me|my|mine|i've|i'd|i'm|ive)\b/i;
+function isMePronoun(p) { return /^(i|me|my|mine|ive)$/i.test(String(p || "").trim()); }
+function resolveAskPlayer(q, Q) {
+  let p = String(Q.player || "").trim();
+  if (p && isMePronoun(p)) return ME;
+  if (p && !NOT_PLAYER.test(p)) return p;
+  if (SAYS_ME.test(q)) return ME;
+  const m = q.match(/\b(?:has|have|had|did|does|for|of)\s+@?([A-Za-z][\w.\-]{1,24})\b/i);
+  if (m && !NOT_PLAYER.test(m[1]) && !isMePronoun(m[1]) && !/^(in|on|at|this|last|the|a|an|any|his|her|their)$/i.test(m[1])) return m[1];
+  return "";
+}
+function successRateIntent(q, Q) {
+  if (Q.ask === "player_rate") return { worst: /\bworst|least\s+success|lowest\s+win\s*rate|weakest\b/i.test(q) };
+  if (/\bwho\s+won\s+the\s+most\b|\bwho\s+(?:played|hosted|ran)\s+the\s+most\b|\btop\s+\d+\b/i.test(q) && !SAYS_ME.test(q) && !(Q.player && !NOT_PLAYER.test(String(Q.player).trim()) && !isMePronoun(Q.player))) return null;
+  const rate = /\b(?:win\s*rates?|win\s*%|winning\s+percentage|success\s+rates?|percentage[- ]wise|percent(?:age)?\s*wise|most\s+success|success\s+with)\b/i.test(q)
+    || /\b(?:best|worst|strongest|weakest)\s+(?:variation|game\s*types?|formats?|game)\b/i.test(q)
+    || /\b(?:which|what)\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
+    || /\bwhat\s+variation\b/i.test(q)
+    || /\brecord\s+by\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
+    || /\b(?:by|per|each|every|broken\s+down\s+by)\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
+    || /\b(?:variation|game\s*types?|formats?)\b.{0,50}\b(?:success|win\s*rate|percent|best|worst)\b/i.test(q)
+    || /\b(?:success|win\s*rate|percent|best|worst)\b.{0,50}\b(?:variation|game\s*types?|formats?)\b/i.test(q);
+  if (!rate) return null;
+  return { worst: /\bworst|least\s+success|lowest\s+win\s*rate|weakest\b/i.test(q) };
+}
+function fmtPct(wins, played) {
+  if (!played) return "0%";
+  const n = (100 * wins) / played;
+  const r = Math.round(n * 10) / 10;
+  return Number.isInteger(r) ? `${r}%` : `${r}%`;
+}
+function fmtRange(from, to) {
+  const a = new Date(from + "T12:00:00Z"), b = new Date(to + "T12:00:00Z");
+  const mon = d => d.toLocaleDateString("en-US", { timeZone: "UTC", month: "short" });
+  const day = d => d.getUTCDate();
+  if (from === to) return `${mon(a)} ${day(a)}, ${a.getUTCFullYear()}`;
+  if (a.getUTCFullYear() === b.getUTCFullYear() && a.getUTCMonth() === b.getUTCMonth())
+    return `${mon(a)} ${day(a)}–${day(b)}, ${a.getUTCFullYear()}`;
+  if (a.getUTCFullYear() === b.getUTCFullYear())
+    return `${mon(a)} ${day(a)} – ${mon(b)} ${day(b)}, ${a.getUTCFullYear()}`;
+  return `${mon(a)} ${day(a)}, ${a.getUTCFullYear()} – ${mon(b)} ${day(b)}, ${b.getUTCFullYear()}`;
+}
+function periodWords(q, from, to, now) {
+  const span = fmtRange(from, to);
+  if (/\bthis month\b/i.test(q)) return `this month (${span})`;
+  if (/\blast month\b/i.test(q) && !/\blast 30\b|\bpast 30\b|\bpast month\b/i.test(q)) return `last month (${span})`;
+  if (/\btoday\b|\btonight\b/i.test(q)) return `today (${span})`;
+  if (/\byesterday\b|\blast night\b/i.test(q)) return `yesterday (${span})`;
+  if (/\bthis week\b/i.test(q)) return `this week (${span})`;
+  if (/\blast week\b/i.test(q) && !/\blast 7\b|\bpast 7\b/i.test(q)) return `last week (${span})`;
+  const lastN = q.match(/\b(?:last|past)\s+(\d{1,3})\s+days?\b/i);
+  if (lastN) return `the last ${+lastN[1]} days (${span})`;
+  const named = q.match(/\b(january|february|march|april|june|july|august|september|october|november|december)\b/i);
+  if (named) return `${named[1][0].toUpperCase()}${named[1].slice(1).toLowerCase()} (${span})`;
+  return from === to ? `on ${span}` : `from ${span}`;
+}
+async function loadRates(ctx) {
+  if (ETC.rates && Date.now() - ETC.rates.t < 60000) return ETC.rates.v;
+  let v = null;
+  try {
+    const r = await ctx.env.ASSETS.fetch(new Request(new URL("/ask/player_tours.json", ctx.url)));
+    if (r.ok) v = await r.json();
+  } catch (_) {}
+  ETC.rates = { t: Date.now(), v };
+  return v;
+}
+function rateNameKeys(name, cfg) {
+  const graph = aliasGraph(cfg);
+  const keys = new Set(groupOf(name, graph));
+  for (const k of [...keys]) for (const y of playerKeys(k)) { keys.add(y); keys.add(y.replace(/\s+/g, "")); }
+  return keys;
+}
+function playerIn(list, keys) {
+  return (list || []).some(n => namesMatch(keys, n));
+}
+function shownOf(name, cfg, fallback) {
+  return displayName(name, aliasGraph(cfg)) || fallback || name;
+}
+async function playerRate(q, Q, now, intent, ctx) {
+  const who = resolveAskPlayer(q, Q);
+  if (!who) return { info: "Name the player, or ask with \"I\" / \"me\" (that is treated as Ochwiay).", final: true };
+  const data = await loadRates(ctx);
+  if (!data || !Array.isArray(data.tours) || !data.tours.length)
+    return { info: "The tour-entry records this page uses for win rates are not available right now.", final: true };
+  const cfg = await loadCfg(ctx);
+  const official = ((cfg.labels || {}).official) || [];
+  const [from, to] = boardPeriod(q, now, Q);
+  const coverFrom = data.from, coverTo = data.to;
+  const lname = data.league_name || "Diamond Spaders";
+  if (to < coverFrom || from > coverTo) {
+    return { info: `Win-rate records for ${lname} currently cover ${fmtRange(coverFrom, coverTo)}, which does not include the period asked about (${fmtRange(from, to)}). The MyLeague calendar only keeps about the last 35 days.`, final: true, from, to };
+  }
+  const keys = rateNameKeys(who, cfg);
+  const wantGame = gameFromQ(q, official, Q);
+  const by = new Map();
+  let pending = 0, openN = 0, skipped = 0;
+  const playedRows = [];
+  for (const t of data.tours) {
+    if (t.date < from || t.date > to) continue;
+    if (!playerIn(t.players, keys)) continue;
+    if (t.status && t.status !== "finished") { openN++; continue; }
+    if (!t.winners || !t.winners.length) { pending++; continue; }
+    const label = officialize(t.label || "", official) || (t.label || "UNKNOWN");
+    if (wantGame && !labelsMatch(wantGame, label)) { skipped++; continue; }
+    const rec = by.get(label) || { label, played: 0, wins: 0 };
+    rec.played++;
+    if (playerIn(t.winners, keys)) rec.wins++;
+    by.set(label, rec);
+    playedRows.push(t);
+  }
+  const disp = shownOf(who, cfg, who);
+  const when = periodWords(q, from, to, now);
+  const rows = [...by.values()].map(r => ({ ...r, pct: r.played ? (100 * r.wins) / r.played : 0 }));
+  rows.sort((a, b) => b.pct - a.pct || b.wins - a.wins || b.played - a.played || a.label.localeCompare(b.label));
+  const clipNote = (from < coverFrom || to > coverTo)
+    ? ` Records in the file cover ${fmtRange(coverFrom, Math.min(coverTo, now.date))}.`
+    : "";
+  const gaps = (data.gaps || []).filter(d => d >= from && d <= to);
+  const gapNote = gaps.length ? ` No entry lists for ${gaps.length} day${gaps.length === 1 ? "" : "s"} in that span (${gaps[0]}${gaps.length > 1 ? "…" : ""}).` : "";
+  const pendNote = pending || openN
+    ? ` ${pending ? `${pending} finished tour${pending === 1 ? "" : "s"} with no winner posted` : ""}${pending && openN ? " and " : ""}${openN ? `${openN} still in progress` : ""} ${pending && openN ? "were" : "was"} not counted.`
+    : "";
+  if (!rows.length) {
+    const why = wantGame
+      ? `${disp} did not play any finished ${wantGame} tours at ${lname} ${when} that have a posted winner.`
+      : `${disp} did not play any finished tours at ${lname} ${when} that have a posted winner.`;
+    return { info: why + clipNote + gapNote + pendNote, final: true, from, to, player: disp };
+  }
+  const totalP = rows.reduce((a, r) => a + r.played, 0);
+  const totalW = rows.reduce((a, r) => a + r.wins, 0);
+  const ordered = intent.worst ? [...rows].reverse() : rows;
+  const bestPct = ordered[0].pct;
+  const leads = ordered.filter(r => r.pct === bestPct);
+  const one = r => `${r.label}, with ${r.wins} win${r.wins === 1 ? "" : "s"} in ${r.played} tour${r.played === 1 ? "" : "s"} (${fmtPct(r.wins, r.played)})`;
+  const kind = wantGame || "game type";
+  let head;
+  if (wantGame && rows.length === 1) {
+    const r = rows[0];
+    head = `${disp}'s ${wantGame} record at ${lname} ${when} is ${r.wins} win${r.wins === 1 ? "" : "s"} in ${r.played} tour${r.played === 1 ? "" : "s"} (${fmtPct(r.wins, r.played)}).`;
+  } else if (intent.worst) {
+    head = leads.length === 1
+      ? `${disp}'s worst ${kind} at ${lname} ${when} is ${one(leads[0])}.`
+      : `${disp}'s worst ${kind}s at ${lname} ${when} are tied: ${leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`).join(" and ")}.`;
+  } else {
+    head = leads.length === 1
+      ? `${disp}'s best ${kind} at ${lname} ${when} is ${one(leads[0])}.`
+      : `${disp}'s best ${kind}s at ${lname} ${when} are tied: ${leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`).join(" and ")}.`;
+  }
+  // If the leader is a 1-tour sample, mention the best among types played more than once.
+  if (!intent.worst && !wantGame && leads.length === 1 && leads[0].played === 1) {
+    const fuller = rows.filter(r => r.played > 1);
+    if (fuller.length && fuller[0].label !== leads[0].label)
+      head += ` Among game types played more than once, the best is ${one(fuller[0])}.`;
+  }
+  const table = rows.map(r => `${r.label} — ${r.played} played, ${r.wins} win${r.wins === 1 ? "" : "s"}, ${fmtPct(r.wins, r.played)}`).join("\n");
+  const overall = `Overall: ${totalW} win${totalW === 1 ? "" : "s"} in ${totalP} tour${totalP === 1 ? "" : "s"} (${fmtPct(totalW, totalP)}).`;
+  const body = wantGame && rows.length === 1 ? overall : `By variation, highest win % first:\n${table}\n\n${overall}`;
+  return { info: `${head}\n\n${body}${clipNote}${gapNote}${pendNote}`.trim(), final: true, from, to, player: disp, rows, totalP, totalW };
+}
+
 // Every tour the player played in [from,to] across the given leagues, newest info first from the logs.
 async function playerDetail(Q, now, slugs, ctx) {
   const cfg = await loadCfg(ctx), labelOf = makeLabeler(cfg), hidden = new Set((cfg.hidden || []).map(String));
@@ -856,6 +1023,17 @@ export async function onRequestPost({ request, env, waitUntil }) {
   let perr = "";
   try { Q = await parse(env, q, now); } catch (e) { perr = String(e && e.message || e).slice(0, 200); }
   if (!Q) return json({ answer: "The question could not be read.", error: perr });
+  // I/me/my on this page is Ochwiay (the site owner), unless another player is named.
+  if (isMePronoun(Q.player) || (!Q.player && SAYS_ME.test(q))) Q.player = ME;
+  const rateIntent = successRateIntent(q, Q);
+  if (rateIntent) {
+    const ctx = { env, url: request.url, debug: !!env.DEBUG };
+    try { data = await playerRate(q, Q, now, rateIntent, ctx); } catch (_) { data = { info: "The tour-entry records this page uses for win rates could not be read right now.", final: true }; }
+    answer = data.info || "The answer could not be produced.";
+    const out = { answer, query: { ...Q, ask: "player_rate", player: data.player || Q.player }, data };
+    waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
+    return json(out);
+  }
   const lb = leaderboardIntent(q, Q) || (Q.ask === "leaderboard" ? { metric: /played|hosted/.test(String(Q.metric||"")) ? Q.metric : "wins", top: Math.max(3, Math.min(15, +Q.top || 5)) } : null);
   if (lb) {
     const ctx = { env, url: request.url, debug: !!env.DEBUG };

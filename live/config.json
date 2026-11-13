@@ -100,7 +100,8 @@
 "11958709": "E",
 "11958711": "EnMEL",
 "11958823": "Eagerly Zappy",
-"11959266": "Mighters"
+"11959266": "Mighters",
+"11959462": "Old pw"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png",
@@ -1083,9 +1084,9 @@
 "11959266": "REG PARTNERS",
 "11959461": "SUI PASS 2",
 "11959462": "REG PARTNERS",
-"11959466": "CUT",
 "11959474": "SUI PASS 2",
 "11959477": "CUT",
+"11959500": "REG PARTNERS",
 "manual-20261021-1015": "CUT",
 "manual-20261021-1115": "CUT",
 "manual-20261021-1315": "CUT",
@@ -2115,6 +2116,10 @@
 "11959461": [
 "Treco521",
 "slovell_too"
+],
+"11959462": [
+"Lookslikeapickel",
+"MEL1c1ous_1"
 ]
 },
 "subtitles": {

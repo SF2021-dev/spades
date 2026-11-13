@@ -731,7 +731,8 @@ async function playerRate(q, Q, now, intent, ctx) {
     if (!playerIn(t.players, keys)) continue;
     if (t.status && t.status !== "finished") { openN++; continue; }
     if (!t.winners || !t.winners.length) { pending++; continue; }
-    const label = officialize(t.label || "", official) || (t.label || "UNKNOWN");
+    const LABEL_FIX = { "PASS 2": "SUI PASS 2", "SETTERS CHOICE SINGLES": "SETTER'S CHOICE SINGLES", "PARTNERS": "REG PARTNERS", "CUT 400100": "CUT" };
+    const label = officialize(LABEL_FIX[t.label] || t.label || "", official) || t.label || "UNKNOWN";
     if (wantGame && !labelsMatch(wantGame, label)) { skipped++; continue; }
     const rec = by.get(label) || { label, played: 0, wins: 0 };
     rec.played++;
@@ -743,8 +744,11 @@ async function playerRate(q, Q, now, intent, ctx) {
   const when = periodWords(q, from, to, now);
   const rows = [...by.values()].map(r => ({ ...r, pct: r.played ? (100 * r.wins) / r.played : 0 }));
   rows.sort((a, b) => b.pct - a.pct || b.wins - a.wins || b.played - a.played || a.label.localeCompare(b.label));
-  const clipNote = (from < coverFrom || to > coverTo)
-    ? ` Records in the file cover ${fmtRange(coverFrom, Math.min(coverTo, now.date))}.`
+  const coverEnd = coverTo < now.date ? coverTo : now.date;
+  // Don't nag when coverage goes through yesterday and today's tours have not finished yet.
+  const stale = to > coverTo && coverTo < addDays(now.date, -1);
+  const clipNote = (from < coverFrom || stale)
+    ? ` Records in the file cover ${fmtRange(coverFrom, coverEnd)}.`
     : "";
   const gaps = (data.gaps || []).filter(d => d >= from && d <= to);
   const gapNote = gaps.length ? ` No entry lists for ${gaps.length} day${gaps.length === 1 ? "" : "s"} in that span (${gaps[0]}${gaps.length > 1 ? "…" : ""}).` : "";
@@ -771,11 +775,11 @@ async function playerRate(q, Q, now, intent, ctx) {
   } else if (intent.worst) {
     head = leads.length === 1
       ? `${disp}'s worst ${kind} at ${lname} ${when} is ${one(leads[0])}.`
-      : `${disp}'s worst ${kind}s at ${lname} ${when} are tied: ${leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`).join(" and ")}.`;
+      : `${disp}'s worst ${kind}s at ${lname} ${when} are tied: ${leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`).join(", ").replace(/, ([^,]*)$/, " and $1")}.`;
   } else {
     head = leads.length === 1
       ? `${disp}'s best ${kind} at ${lname} ${when} is ${one(leads[0])}.`
-      : `${disp}'s best ${kind}s at ${lname} ${when} are tied: ${leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`).join(" and ")}.`;
+      : `${disp}'s best ${kind}s at ${lname} ${when} are tied: ${leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`).join(", ").replace(/, ([^,]*)$/, " and $1")}.`;
   }
   // If the leader is a 1-tour sample, mention the best among types played more than once.
   if (!intent.worst && !wantGame && leads.length === 1 && leads[0].played === 1) {

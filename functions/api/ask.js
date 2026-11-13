@@ -73,7 +73,7 @@ async function calendar(slug, start, end) {
       const time = +g("time"), date = `${g("year")}-${String(+g("month") + 1).padStart(2, "0")}-${String(+g("day")).padStart(2, "0")}`;
       const st = g("status");
       out.push({ id, date, h: Math.floor(time / 100), m: time % 100, td: g("td"), game: g("location"), perteam: g("perteam"),
-        entry: g("entry"), status: st === "-1" ? "cancelled" : st === "2" ? "finished" : "not finished",
+        entry: g("entry"), status: mapFeedStatus(st),
         winners: g("winner").split(",").map(w => w.trim()).filter(Boolean),
         url: `https://www.myleague.com/${slug}/tournament/${id}/` });
     }
@@ -112,8 +112,9 @@ async function winnerPlayers(t, slug) {
   const hit = ts.find(x => x.team.toLowerCase() === t.winners[0].toLowerCase()) || ts.find(x => x.team.toLowerCase().replace(/\s*\(\d+\)$/, "") === w);
   return hit ? hit.players.map(display) : null;
 }
-const brief = t => ({ date: fmtDate(t.date), time: fmtTime(t.h, t.m), td: t.td, game: t.game, status: t.status,
-  winners: t.winners.map(display), players_per_team: t.perteam, entry: t.entry, tour_id: t.id, url: t.url });
+const brief = (t, label) => ({ date: fmtDate(t.date), time: fmtTime(t.h, t.m), td: t.td,
+  game: label || t.game, status: t.status,
+  winners: (t.winners || []).map(display), players_per_team: t.perteam, entry: t.entry, tour_id: t.id, url: t.url });
 
 // ---------------- AI
 const PARSE_SYS = `You convert one question about MyLeague card tournaments into JSON. Output ONLY a JSON object, no prose.
@@ -132,7 +133,7 @@ Today is {TODAY} ({WEEKDAY}), current ET time {NOW}. Known leagues: {LEAGUES}.`;
 const ANSWER_SYS = `You answer one question about MyLeague card tournaments using ONLY the DATA given. Rules:
 - Reply with the answer only, in 1-3 short plain sentences. No greeting, no dialogue, no suggestions, no offers, no questions, no requests for clarification.
 - Never invent or guess anything not in DATA. If DATA says the information isn't available, say so plainly in one sentence.
-- If a tour status is "cancelled", say it was cancelled. If "not finished", say it has no winner yet.
+- If a tour status is "cancelled", say it was cancelled. If "upcoming", say it has not started yet (upcoming). If "in progress", say it is in progress. If "not finished" and no more specific status, say it has no winner yet. Always name the tour by its official board label (CUT, SINGLES, PAB SUI PASS 2, REG PARTNERS, SUI PASS 2, or LOSER WINS), never the raw MyLeague game text (e.g. "500/100").
 - If DATA marks a tour as "nearest" (no tour at the asked time), say it is the nearest tour that day.
 - Name the tour the answer is about (date and time) and give times exactly as in DATA (ET). Include the winning team's players when DATA lists them. Mention the TD when it is in DATA and relevant.`;
 
@@ -245,13 +246,13 @@ function keySet(name, canon) {
 }
 const ordinal = p => p === "1" ? "won (1st place)" : p === "2" ? "2nd place" : p === "3" ? "3rd place" : `place ${p}`;
 function periodFromQ(q, now) {
+  const one = dayFromQ(q, now);
+  if (one) return [one, one];
   const wd = new Date(now.date + "T12:00:00Z").getUTCDay(), mon = addDays(now.date, -((wd + 6) % 7));
-  if (/\byesterday\b|\blast night\b/i.test(q)) return [addDays(now.date, -1), addDays(now.date, -1)];
   if (/\blast week\b/i.test(q)) return [addDays(mon, -7), addDays(mon, -1)];
   if (/\b(past|last)\s+(week|7 days)\b|\bpast\s+seven\s+days\b/i.test(q)) return [addDays(now.date, -6), now.date];
   if (/\bthis week\b/i.test(q)) return [mon, now.date];
   if (/\blast month\b|\bpast month\b|\bpast 30 days\b|\blast 30 days\b/i.test(q)) return [addDays(now.date, -29), now.date];
-  if (/\btoday\b|\btonight\b/i.test(q)) return [now.date, now.date];
   return null;
 }
 
@@ -264,8 +265,113 @@ function monthSpan(y, m, today) {
   const t = `${y}-${pad2(m)}-${pad2(monthLast(y, m))}`;
   return [`${y}-${pad2(m)}-01`, t > today ? today : t];
 }
+function recentPastDate(y, m, d, today) {
+  const last = monthLast(y, m);
+  if (d < 1 || d > last) return null;
+  let iso = `${y}-${pad2(m)}-${pad2(d)}`;
+  if (iso > today) {
+    const ly = y - 1, last2 = monthLast(ly, m);
+    if (d > last2) return null;
+    iso = `${ly}-${pad2(m)}-${pad2(d)}`;
+  }
+  return iso <= today ? iso : null;
+}
+function dayFromQ(q, now) {
+  const today = now.date;
+  const [ty, tm] = today.split("-").map(Number);
+  const text = String(q || "");
+  const hasExplicitDay = /\b(?:january|february|march|april|june|july|august|september|october|november|december|jan\.?|feb\.?|mar\.?|apr\.?|jun\.?|jul\.?|aug\.?|sept?\.?|oct\.?|nov\.?|dec\.?)\s+\d{1,2}/i.test(text)
+    || /\b\d{1,2}[/.-]\d{1,2}/.test(text)
+    || /\bon\s+(?:the\s+)?\d{1,2}(?:st|nd|rd|th)\b/i.test(text)
+    || /\b(?:20\d{2})-\d{1,2}-\d{1,2}\b/.test(text);
+  if (/\b(?:this|last|past)\s+(?:week|month)\b|\blast\s+\d+\s+days?\b|\bpast\s+(?:\d+\s+days?|seven\s+days|month)\b/i.test(text) && !hasExplicitDay)
+    return null;
+  if (/\btoday\b|\btonight\b/i.test(text)) return today;
+  if (/\byesterday\b|\blast night\b/i.test(text)) return addDays(today, -1);
+  const iso = text.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
+  if (iso) {
+    const y = +iso[1], m = +iso[2], d = +iso[3];
+    if (m >= 1 && m <= 12 && d >= 1 && d <= monthLast(y, m)) return `${y}-${pad2(m)}-${pad2(d)}`;
+  }
+  const monNames = "january|february|march|april|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec";
+  const monDay = text.match(new RegExp("\\b(" + monNames + ")\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*,?\\s*(20\\d{2}))?\\b", "i"));
+  const mayDay = text.match(/\bmay\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s*,?\s*(20\d{2}))?\b/i);
+  if (monDay || mayDay) {
+    const month = mayDay && !monDay ? 5 : MONTH_NUM[String((monDay || [])[1] || "").toLowerCase()];
+    const day = +(mayDay && !monDay ? mayDay[1] : monDay[2]);
+    const year = +((mayDay && !monDay ? mayDay[2] : monDay[3]) || 0) || ty;
+    const hit = recentPastDate(year, month, day, today);
+    if (hit) return hit;
+  }
+  const dayMon = text.match(new RegExp("\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?(" + monNames + "|may)\\.?(?:\\s*,?\\s*(20\\d{2}))?\\b", "i"));
+  if (dayMon) {
+    const day = +dayMon[1];
+    const month = MONTH_NUM[dayMon[2].toLowerCase()] || (/^may$/i.test(dayMon[2]) ? 5 : 0);
+    const year = +(dayMon[3] || 0) || ty;
+    const hit = month && recentPastDate(year, month, day, today);
+    if (hit) return hit;
+  }
+  const num = text.match(/\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b/);
+  if (num) {
+    const month = +num[1], day = +num[2];
+    let year = num[3] != null ? +num[3] : ty;
+    if (year < 100) year += 2000;
+    const hit = recentPastDate(year, month, day, today);
+    if (hit) return hit;
+  }
+  const onThe = text.match(/\bon\s+(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)\b/i);
+  if (onThe) {
+    const day = +onThe[1];
+    let y = ty, m = tm;
+    for (let i = 0; i < 14; i++) {
+      const last = monthLast(y, m);
+      if (day >= 1 && day <= last) {
+        const iso = `${y}-${pad2(m)}-${pad2(day)}`;
+        if (iso <= today) return iso;
+      }
+      m -= 1;
+      if (m < 1) { m = 12; y -= 1; }
+    }
+  }
+  const wdNames = "sunday|monday|tuesday|wednesday|thursday|friday|saturday";
+  const lastWd = text.match(new RegExp("\\blast\\s+(" + wdNames + ")\\b", "i"));
+  const onWd = text.match(new RegExp("\\b(?:on\\s+)?(" + wdNames + ")\\b", "i"));
+  const wdHit = lastWd || onWd;
+  if (wdHit) {
+    const want = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 }[wdHit[1].toLowerCase()];
+    const cur = new Date(today + "T12:00:00Z").getUTCDay();
+    let back = (cur - want + 7) % 7;
+    if (lastWd) back = back === 0 ? 7 : back;
+    return addDays(today, -back);
+  }
+  return null;
+}
+function mapFeedStatus(st) {
+  const s = String(st == null ? "" : st).trim();
+  if (s === "2" || s === "finished") return "finished";
+  if (s === "0" || /^in\s*progress$/i.test(s)) return "in progress";
+  // MyLeague calendar: -1 = not yet begun (upcoming), not cancelled.
+  if (s === "-1" || s === "upcoming") return "upcoming";
+  if (/cancel/i.test(s)) return "cancelled";
+  if (s === "not finished") return "not finished";
+  return s || "not finished";
+}
+function clockStatus(t, now) {
+  const mapped = mapFeedStatus(t && t.status);
+  if (mapped === "cancelled" || mapped === "finished") return mapped;
+  const hm = String((now && now.time) || "00:00").split(":");
+  const nowMin = (+hm[0] || 0) * 60 + (+hm[1] || 0);
+  const tMin = (t.h || 0) * 60 + (t.m || 0);
+  const started = t.date < now.date || (t.date === now.date && tMin <= nowMin);
+  if (mapped === "in progress") return "in progress";
+  if (mapped === "upcoming") return started ? "in progress" : "upcoming";
+  return started ? "in progress" : "upcoming";
+}
 function boardPeriod(q, now, Q) {
   const [y, mo] = now.date.split("-").map(Number);
+  const one = dayFromQ(q, now);
+  // A named calendar day (October 17, 10/17, last Tuesday) is that day, not the whole month.
+  if (one && !/\b(?:this|last|past)\s+month\b/i.test(q) && !/\bthis week\b|\blast week\b/i.test(q)) return [one, one];
   if (/\bthis month\b/i.test(q)) return monthSpan(y, mo, now.date);
   if (/\blast month\b/i.test(q) && !/\blast 30\b|\bpast 30\b|\bpast month\b/i.test(q))
     return monthSpan(mo === 1 ? y - 1 : y, mo === 1 ? 12 : mo - 1, now.date);
@@ -360,6 +466,11 @@ function standardLabel(lab, perteam) {
   if (/LOSER|LOSRER|LOSWR|LOSER WIM/.test(u)) return "LOSER WINS";
   if (/SINGLE|\bIND\b/.test(u)) return "SINGLES";
   if (/PARD|PARTNER|\d\s*VS\s*\d|\bREG\b/.test(u)) return "REG PARTNERS";
+  if (u === "SPADES" || u === "") {
+    const pt = parseInt(perteam, 10);
+    if (pt === 2) return "REG PARTNERS";
+    if (pt === 1) return "CUT";
+  }
   return u;
 }
 function officialize(label, official, perteam) {
@@ -1154,11 +1265,14 @@ async function run(Q, now, ctx) {
     if (!/^\d{1,2}:\d{2}$/.test(Q.time || "")) {
       if (ask === "list" || day.length > 1) return { ...base, tours_that_day: day.map(brief) };
     }
+    const cfg = await loadCfg(ctx);
+    const labelOf = makeLabeler(cfg);
     const [hh, mm] = (Q.time || "00:00").split(":").map(Number), want = hh * 60 + mm;
     let best = day[0];
     for (const t of day) if (Math.abs(t.h * 60 + t.m - want) < Math.abs(best.h * 60 + best.m - want)) best = t;
     const exact = !Q.time || Math.abs(best.h * 60 + best.m - want) <= 20;
-    const tour = brief(best);
+    const labeled = { ...best, status: clockStatus(best, now), game: labelOf(best, slug) };
+    const tour = brief(labeled, labeled.game);
     if (!exact) tour.nearest = `No tour at ${fmtTime(hh, mm)}; this is the nearest tour that day.`;
     const pl = await winnerPlayers(best, slug);
     if (pl) tour.winning_team_players = pl;
@@ -1168,7 +1282,8 @@ async function run(Q, now, ctx) {
   if (ask === "count_tours" || ask === "list") {
     const done = tours.filter(t => t.status === "finished"), canc = tours.filter(t => t.status === "cancelled");
     const r = { ...base, tours_listed: tours.length, finished: done.length, cancelled: canc.length, not_finished: tours.length - done.length - canc.length };
-    if (ask === "list" || tours.length <= 25) r.tours = tours.map(t => ({ time: fmtTime(t.h, t.m), date: fmtDate(t.date), td: t.td, game: t.game, status: t.status, winners: t.winners.map(display) }));
+    const cfgL = await loadCfg(ctx), labelList = makeLabeler(cfgL);
+    if (ask === "list" || tours.length <= 25) r.tours = tours.map(t => ({ time: fmtTime(t.h, t.m), date: fmtDate(t.date), td: t.td, game: labelList(t, slug), status: clockStatus(t, now), winners: t.winners.map(display) }));
     return r;
   }
   if (ask === "player_wins" || ask === "last_win") {
@@ -1180,7 +1295,8 @@ async function run(Q, now, ctx) {
       const last = won[won.length - 1];
       return last ? { ...base, player: name, last_win: brief(last) } : { ...base, player: name, info: `${name} has no ${lname} tour wins listed in the last ${MAX_DAYS} days.` };
     }
-    return { ...base, player: name, wins: won.length, tours_won: won.map(t => `${fmtDate(t.date)} ${fmtTime(t.h, t.m)} ${t.game}`),
+    const labelWins = makeLabeler(await loadCfg(ctx));
+    return { ...base, player: name, wins: won.length, tours_won: won.map(t => `${fmtDate(t.date)} ${fmtTime(t.h, t.m)} ${labelWins(t, slug)}`),
       note: "Counts tours where the feed lists the player as a winner; team tours that list only a team name are not counted." };
   }
   return { info: "That question could not be matched to MyLeague tour data." };
@@ -1192,17 +1308,33 @@ function phraseTour(Q, data) {
   if (data.info && (data.final || !data.tour)) return data.info;
   const t = data.tour;
   if (!t) return data.info || "";
-  const when = `${t.date} ${t.time}`, game = t.game || "tour", td = t.td ? `, hosted by ${t.td}` : "";
+  const when = `${t.date} ${t.time}`;
+  const game = officialize(t.game, officialNames(), t.players_per_team) || t.game || "tour";
+  const td = t.td ? `, hosted by ${t.td},` : "";
+  const want = officialize(Q.game, officialNames()) || "";
+  const mismatch = want && !labelsMatch(want, game);
   const st = String(t.status || "");
-  if (/cancel/i.test(st)) return `The ${when} ${game}${td} was cancelled.`;
   const wins = (t.winners || []).filter(Boolean);
   const team = Array.isArray(t.winning_team_players) ? t.winning_team_players.filter(Boolean) : [];
   const who = (team.length ? team : wins).join(" and ");
-  if (Q.ask === "td") return `The ${when} ${game} was hosted by ${t.td || "an unlisted TD"}.`;
-  if (Q.ask === "game") return `The ${when} tour${td} is ${game}.`;
-  if (!wins.length) return `The ${when} ${game}${td} has no winner posted yet.`;
   const near = t.nearest ? ` ${t.nearest}` : "";
   const extra = team.length && team.join(" and ") !== wins.join(" and ") ? ` The winning team was ${team.join(" and ")}.` : "";
+  const differ = mismatch ? `The ${when} tour${td} was ${game}, not ${want}.` : "";
+  if (mismatch && Q.ask === "game") return `${differ}${near}`.trim();
+  if (/cancel/i.test(st))
+    return (mismatch ? `${differ} It was cancelled.` : `The ${when} ${game}${td} was cancelled.`).replace(/\s+/g, " ").replace(/ ,/g, ",").trim();
+  if (Q.ask === "td")
+    return mismatch ? `${differ} It was hosted by ${t.td || "an unlisted TD"}.` : `The ${when} ${game} was hosted by ${t.td || "an unlisted TD"}.`;
+  if (Q.ask === "game")
+    return `The ${when} tour${td} is ${game}.`;
+  if (/upcoming/i.test(st))
+    return mismatch ? `${differ} It is upcoming.` : `The ${when} ${game}${td} is upcoming.`;
+  if (/in\s*progress/i.test(st))
+    return mismatch ? `${differ} It is in progress.` : `The ${when} ${game}${td} is in progress.`;
+  if (!wins.length)
+    return mismatch ? `${differ} No winner is posted yet.` : `The ${when} ${game}${td} has no winner posted yet.`;
+  if (mismatch)
+    return `${differ} It was won by ${who}.${extra}${near}`.replace(/\.\s*\./g, ".").trim();
   return `The ${when} ${game}${td} was won by ${who}.${extra}${near}`.replace(/\.\s*\./g, ".").trim();
 }
 
@@ -1221,9 +1353,11 @@ function simpleTourQ(q, now) {
   else if (/\bwho\s+(?:played|entered|is\s+in|was\s+in)\b/i.test(q)) ask = "participants";
   else if (/\bwho\s+won\b|\bwinners?\b/i.test(q)) ask = "winner";
   else return null;
-  const per = periodFromQ(q, now);
+  const day = dayFromQ(q, now);
+  const per = day ? [day, day] : periodFromQ(q, now);
   const from = per ? per[0] : now.date, to = per ? per[1] : now.date;
-  return { ask, player: "", date_from: from, date_to: to, league: "", game: "", time: `${String(h).padStart(2, "0")}:${String(mi).padStart(2, "0")}`, td: "" };
+  const game = gameFromQ(q, officialNames(), {}) || "";
+  return { ask, player: "", date_from: from, date_to: to, league: "", game, time: `${String(h).padStart(2, "0")}:${String(mi).padStart(2, "0")}`, td: "" };
 }
 
 function shouldCacheAnswer(answer) {
@@ -1237,7 +1371,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { q = String((await request.json()).q || "").trim().slice(0, 300); } catch (_) {}
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
-  const ansKey = `ans/v7/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v8/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());

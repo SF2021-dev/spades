@@ -121,7 +121,7 @@ Fields:
 - "league": league name or abbreviation exactly as written in the question, or "" if none mentioned.
 - "date_from","date_to": YYYY-MM-DD in US Eastern time. "last night"/"yesterday" = yesterday. A late-night time "last night" (e.g. 11pm) = yesterday. No date mentioned = today, except "last time"/"most recent" questions: for "player_tours" leave both dates "" (whole history); for "last_win" use the last 60 days. Weekday names = most recent such day (today or earlier).
 - "time": "HH:MM" 24-hour ET if a time is mentioned, else "". A time with no AM/PM from 1:00 to 7:59 means PM (e.g. "1:15" = "13:15"); 8:00 to 11:59 means AM.
-- "ask": one of "winner" (who won a specific tour), "players" (who was on the winning team of a specific tour), "td" (who ran/hosted a specific tour), "game" (game type/format/rules of a specific tour), "count_tours" (how many tours), "player_wins" (how many / which tours a named player won), "last_win" (when a named player last won), "list" (what tours ran / all winners), "player_tours" (how many / which / what tours a named player played, entered or joined, e.g. "what tours did X play in today", when a player last played, a player's placings / 2nd / 3rd places / bux won), "participants" (who played / who entered / who is in a specific tour, e.g. "who played in the 6:15"; set "time" and no player), "leaderboard" (who won / played / hosted the most tours, most wins, top winners; no player name needed), "player_rate" (a named player's win rate / success rate / best or worst game type or variation, record by variation, percentage of wins; set "player"), "unsupported" (anything else, e.g. ratings, scores, hands).
+- "ask": one of "winner" (who won a specific tour), "players" (who was on the winning team of a specific tour), "td" (who ran/hosted a specific tour), "game" (game type/format/rules of a specific tour), "count_tours" (how many tours), "player_wins" (how many / which tours a named player won), "last_win" (when a named player last won), "list" (what tours ran / all winners), "player_tours" (how many / which / what tours a named player played, entered or joined, e.g. "what tours did X play in today", when a player last played, a player's placings / 2nd / 3rd places / bux won), "participants" (who played / who entered / who is in a specific tour, e.g. "who played in the 6:15"; set "time" and no player), "leaderboard" (who won / played / hosted the most tours, most wins, top winners; no player name needed), "player_rate" (a named player's win rate / success rate / best or worst game type or variation, record by variation, percentage of wins, including when the question asks about games / matches / hands vs tours; set "player"), "unsupported" (anything else, e.g. ratings, individual hand or trick scores).
 - "player": player name exactly as written, or "". If the question says "I"/"me"/"my" and gives no name, use "Ochwiay". For "leaderboard" leave "player" "".
 - "game": game type if mentioned (CUT, SINGLES, SUI PASS 2, REG PARTNERS, etc.), else "".
 - "td": host/TD name if the question filters to tours hosted by someone, else "".
@@ -697,7 +697,7 @@ function resolveAskPlayer(q, Q) {
 }
 function successRateIntent(q, Q) {
   const worst = /\bworst|least\s+success|lowest\s+win\s*rate|weakest\b/i.test(q);
-  if (Q.ask === "player_rate") return { worst };
+  if (Q.ask === "player_rate") return { worst, unit: rateUnit(q) };
   // Don't steal single-tour questions ("what game type was the 6:15") or leaderboards.
   if (Q.ask && /^(game|winner|players|td|count_tours|list|participants)$/i.test(Q.ask)) return null;
   if (/\b(?:the\s+)?\d{1,2}:\d{2}\b/.test(q) && !/\b(?:win\s*rates?|success|percentage[- ]wise|percent(?:age)?\s*wise|record\s+by)\b/i.test(q)) return null;
@@ -709,9 +709,10 @@ function successRateIntent(q, Q) {
     || /\b(?:by|per|each|every|broken\s+down\s+by)\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
     || /\b(?:variation|game\s*types?|formats?)\b.{0,50}\b(?:success|win\s*rate|percent|best|worst)\b/i.test(q)
     || /\b(?:success|win\s*rate|percent|best|worst)\b.{0,50}\b(?:variation|game\s*types?|formats?)\b/i.test(q)
-    || (/\b(?:which|what)\s+(?:variation|game\s*types?|formats?)\b/i.test(q) && (named || /\b(?:success|win\s*rate|percent|best|worst|record|played)\b/i.test(q)));
+    || (/\b(?:which|what)\s+(?:variation|game\s*types?|formats?)\b/i.test(q) && (named || /\b(?:success|win\s*rate|percent|best|worst|record|played)\b/i.test(q)))
+    || (named && /\b(?:games?|hands?|matches)\b/i.test(q.replace(/\bgame\s*types?\b/gi, " ")) && /\b(?:win|won|wins|winning|record|percent|percentage)\b/i.test(q));
   if (!rate) return null;
-  return { worst };
+  return { worst, unit: rateUnit(q) };
 }
 function fmtPct(wins, played) {
   if (!played) return "0%";
@@ -767,6 +768,35 @@ function rateNameKeys(name, cfg) {
 function playerIn(list, keys) {
   return (list || []).some(n => namesMatch(keys, n));
 }
+function rateUnit(q) {
+  const stripped = String(q || "")
+    .replace(/\bgame\s*types?\b/gi, " ")
+    .replace(/\bgame\s*formats?\b/gi, " ")
+    .replace(/\b(?:best|worst|strongest|weakest)\s+game\b/gi, " ");
+  const games = /\b(?:games?|hands?|matches|tables?)\b/i.test(stripped);
+  const tours = /\b(?:tours?|tournaments?)\b/i.test(q);
+  if (games && tours) {
+    if (/\bnot\s+(?:the\s+)?tours?\b/i.test(q)) return "games";
+    if (/\bnot\s+(?:the\s+)?(?:games?|hands?|matches|tables?)\b/i.test(q)) return "tours";
+    return "both";
+  }
+  if (games) return "games";
+  if (tours) return "tours";
+  return "both";
+}
+function recordOf(t, keys) {
+  const recs = t && t.records;
+  if (!recs || typeof recs !== "object") return null;
+  for (const [n, wl] of Object.entries(recs)) {
+    if (namesMatch(keys, n) && Array.isArray(wl) && wl.length >= 2)
+      return [+wl[0] || 0, +wl[1] || 0];
+  }
+  return null;
+}
+function fmtRecord(wins, played, unit) {
+  const noun = unit === "games" ? (played === 1 ? "game" : "games") : (played === 1 ? "tour" : "tours");
+  return `${wins} win${wins === 1 ? "" : "s"} in ${played} ${noun} (${fmtPct(wins, played)})`;
+}
 function shownOf(name, cfg, fallback) {
   return displayName(name, aliasGraph(cfg)) || fallback || name;
 }
@@ -786,26 +816,46 @@ async function playerRate(q, Q, now, intent, ctx) {
   }
   const keys = rateNameKeys(who, cfg);
   const wantGame = gameFromQ(q, official, Q);
+  const unit = (intent && intent.unit) || rateUnit(q);
+  const showTours = unit === "tours" || unit === "both";
+  const showGames = unit === "games" || unit === "both";
   const by = new Map();
-  let pending = 0, openN = 0, skipped = 0;
-  const playedRows = [];
+  let pending = 0, openN = 0, missingRec = 0;
   for (const t of data.tours) {
     if (t.date < from || t.date > to) continue;
     if (!playerIn(t.players, keys)) continue;
     if (t.status && t.status !== "finished") { openN++; continue; }
-    if (!t.winners || !t.winners.length) { pending++; continue; }
     const label = officialize(t.label || "", official, t.perteam) || "UNKNOWN";
-    if (wantGame && !labelsMatch(wantGame, label)) { skipped++; continue; }
-    const rec = by.get(label) || { label, played: 0, wins: 0 };
-    rec.played++;
-    if (playerIn(t.winners, keys)) rec.wins++;
+    if (wantGame && !labelsMatch(wantGame, label)) continue;
+    const hasWinner = !!(t.winners && t.winners.length);
+    if (!hasWinner) pending++;
+    const rec = by.get(label) || { label, played: 0, wins: 0, gPlayed: 0, gWins: 0 };
+    if (hasWinner) {
+      rec.played++;
+      if (playerIn(t.winners, keys)) rec.wins++;
+    }
+    const wl = recordOf(t, keys);
+    if (wl) {
+      const g = wl[0] + wl[1];
+      if (g > 0) { rec.gWins += wl[0]; rec.gPlayed += g; }
+    } else if (showGames) {
+      missingRec++;
+    }
     by.set(label, rec);
-    playedRows.push(t);
   }
   const disp = shownOf(who, cfg, who);
   const when = periodWords(q, from, to, now);
-  const rows = [...by.values()].map(r => ({ ...r, pct: r.played ? (100 * r.wins) / r.played : 0 }));
-  rows.sort((a, b) => b.pct - a.pct || b.wins - a.wins || b.played - a.played || a.label.localeCompare(b.label));
+  const useGamesSort = unit === "games";
+  const rows = [...by.values()]
+    .filter(r => (showTours && r.played > 0) || (showGames && r.gPlayed > 0))
+    .map(r => ({
+      ...r,
+      pct: r.played ? (100 * r.wins) / r.played : 0,
+      gpct: r.gPlayed ? (100 * r.gWins) / r.gPlayed : 0,
+    }));
+  rows.sort(useGamesSort
+    ? (a, b) => b.gpct - a.gpct || b.gWins - a.gWins || b.gPlayed - a.gPlayed || a.label.localeCompare(b.label)
+    : (a, b) => b.pct - a.pct || b.wins - a.wins || b.played - a.played || a.label.localeCompare(b.label));
   const coverEnd = coverTo < now.date ? coverTo : now.date;
   // Don't nag when coverage goes through yesterday and today's tours have not finished yet.
   const stale = to > coverTo && coverTo < addDays(now.date, -1);
@@ -814,48 +864,94 @@ async function playerRate(q, Q, now, intent, ctx) {
     : "";
   const gaps = (data.gaps || []).filter(d => d >= from && d <= to);
   const gapNote = gaps.length ? ` No entry lists for ${gaps.length} day${gaps.length === 1 ? "" : "s"} in that span (${gaps[0]}${gaps.length > 1 ? "…" : ""}).` : "";
-  const pendNote = pending || openN
-    ? ` ${pending ? `${pending} finished tour${pending === 1 ? "" : "s"} with no winner posted` : ""}${pending && openN ? " and " : ""}${openN ? `${openN} still in progress` : ""} ${pending && openN ? "were" : "was"} not counted.`
+  const pendNote = showTours && (pending || openN)
+    ? ` ${pending ? `${pending} finished tour${pending === 1 ? "" : "s"} with no winner posted` : ""}${pending && openN ? " and " : ""}${openN ? `${openN} tour${openN === 1 ? "" : "s"} still in progress` : ""} ${pending && openN ? "were" : "was"} not counted in the tour record.`
+    : (openN && showGames && !showTours
+      ? ` ${openN} tour${openN === 1 ? "" : "s"} still in progress ${openN === 1 ? "was" : "were"} not counted.`
+      : "");
+  const missNote = showGames && missingRec
+    ? ` Game records were missing for ${missingRec} tour${missingRec === 1 ? "" : "s"} ${disp} played in that span.`
     : "";
-  if (!rows.length) {
-    const why = wantGame
-      ? `${disp} did not play any finished ${wantGame} tours at ${lname} ${when} that have a posted winner.`
-      : `${disp} did not play any finished tours at ${lname} ${when} that have a posted winner.`;
-    return { info: why + clipNote + gapNote + pendNote, final: true, from, to, player: disp };
+  const gameExplain = showGames ? " A game is one table/match played inside a tour; byes are not counted." : "";
+  const tourRows = rows.filter(r => r.played > 0);
+  const gameRows = rows.filter(r => r.gPlayed > 0);
+  if ((showTours && !tourRows.length && !showGames) || (showGames && !gameRows.length && !showTours) || (!tourRows.length && !gameRows.length)) {
+    let why;
+    if (showGames && !showTours && missingRec && !gameRows.length) {
+      why = `Game-by-game records (each table ${disp} played inside a tour) are not in the file yet${wantGame ? " for " + wantGame : ""} at ${lname} ${when}.`;
+    } else if (showGames && !showTours) {
+      why = wantGame
+        ? `${disp} has no counted ${wantGame} games at ${lname} ${when}.`
+        : `${disp} has no counted games at ${lname} ${when}.`;
+    } else {
+      why = wantGame
+        ? `${disp} did not play any finished ${wantGame} tours at ${lname} ${when} that have a posted winner.`
+        : `${disp} did not play any finished tours at ${lname} ${when} that have a posted winner.`;
+    }
+    return { info: why + clipNote + gapNote + pendNote + missNote, final: true, from, to, player: disp, unit };
   }
-  const totalP = rows.reduce((a, r) => a + r.played, 0);
-  const totalW = rows.reduce((a, r) => a + r.wins, 0);
-  // For "worst", prefer the lowest % and, on a tie, the type with more tours played.
+  const totalP = tourRows.reduce((a, r) => a + r.played, 0);
+  const totalW = tourRows.reduce((a, r) => a + r.wins, 0);
+  const totalGP = gameRows.reduce((a, r) => a + r.gPlayed, 0);
+  const totalGW = gameRows.reduce((a, r) => a + r.gWins, 0);
+  const sortRows = useGamesSort ? gameRows : (showTours ? tourRows : gameRows);
+  const metricWins = r => useGamesSort ? r.gWins : r.wins;
+  const metricPlayed = r => useGamesSort ? r.gPlayed : r.played;
+  const metricPct = r => useGamesSort ? r.gpct : r.pct;
   const ordered = intent.worst
-    ? [...rows].sort((a, b) => a.pct - b.pct || a.wins - b.wins || b.played - a.played || a.label.localeCompare(b.label))
-    : rows;
-  const bestPct = ordered[0].pct;
-  const leads = ordered.filter(r => r.pct === bestPct);
-  const one = r => `${r.label}, with ${r.wins} win${r.wins === 1 ? "" : "s"} in ${r.played} tour${r.played === 1 ? "" : "s"} (${fmtPct(r.wins, r.played)})`;
+    ? [...sortRows].sort((a, b) => metricPct(a) - metricPct(b) || metricWins(a) - metricWins(b) || metricPlayed(b) - metricPlayed(a) || a.label.localeCompare(b.label))
+    : sortRows;
+  const bestPct = ordered.length ? metricPct(ordered[0]) : 0;
+  const leads = ordered.filter(r => metricPct(r) === bestPct);
+  const oneTour = r => `${r.label}, with ${fmtRecord(r.wins, r.played, "tours")}`;
+  const oneGame = r => `${r.label}, with ${fmtRecord(r.gWins, r.gPlayed, "games")}`;
+  const one = useGamesSort ? oneGame : oneTour;
   const kind = wantGame || "game type";
+  const bothLine = r => {
+    const parts = [];
+    if (showTours && r.played) parts.push(fmtRecord(r.wins, r.played, "tours"));
+    if (showGames && r.gPlayed) parts.push(fmtRecord(r.gWins, r.gPlayed, "games"));
+    return parts.join(", and ");
+  };
   let head;
   if (wantGame && rows.length === 1) {
     const r = rows[0];
-    head = `${disp}'s ${wantGame} record at ${lname} ${when} is ${r.wins} win${r.wins === 1 ? "" : "s"} in ${r.played} tour${r.played === 1 ? "" : "s"} (${fmtPct(r.wins, r.played)}).`;
+    head = `${disp}'s ${wantGame} record at ${lname} ${when} is ${bothLine(r)}.`;
+  } else if (!ordered.length && showGames && showTours && gameRows.length) {
+    // Tour winners were not posted, but games exist.
+    const gOrdered = [...gameRows].sort((a, b) => b.gpct - a.gpct || b.gWins - a.gWins || b.gPlayed - a.gPlayed || a.label.localeCompare(b.label));
+    head = `${disp}'s best ${kind} by games at ${lname} ${when} is ${oneGame(gOrdered[0])}.`;
   } else if (intent.worst) {
     head = leads.length === 1
       ? `${disp}'s worst ${kind} at ${lname} ${when} is ${one(leads[0])}.`
-      : `${disp}'s worst ${kind}s at ${lname} ${when} are tied: ${joinAnd(leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`))}.`;
+      : `${disp}'s worst ${kind}s at ${lname} ${when} are tied: ${joinAnd(leads.map(r => `${r.label} (${fmtPct(metricWins(r), metricPlayed(r))}, ${metricWins(r)}/${metricPlayed(r)})`))}.`;
   } else {
     head = leads.length === 1
       ? `${disp}'s best ${kind} at ${lname} ${when} is ${one(leads[0])}.`
-      : `${disp}'s best ${kind}s at ${lname} ${when} are tied: ${joinAnd(leads.map(r => `${r.label} (${fmtPct(r.wins, r.played)}, ${r.wins}/${r.played})`))}.`;
+      : `${disp}'s best ${kind}s at ${lname} ${when} are tied: ${joinAnd(leads.map(r => `${r.label} (${fmtPct(metricWins(r), metricPlayed(r))}, ${metricWins(r)}/${metricPlayed(r)})`))}.`;
   }
-  // If the leader is a 1-tour sample, mention the best among types played more than once.
-  if (!intent.worst && !wantGame && leads.length === 1 && leads[0].played === 1) {
-    const fuller = rows.filter(r => r.played > 1);
+  if (!intent.worst && !wantGame && leads.length === 1 && metricPlayed(leads[0]) === 1) {
+    const fuller = sortRows.filter(r => metricPlayed(r) > 1);
     if (fuller.length && fuller[0].label !== leads[0].label)
       head += ` Among game types played more than once, the best is ${one(fuller[0])}.`;
   }
-  const table = rows.map(r => `${r.label} — ${r.played} played, ${r.wins} win${r.wins === 1 ? "" : "s"}, ${fmtPct(r.wins, r.played)}`).join("\n");
-  const overall = `Overall: ${totalW} win${totalW === 1 ? "" : "s"} in ${totalP} tour${totalP === 1 ? "" : "s"} (${fmtPct(totalW, totalP)}).`;
+  if (unit === "both" && !wantGame && tourRows.length && gameRows.length) {
+    const gBest = [...gameRows].sort((a, b) => b.gpct - a.gpct || b.gWins - a.gWins || b.gPlayed - a.gPlayed || a.label.localeCompare(b.label))[0];
+    if (gBest && leads.length === 1 && gBest.label !== leads[0].label)
+      head += ` By games, the best is ${oneGame(gBest)}.`;
+  }
+  const tableLine = r => unit === "both"
+    ? `${r.label} — ${bothLine(r)}`
+    : unit === "games"
+      ? `${r.label} — ${r.gPlayed} played, ${r.gWins} win${r.gWins === 1 ? "" : "s"}, ${fmtPct(r.gWins, r.gPlayed)}`
+      : `${r.label} — ${r.played} played, ${r.wins} win${r.wins === 1 ? "" : "s"}, ${fmtPct(r.wins, r.played)}`;
+  const table = rows.map(tableLine).join("\n");
+  const overallParts = [];
+  if (showTours && totalP) overallParts.push(fmtRecord(totalW, totalP, "tours"));
+  if (showGames && totalGP) overallParts.push(fmtRecord(totalGW, totalGP, "games"));
+  const overall = overallParts.length ? `Overall: ${overallParts.join(", and ")}.` : "";
   const body = wantGame && rows.length === 1 ? overall : `By variation, highest win % first:\n${table}\n\n${overall}`;
-  return { info: `${head}\n\n${body}${clipNote}${gapNote}${pendNote}`.trim(), final: true, from, to, player: disp, rows, totalP, totalW };
+  return { info: `${head}\n\n${body}${clipNote}${gapNote}${pendNote}${missNote}${gameExplain}`.trim(), final: true, from, to, player: disp, unit, rows, totalP, totalW, totalGP, totalGW };
 }
 
 // Every tour the player played in [from,to] across the given leagues, newest info first from the logs.
@@ -1121,7 +1217,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { q = String((await request.json()).q || "").trim().slice(0, 300); } catch (_) {}
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
-  const ansKey = `ans/v5/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v6/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());

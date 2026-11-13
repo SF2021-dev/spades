@@ -369,23 +369,27 @@ function officialize(label, official, perteam) {
   if (off.includes(u)) return u;
   return u;
 }
+function labelPhraseRx(lab) {
+  // Allow a trailing plural on the last word (REG PARTNER, CUTS, SINGLE, LOSER WIN).
+  const parts = String(lab || "").trim().split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  if (!parts.length) return /$()/;
+  parts[parts.length - 1] = parts[parts.length - 1].replace(/s$/i, "") + "s?";
+  return new RegExp("\\b" + parts.join("\\s+") + "\\b", "i");
+}
 function gameFromQ(q, official, Q) {
   const aliases = [
-    ["PAB SUI PASS 2", /\bpab\s+sui|\bsui(?:cide)?\s+pass\s*2\s+pab\b|\b(?:sui(?:cide)?\s+)?(?:pass\s*2\s+)?pab\b|\bpard\s+a\s+bot\b|\bpartner\s+a\s+bot\b|\breg(?:ular)?\s+(?:spades\s+)?pab\b/i],
+    ["PAB SUI PASS 2", /\bpab\s+sui|\bpab\s+pass\s*2|\bsui(?:cide)?\s+pass\s*2\s+pab\b|\b(?:sui(?:cide)?\s+)?(?:pass\s*2\s+)?pab\b|\bpard\s+a\s+bot\b|\bpartner\s+a\s+bot\b|\breg(?:ular)?\s+(?:spades\s+)?pab\b/i],
     ["SUI PASS 2", /\b(?:sui(?:cide)?\s+)?pass\s*2\s+random\b|\bsui(?:cide)?(?:\s+pass\s*2)?\b|\bpass\s*2\b/i],
-    ["REG PARTNERS", /\breg(?:ular)?\s+(?:spades\s+)?random\b|\breg(?:ular)?\s+(?:partners|pards|spades)\b|\b(?:partners|pards)\b/i],
+    ["REG PARTNERS", /\breg(?:ular)?\s+(?:spades\s+)?random\b|\breg(?:ular)?\s+(?:partners?|pards?|spades)\b|\b(?:partners?|pards?)\b/i],
     ["LOSER WINS", /\bloser\s+wins?\b/i],
-    ["SINGLES", /\bsetters?'?\s+choice(\s+singles)?\b|\bsingles\b/i],
-    ["CUT", /\bcut\s+mirrors?\b|\bmirrors?\b|\bcutthroat\b|\b1\s*v(?:s)?\s*1\s*v(?:s)?\s*1\b|\bcut\b/i]
+    ["SINGLES", /\bsetters?'?\s+choice(\s+singles?)?\b|\bsingles?\b/i],
+    ["CUT", /\bcut\s+mirrors?\b|\bmirrors?\b|\bcutthroat\b|\b1\s*v(?:s)?\s*1\s*v(?:s)?\s*1\b|\bcuts?\b/i]
   ];
   const off = official || [];
   // Longest phrase first, including old aliases (so "SUI PASS 2 PAB" maps to PAB SUI PASS 2, not SUI PASS 2).
   const mentioned = [...off.map(lab => [lab, lab]), ...Object.entries(LABEL_ALIASES)]
     .sort((a, b) => b[0].length - a[0].length)
-    .find(([lab]) => {
-      const rx = new RegExp("\\b" + lab.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+") + "\\b", "i");
-      return rx.test(q);
-    });
+    .find(([lab]) => labelPhraseRx(lab).test(q));
   if (mentioned) return officialize(mentioned[0], off) || mentioned[1];
   if (Q && Q.game) {
     const g = officialize(Q.game, off);
@@ -393,6 +397,16 @@ function gameFromQ(q, official, Q) {
   }
   for (const [lab, rx] of aliases) if (rx.test(q) && (off.includes(lab) || !off.length)) return lab;
   return "";
+}
+function wantsRank(q, wantGame) {
+  // Ranking is only for best/worst/most-success/which-variation questions with no named variation.
+  // Words like "only", "just", "what percent", "have I won" must not trigger it.
+  if (wantGame) return false;
+  return /\b(?:best|worst|strongest|weakest)\b/i.test(q)
+    || /\bmost\s+success\b/i.test(q)
+    || /\b(?:which|what)\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
+    || /\brecord\s+by\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
+    || /\b(?:by|per|each|every|broken\s+down\s+by)\s+(?:variation|game\s*types?|formats?)\b/i.test(q);
 }
 function labelsMatch(want, label) {
   if (!want) return true;
@@ -703,7 +717,7 @@ function successRateIntent(q, Q) {
   if (/\b(?:the\s+)?\d{1,2}:\d{2}\b/.test(q) && !/\b(?:win\s*rates?|success|percentage[- ]wise|percent(?:age)?\s*wise|record\s+by)\b/i.test(q)) return null;
   if (/\bwho\s+won\s+the\s+most\b|\bwho\s+(?:played|hosted|ran)\s+the\s+most\b|\btop\s+\d+\b/i.test(q) && !SAYS_ME.test(q) && !(Q.player && !NOT_PLAYER.test(String(Q.player).trim()) && !isMePronoun(Q.player))) return null;
   const named = (Q.player && okPlayerName(String(Q.player).trim())) || SAYS_ME.test(q);
-  const rate = /\b(?:win\s*rates?|win\s*%|winning\s+percentage|success\s+rates?|percentage[- ]wise|percent(?:age)?\s*wise|most\s+success|success\s+with)\b/i.test(q)
+  const rate = /\b(?:win\s*rates?|win\s*%|winning\s+percentage|success\s+rates?|percentage[- ]wise|percent(?:age)?\s*wise|most\s+success|success\s+with|(?:what\s+)?percent(?:age)?s?)\b/i.test(q)
     || /\b(?:best|worst|strongest|weakest)\s+(?:variation|game\s*types?|formats?|game)\b/i.test(q)
     || /\brecord\s+by\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
     || /\b(?:by|per|each|every|broken\s+down\s+by)\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
@@ -817,6 +831,7 @@ async function playerRate(q, Q, now, intent, ctx) {
   const keys = rateNameKeys(who, cfg);
   const wantGame = gameFromQ(q, official, Q);
   const unit = (intent && intent.unit) || rateUnit(q);
+  const rank = wantsRank(q, wantGame);
   const showTours = unit === "tours" || unit === "both";
   const showGames = unit === "games" || unit === "both";
   const by = new Map();
@@ -913,10 +928,19 @@ async function playerRate(q, Q, now, intent, ctx) {
     if (showGames && r.gPlayed) parts.push(fmtRecord(r.gWins, r.gPlayed, "games"));
     return parts.join(", and ");
   };
+  const overallParts = [];
+  if (showTours && totalP) overallParts.push(fmtRecord(totalW, totalP, "tours"));
+  if (showGames && totalGP) overallParts.push(fmtRecord(totalGW, totalGP, "games"));
+  const overall = overallParts.length ? `Overall: ${overallParts.join(", and ")}.` : "";
+  const recordLine = overallParts.join(", and ");
   let head;
-  if (wantGame && rows.length === 1) {
+  if (wantGame) {
     const r = rows[0];
     head = `${disp}'s ${wantGame} record at ${lname} ${when} is ${bothLine(r)}.`;
+  } else if (!rank) {
+    head = recordLine
+      ? `${disp}'s record at ${lname} ${when} is ${recordLine}.`
+      : `${disp} has no counted record at ${lname} ${when}.`;
   } else if (!ordered.length && showGames && showTours && gameRows.length) {
     // Tour winners were not posted, but games exist.
     const gOrdered = [...gameRows].sort((a, b) => b.gpct - a.gpct || b.gWins - a.gWins || b.gPlayed - a.gPlayed || a.label.localeCompare(b.label));
@@ -930,12 +954,12 @@ async function playerRate(q, Q, now, intent, ctx) {
       ? `${disp}'s best ${kind} at ${lname} ${when} is ${one(leads[0])}.`
       : `${disp}'s best ${kind}s at ${lname} ${when} are tied: ${joinAnd(leads.map(r => `${r.label} (${fmtPct(metricWins(r), metricPlayed(r))}, ${metricWins(r)}/${metricPlayed(r)})`))}.`;
   }
-  if (!intent.worst && !wantGame && leads.length === 1 && metricPlayed(leads[0]) === 1) {
+  if (rank && !intent.worst && !wantGame && leads.length === 1 && metricPlayed(leads[0]) === 1) {
     const fuller = sortRows.filter(r => metricPlayed(r) > 1);
     if (fuller.length && fuller[0].label !== leads[0].label)
       head += ` Among game types played more than once, the best is ${one(fuller[0])}.`;
   }
-  if (unit === "both" && !wantGame && tourRows.length && gameRows.length) {
+  if (rank && unit === "both" && !wantGame && tourRows.length && gameRows.length) {
     const gBest = [...gameRows].sort((a, b) => b.gpct - a.gpct || b.gWins - a.gWins || b.gPlayed - a.gPlayed || a.label.localeCompare(b.label))[0];
     if (gBest && leads.length === 1 && gBest.label !== leads[0].label)
       head += ` By games, the best is ${oneGame(gBest)}.`;
@@ -946,12 +970,8 @@ async function playerRate(q, Q, now, intent, ctx) {
       ? `${r.label} — ${r.gPlayed} played, ${r.gWins} win${r.gWins === 1 ? "" : "s"}, ${fmtPct(r.gWins, r.gPlayed)}`
       : `${r.label} — ${r.played} played, ${r.wins} win${r.wins === 1 ? "" : "s"}, ${fmtPct(r.wins, r.played)}`;
   const table = rows.map(tableLine).join("\n");
-  const overallParts = [];
-  if (showTours && totalP) overallParts.push(fmtRecord(totalW, totalP, "tours"));
-  if (showGames && totalGP) overallParts.push(fmtRecord(totalGW, totalGP, "games"));
-  const overall = overallParts.length ? `Overall: ${overallParts.join(", and ")}.` : "";
-  const body = wantGame && rows.length === 1 ? overall : `By variation, highest win % first:\n${table}\n\n${overall}`;
-  return { info: `${head}\n\n${body}${clipNote}${gapNote}${pendNote}${missNote}${gameExplain}`.trim(), final: true, from, to, player: disp, unit, rows, totalP, totalW, totalGP, totalGW };
+  const body = rank ? `By variation, highest win % first:\n${table}\n\n${overall}` : overall;
+  return { info: `${head}\n\n${body}${clipNote}${gapNote}${pendNote}${missNote}${gameExplain}`.trim(), final: true, from, to, player: disp, unit, game: wantGame || "", rank, rows, totalP, totalW, totalGP, totalGW };
 }
 
 // Every tour the player played in [from,to] across the given leagues, newest info first from the logs.
@@ -1217,7 +1237,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { q = String((await request.json()).q || "").trim().slice(0, 300); } catch (_) {}
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
-  const ansKey = `ans/v6/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v7/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());

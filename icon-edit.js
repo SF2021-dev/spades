@@ -13,7 +13,9 @@
     var tag = document.createElement("style");
     tag.textContent = [
       "body.icon-edit .icons-area { top: 126px; }",
-      ".edits-complete { position:absolute; top:82px; left:0; right:290px; margin:0 auto; width:max-content; z-index:40;",
+      ".edit-bar { position:absolute; top:82px; left:0; right:290px; display:flex; justify-content:center; align-items:center; gap:12px; z-index:40; pointer-events:none; }",
+      ".edit-bar > * { pointer-events:auto; }",
+      ".edits-complete {",
       "  background:#fbe646; color:#1a1200; border:0; border-radius:8px; font-weight:800; font-size:16px; padding:8px 16px; cursor:pointer; }",
       ".edits-complete:disabled { opacity:0.6; cursor:wait; }",
       ".icon-sq { position:relative; }",
@@ -28,7 +30,8 @@
       ".icon-pick p { margin:0 0 12px; }",
       ".icon-pick button { display:block; width:100%; margin:8px 0 0; background:#fbe646; color:#1a1200; border:0; border-radius:8px; font-weight:800; font-size:15px; padding:8px 10px; cursor:pointer; }",
       ".icon-pick .cancel { background:transparent; color:#fbe646; border:1px solid #fbe646; }",
-      ".new-icon { margin-top:8px; background:transparent; color:#fbe646; border:1px solid #fbe646; border-radius:8px; font-weight:800; font-size:15px; padding:8px 14px; cursor:pointer; }"
+      ".icon-row .new-icon { align-self:center; margin-left:4px; }",
+      ".new-icon { margin-top:0; background:transparent; color:#fbe646; border:1px solid #fbe646; border-radius:8px; font-weight:800; font-size:15px; padding:8px 14px; cursor:pointer; }"
     ].join("\n");
     document.head.appendChild(tag);
   }
@@ -36,7 +39,7 @@
   function sortShortRows() {
     var area = document.querySelector(".icons-area");
     if (!area) return;
-    var anchor = area.querySelector(".new-icon");
+    var anchor = area.querySelector(":scope > .new-icon");
     Array.prototype.slice.call(area.querySelectorAll(".icon-row")).sort(function (a, b) {
       return a.querySelectorAll(".icon-sq").length - b.querySelectorAll(".icon-sq").length;
     }).forEach(function (row) {
@@ -52,7 +55,7 @@
     if (!row) {
       row = document.createElement("div");
       row.className = "icon-row";
-      var anchor = area.querySelector(".new-icon");
+      var anchor = area.querySelector(":scope > .new-icon");
       if (anchor) area.insertBefore(row, anchor);
       else area.appendChild(row);
     } else {
@@ -511,7 +514,10 @@
         alert(err.message || String(err));
       });
     });
-    document.body.appendChild(done);
+    var bar = document.createElement("div");
+    bar.className = "edit-bar";
+    bar.appendChild(done);
+    document.body.appendChild(bar);
     var area = document.querySelector(".icons-area");
     var add = document.createElement("button");
     add.type = "button";
@@ -527,8 +533,15 @@
         placeNew(url, dataUrl, name);
       });
     });
-    if (area) area.appendChild(add);
     sortShortRows();
+    pinAdd(add);
+    new MutationObserver(function () { pinAdd(add); }).observe(area || document.body, { childList: true, subtree: true });
+  }
+
+  function pinAdd(add) {
+    var row = document.querySelector(".icons-area .icon-row");
+    if (!row || !add) return;
+    if (row.lastElementChild !== add) row.appendChild(add);
   }
 
   css();

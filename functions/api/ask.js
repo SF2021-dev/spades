@@ -636,28 +636,42 @@ async function leaderboard(q, Q, now, intent, ctx) {
 const ME = "Ochwiay";
 const SAYS_ME = /\b(?:i|me|my|mine|i've|i'd|i'm|ive)\b/i;
 function isMePronoun(p) { return /^(i|me|my|mine|ive)$/i.test(String(p || "").trim()); }
+function okPlayerName(n) {
+  return n && !NOT_PLAYER.test(n) && !isMePronoun(n) && !/^(in|on|at|this|last|the|a|an|any|his|her|their|what|whats|whatis|whats?|win|rate|best|worst|record)$/i.test(n);
+}
 function resolveAskPlayer(q, Q) {
   let p = String(Q.player || "").trim();
   if (p && isMePronoun(p)) return ME;
   if (p && !NOT_PLAYER.test(p)) return p;
   if (SAYS_ME.test(q)) return ME;
-  const m = q.match(/\b(?:has|have|had|did|does|for|of)\s+@?([A-Za-z][\w.\-]{1,24})\b/i);
-  if (m && !NOT_PLAYER.test(m[1]) && !isMePronoun(m[1]) && !/^(in|on|at|this|last|the|a|an|any|his|her|their)$/i.test(m[1])) return m[1];
+  const pats = [
+    /\b(?:has|have|had|did|does|for|of)\s+@?([A-Za-z][\w.\-]{1,24})\b/i,
+    /(?:^|\s)@?([A-Za-z][\w.\-]{1,24})'s\s+(?:win\s*rate|success|best|worst|record|game\s*type|variation)/i,
+    /^(?:what(?:'s|\s+is)\s+)?@?([A-Za-z][\w.\-]{1,24})(?:'s)?\s+(?:win\s*rate|success|best|worst|record)\b/i,
+  ];
+  for (const rx of pats) {
+    const m = q.match(rx);
+    if (m && okPlayerName(m[1])) return m[1];
+  }
   return "";
 }
 function successRateIntent(q, Q) {
-  if (Q.ask === "player_rate") return { worst: /\bworst|least\s+success|lowest\s+win\s*rate|weakest\b/i.test(q) };
+  const worst = /\bworst|least\s+success|lowest\s+win\s*rate|weakest\b/i.test(q);
+  if (Q.ask === "player_rate") return { worst };
+  // Don't steal single-tour questions ("what game type was the 6:15") or leaderboards.
+  if (Q.ask && /^(game|winner|players|td|count_tours|list|participants)$/i.test(Q.ask)) return null;
+  if (/\b(?:the\s+)?\d{1,2}:\d{2}\b/.test(q) && !/\b(?:win\s*rates?|success|percentage[- ]wise|percent(?:age)?\s*wise|record\s+by)\b/i.test(q)) return null;
   if (/\bwho\s+won\s+the\s+most\b|\bwho\s+(?:played|hosted|ran)\s+the\s+most\b|\btop\s+\d+\b/i.test(q) && !SAYS_ME.test(q) && !(Q.player && !NOT_PLAYER.test(String(Q.player).trim()) && !isMePronoun(Q.player))) return null;
+  const named = (Q.player && okPlayerName(String(Q.player).trim())) || SAYS_ME.test(q);
   const rate = /\b(?:win\s*rates?|win\s*%|winning\s+percentage|success\s+rates?|percentage[- ]wise|percent(?:age)?\s*wise|most\s+success|success\s+with)\b/i.test(q)
     || /\b(?:best|worst|strongest|weakest)\s+(?:variation|game\s*types?|formats?|game)\b/i.test(q)
-    || /\b(?:which|what)\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
-    || /\bwhat\s+variation\b/i.test(q)
     || /\brecord\s+by\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
     || /\b(?:by|per|each|every|broken\s+down\s+by)\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
     || /\b(?:variation|game\s*types?|formats?)\b.{0,50}\b(?:success|win\s*rate|percent|best|worst)\b/i.test(q)
-    || /\b(?:success|win\s*rate|percent|best|worst)\b.{0,50}\b(?:variation|game\s*types?|formats?)\b/i.test(q);
+    || /\b(?:success|win\s*rate|percent|best|worst)\b.{0,50}\b(?:variation|game\s*types?|formats?)\b/i.test(q)
+    || (/\b(?:which|what)\s+(?:variation|game\s*types?|formats?)\b/i.test(q) && (named || /\b(?:success|win\s*rate|percent|best|worst|record|played)\b/i.test(q)));
   if (!rate) return null;
-  return { worst: /\bworst|least\s+success|lowest\s+win\s*rate|weakest\b/i.test(q) };
+  return { worst };
 }
 function fmtPct(wins, played) {
   if (!played) return "0%";
@@ -686,6 +700,8 @@ function periodWords(q, from, to, now) {
   if (/\blast week\b/i.test(q) && !/\blast 7\b|\bpast 7\b/i.test(q)) return `last week (${span})`;
   const lastN = q.match(/\b(?:last|past)\s+(\d{1,3})\s+days?\b/i);
   if (lastN) return `the last ${+lastN[1]} days (${span})`;
+  const may = q.match(/\bin\s+may(?:\s+\d{4})?\b|\bmay\s+\d{4}\b/i);
+  if (may) return `May (${span})`;
   const named = q.match(/\b(january|february|march|april|june|july|august|september|october|november|december)\b/i);
   if (named) return `${named[1][0].toUpperCase()}${named[1].slice(1).toLowerCase()} (${span})`;
   return from === to ? `on ${span}` : `from ${span}`;
@@ -768,7 +784,10 @@ async function playerRate(q, Q, now, intent, ctx) {
   }
   const totalP = rows.reduce((a, r) => a + r.played, 0);
   const totalW = rows.reduce((a, r) => a + r.wins, 0);
-  const ordered = intent.worst ? [...rows].reverse() : rows;
+  // For "worst", prefer the lowest % and, on a tie, the type with more tours played.
+  const ordered = intent.worst
+    ? [...rows].sort((a, b) => a.pct - b.pct || a.wins - b.wins || b.played - a.played || a.label.localeCompare(b.label))
+    : rows;
   const bestPct = ordered[0].pct;
   const leads = ordered.filter(r => r.pct === bestPct);
   const one = r => `${r.label}, with ${r.wins} win${r.wins === 1 ? "" : "s"} in ${r.played} tour${r.played === 1 ? "" : "s"} (${fmtPct(r.wins, r.played)})`;
@@ -1016,7 +1035,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { q = String((await request.json()).q || "").trim().slice(0, 300); } catch (_) {}
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
-  const ansKey = `ans/v3/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v4/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());

@@ -123,7 +123,7 @@ Fields:
 - "date_from","date_to": YYYY-MM-DD in US Eastern time. "last night"/"yesterday" = yesterday. A late-night time "last night" (e.g. 11pm) = yesterday. No date mentioned = today, except "last time"/"most recent" questions: for "player_tours" leave both dates "" (whole history); for "last_win" use the last 60 days. Weekday names = most recent such day (today or earlier).
 - "time": "HH:MM" 24-hour ET if a time is mentioned, else "". A time with no AM/PM from 1:00 to 7:59 means PM (e.g. "1:15" = "13:15"); 8:00 to 11:59 means AM.
 - "ask": one of "winner" (who won a specific tour), "players" (who was on the winning team of a specific tour), "td" (who ran/hosted a specific tour), "game" (game type/format/rules of a specific tour), "count_tours" (how many tours), "player_wins" (how many / which tours a named player won), "last_win" (when a named player last won), "list" (what tours ran / all winners), "player_tours" (how many / which / what tours a named player played, entered or joined, e.g. "what tours did X play in today", when a player last played, a player's placings / 2nd / 3rd places / bux won), "participants" (who played / who entered / who is in a specific tour, e.g. "who played in the 6:15"; set "time" and no player), "leaderboard" (who won / played / hosted the most tours, most wins, top winners; no player name needed), "player_rate" (a named player's win rate / success rate / best or worst game type or variation, record by variation, percentage of wins, including when the question asks about games / matches / hands vs tours; set "player"), "unsupported" (anything else, e.g. ratings, individual hand or trick scores).
-- "player": player name exactly as written, or "". If the question says "I"/"me"/"my" and gives no name, use "Ochwiay". For "leaderboard" leave "player" "".
+- "player": player name exactly as written, or "". If the question says "I"/"me"/"my"/"mine" and gives no other name, leave "player" "" (the server fills in the signed-in user's MyLeague handle). For "leaderboard" leave "player" "".
 - "game": game type if mentioned (CUT, SINGLES, SUI PASS 2, REG PARTNERS, etc.), else "".
 - "td": host/TD name if the question filters to tours hosted by someone, else "".
 - "metric": for "leaderboard" only: "wins" (default), "played", or "hosted".
@@ -801,17 +801,38 @@ async function leaderboard(q, Q, now, intent, ctx) {
 }
 
 // ---------------- per-player win rate by game variation (from /ask/player_tours.json)
-const ME = "Ochwiay";
+// First-person ("I"/"me"/"my"/"mine") is the signed-in site user's MyLeague handle
+// (users.username in D1 diamondspaders-auth, via the ds_session cookie). Never a hardcoded name.
 const SAYS_ME = /\b(?:i|me|my|mine|i've|i'd|i'm|ive)\b/i;
 function isMePronoun(p) { return /^(i|me|my|mine|ive)$/i.test(String(p || "").trim()); }
 function okPlayerName(n) {
   return n && !NOT_PLAYER.test(n) && !isMePronoun(n) && !/^(in|on|at|this|last|the|a|an|any|his|her|their|what|whats|whatis|whats?|win|rate|best|worst|record)$/i.test(n);
 }
-function resolveAskPlayer(q, Q) {
+function unknownMeMessage() {
+  return `I don't know your MyLeague name yet. Ask with your name, like "how many reg partner games did trifolium win this month".`;
+}
+function noTourDataMessage(handle) {
+  const n = String(handle || "").trim() || "that name";
+  return `I don't have tour records for ${n} yet. Ask with your name, like "how many reg partner games did ${n} win this month".`;
+}
+async function signedInHandle(request, env) {
+  // Tests can set env.ASK_ME to simulate a signed-in users.username (MyLeague handle).
+  if (env && env.ASK_ME != null && String(env.ASK_ME).trim() !== "")
+    return String(env.ASK_ME).trim();
+  if (!request || !env || !env.DB) return "";
+  try {
+    const { currentUser } = await import("../_shared/auth.js");
+    const u = await currentUser(request, env);
+    return (u && u.username && String(u.username).trim()) || "";
+  } catch (_) {
+    return "";
+  }
+}
+function resolveAskPlayer(q, Q, me) {
   let p = String(Q.player || "").trim();
-  if (p && isMePronoun(p)) return ME;
+  if (p && isMePronoun(p)) return me || "";
   if (p && !NOT_PLAYER.test(p)) return p;
-  if (SAYS_ME.test(q)) return ME;
+  if (SAYS_ME.test(q)) return me || "";
   const pats = [
     /\b(?:has|have|had|did|does|for|of)\s+@?([A-Za-z][\w.\-]{1,24})\b/i,
     /(?:^|\s)@?([A-Za-z][\w.\-]{1,24})'s\s+(?:win\s*rate|success|best|worst|record|game\s*type|variation)/i,
@@ -823,6 +844,9 @@ function resolveAskPlayer(q, Q) {
   }
   return "";
 }
+function playerInRates(data, keys) {
+  return !!(data && Array.isArray(data.tours) && data.tours.some(t => playerIn(t.players, keys)));
+}
 function successRateIntent(q, Q) {
   const worst = /\bworst|least\s+success|lowest\s+win\s*rate|weakest\b/i.test(q);
   if (Q.ask === "player_rate") return { worst, unit: rateUnit(q) };
@@ -830,7 +854,7 @@ function successRateIntent(q, Q) {
   if (Q.ask && /^(game|winner|players|td|count_tours|list|participants)$/i.test(Q.ask)) return null;
   if (/\b(?:the\s+)?\d{1,2}:\d{2}\b/.test(q) && !/\b(?:win\s*rates?|success|percentage[- ]wise|percent(?:age)?\s*wise|record\s+by)\b/i.test(q)) return null;
   if (/\bwho\s+won\s+the\s+most\b|\bwho\s+(?:played|hosted|ran)\s+the\s+most\b|\btop\s+\d+\b/i.test(q) && !SAYS_ME.test(q) && !(Q.player && !NOT_PLAYER.test(String(Q.player).trim()) && !isMePronoun(Q.player))) return null;
-  const named = (Q.player && okPlayerName(String(Q.player).trim())) || SAYS_ME.test(q);
+  const named = (Q.player && okPlayerName(String(Q.player).trim())) || SAYS_ME.test(q) || !!resolveAskPlayer(q, Q || {}, "");
   const rate = /\bwin\s*\/\s*los|\bloss(?:es)?\s+numbers?\b/i.test(q)
     || /\b(?:win\s*rates?|win\s*%|winning\s+percentage|success\s+rates?|percentage[- ]wise|percent(?:age)?\s*wise|most\s+success|success\s+with|(?:what\s+)?percent(?:age)?s?)\b/i.test(q)
     || /\b(?:best|worst|strongest|weakest)\s+(?:variation|game\s*types?|formats?|game)\b/i.test(q)
@@ -1184,13 +1208,18 @@ function answerPartnerRate({ q, data, cfg, official, who, keys, wantGame, from, 
 }
 
 async function playerRate(q, Q, now, intent, ctx) {
-  const who = resolveAskPlayer(q, Q);
-  if (!who) return { info: "Name the player, or ask with \"I\" / \"me\" (that is treated as Ochwiay).", final: true };
+  const me = (ctx && ctx.me) || "";
+  const firstPerson = SAYS_ME.test(q) || isMePronoun(Q && Q.player);
+  const who = resolveAskPlayer(q, Q, me);
+  if (firstPerson && !me) return { info: unknownMeMessage(), final: true };
+  if (!who) return { info: "Name the player, or ask with \"I\" / \"me\" once your MyLeague name is on this account.", final: true };
   const data = await loadRates(ctx);
   if (!data || !Array.isArray(data.tours) || !data.tours.length)
     return { info: "The tour-entry records this page uses for win rates are not available right now.", final: true };
   const cfg = await loadCfg(ctx);
   const official = officialNames(cfg);
+  if (firstPerson && !playerInRates(data, rateNameKeys(who, cfg)))
+    return { info: noTourDataMessage(who), final: true, player: who };
   const [from, to] = boardPeriod(q, now, Q);
   const coverFrom = data.from, coverTo = data.to;
   const lname = data.league_name || "Diamond Spaders";
@@ -1637,7 +1666,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { q = String((await request.json()).q || "").trim().slice(0, 300); } catch (_) {}
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
-  const ansKey = `ans/v10/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const me = await signedInHandle(request, env);
+  const ansKey = `ans/v11/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());
@@ -1651,12 +1681,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
   let Q, data, answer;
   // Fast path first — never block these on Workers AI.
   const stub = { ask: "", player: "", date_from: "", date_to: "", league: "", game: "", time: "", td: "", metric: "", top: 5 };
-  stub.player = resolveAskPlayer(q, stub);
+  stub.player = resolveAskPlayer(q, stub, me);
   const rateIntent = successRateIntent(q, stub);
   if (rateIntent) {
     Q = stub;
     Q.ask = "player_rate";
-    const ctx = { env, url: request.url, debug: !!env.DEBUG };
+    const ctx = { env, url: request.url, debug: !!env.DEBUG, me };
     try { data = await playerRate(q, Q, now, rateIntent, ctx); } catch (_) { data = { info: "The tour-entry records this page uses for win rates could not be read right now.", final: true }; }
     answer = data.info || "The answer could not be produced.";
     const out = { answer, query: { ...Q, ask: "player_rate", player: data.player || Q.player }, data };
@@ -1666,7 +1696,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const lb = leaderboardIntent(q, stub) || (stub.ask === "leaderboard" ? { metric: /played|hosted/.test(String(stub.metric||"")) ? stub.metric : "wins", top: Math.max(3, Math.min(15, +stub.top || 5)) } : null);
   if (lb) {
     Q = stub;
-    const ctx = { env, url: request.url, debug: !!env.DEBUG };
+    const ctx = { env, url: request.url, debug: !!env.DEBUG, me };
     try { data = await leaderboard(q, Q, now, lb, ctx); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now.", final: true }; }
     answer = data.info || "The answer could not be produced.";
     const out = { answer, query: { ...Q, ask: "leaderboard", metric: lb.metric, top: lb.top }, data };
@@ -1676,7 +1706,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const simple = simpleTourQ(q, now);
   if (simple) {
     Q = simple;
-    const ctx = { env, url: request.url, debug: !!env.DEBUG };
+    const ctx = { env, url: request.url, debug: !!env.DEBUG, me };
     try { data = await run(Q, now, ctx); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now.", final: true }; }
     answer = phraseTour(Q, data) || data.info || "The answer could not be produced.";
     const out = { answer, query: Q, data };
@@ -1689,7 +1719,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
   let perr = "";
   try { Q = await parse(env, q, now); } catch (e) { perr = String(e && e.message || e).slice(0, 200); }
   if (!Q) return json({ answer: "The question could not be read.", error: perr });
-  if (isMePronoun(Q.player) || (!Q.player && SAYS_ME.test(q))) Q.player = ME;
+  if (isMePronoun(Q.player) || (!Q.player && SAYS_ME.test(q))) {
+    if (me) Q.player = me;
+    else return json({ answer: unknownMeMessage() });
+  }
   // Player-history questions with no period in the question: search the whole log, never a default window
   const PERIOD = /\b(today|tonight|yesterday|night|morning|afternoon|evening|week|month|year|since|between|before|after|until|days?|ago|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december|monday|tuesday|wednesday|thursday|friday|saturday|sunday|20\d\d)\b|\d{1,2}\/\d{1,2}/i;
   if (Q.ask === "player_tours" && !PERIOD.test(q)) { Q.date_from = ""; Q.date_to = ""; }
@@ -1715,7 +1748,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
   }
   if (Q.ask === "participants" && !Q.player) { const per = periodFromQ(q, now); if (per) { Q.date_from = per[0]; Q.date_to = per[1]; } }
-  const ctx = { env, url: request.url, debug: !!env.DEBUG };
+  const ctx = { env, url: request.url, debug: !!env.DEBUG, me };
   try { data = await run(Q, now, ctx); } catch (_) { data = { info: "MyLeague's tour data could not be reached right now." }; }
   if (data.final) answer = data.info;
   else if (data.info && Object.keys(data).every(k => ["info", "league", "dates", "player"].includes(k))) answer = data.info;

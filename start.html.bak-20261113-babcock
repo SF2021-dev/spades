@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <meta name="google" content="notranslate">
+    <meta http-equiv="content-language" content="en">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start X</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root { --bg: #0a0a0a; --text: #f0f0f0; --accent: #00d4ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg) center/cover no-repeat fixed;
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background-image 0.8s ease;
+        }
+        .background {
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(0, 212, 255, 0.06) 0%, rgba(10, 10, 10, 0.85) 65%);
+            pointer-events: none; z-index: 1;
+        }
+        .search {
+            position: absolute;
+            top: 12px; left: 20px;
+            right: 320px; max-width: 520px; padding: 0; z-index: 10;
+        }
+        .search-input {
+            width: 100%; padding: 14px 24px; font-size: 1.25rem; font-weight: 500;
+            background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08);
+            border-radius: 9999px; color: white; outline: none;
+            transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .search-input:focus {
+            border-color: var(--accent); background: rgba(255,255,255,0.11);
+            box-shadow: 0 0 0 14px rgba(0,212,255,0.18); transform: scale(1.015);
+        }
+        .clock { position:absolute; top:10px; right:20px; z-index:30; text-align:right; width:260px;
+            color:rgba(255,255,255,0.88); font-size:0.95rem; line-height:1.35; text-shadow:0 1px 4px #000; }
+        .clock svg { width:110px; height:110px; display:block; margin-left:auto; }
+        .clock .tz { font-size:1.15rem; font-weight:600; margin:2px 0; }
+        .clock .tz:first-of-type { margin-top:4px; }
+        .clock .tz.last { margin-bottom:6px; }
+        .clock .lbl { font-size:0.8rem; color:rgba(255,255,255,0.6); margin-top:6px; }
+        .clock .big { font-weight:600; }
+        .clock .host { color:#ffd54a; font-weight:700; }
+        .clock .more { font-size:0.8rem; color:rgba(255,255,255,0.75); }
+        .wx { position:absolute; right:20px; bottom:12px; z-index:30; width:250px; padding:8px 10px; border-radius:10px;
+            background:rgba(0,0,0,0.5); font-size:0.8rem; color:rgba(255,255,255,0.85); text-align:right; }
+        .wx .now { font-size:0.95rem; font-weight:600; margin-bottom:4px; }
+        .wx .d { display:flex; justify-content:space-between; gap:6px; }
+        .icons-area {
+            position: absolute;
+            left: 0;
+            right: 290px;
+            top: 78px;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            z-index: 20;
+        }
+        .icon-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+        }
+        .icon-sq {
+            width: 90px;
+            height: 90px;
+            background: transparent;
+            border-radius: 10px;
+            flex: 0 0 auto;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+            color: #111;
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            overflow: hidden;
+            text-decoration: none;
+        }
+        .icon-sq img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+        .hint {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+            font-size: 0.82rem; color: rgba(255,255,255,0.28); z-index: 15;
+            white-space: nowrap;
+        }
+    
+    
+    a.tlink{display:block;color:inherit;text-decoration:none}a.tlink[href]{cursor:pointer}a.tlink[href]:hover{text-decoration:underline}
+</style>
+<script>
+/* stale-page guard */
+(function () {
+  function check() {
+    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      var lm = new Date(r.headers.get("last-modified")).getTime(), mine = new Date(document.lastModified).getTime();
+      var tag = "stale-" + location.pathname + "-" + lm;
+      if (lm && mine && Math.abs(lm - mine) > 2000 && !sessionStorage.getItem(tag)) { sessionStorage.setItem(tag, "1"); location.reload(); }
+    }).catch(function () {});
+  }
+  check();
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) check(); });
+})();
+</script>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="clock">
+        <svg viewBox="0 0 100 100" aria-label="Pacific time"><circle cx="50" cy="50" r="47" fill="rgba(0,0,0,0.55)" stroke="#ddd" stroke-width="2"/>
+        <g id="ticks"></g>
+        <line id="hh" x1="50" y1="50" x2="50" y2="27" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+        <line id="mh" x1="50" y1="50" x2="50" y2="14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="sh" x1="50" y1="55" x2="50" y2="10" stroke="#00d4ff" stroke-width="1"/>
+        <circle cx="50" cy="50" r="2.5" fill="#00d4ff"/></svg>
+        <div class="tz" id="est">--:-- EST</div>
+        <div class="tz" id="pct">--:-- PCT</div>
+        <div class="tz" id="cst">--:-- CST</div>
+        <div class="tz last" id="cet">--:-- CET</div>
+        <div class="lbl">my next tour:</div>
+        <a class="tlink" id="nextLink"><div class="big" id="nextName">&mdash;</div>
+        <div class="big" id="nextTime"></div></a>
+        <div class="lbl">Judy&rsquo;s next tour:</div>
+        <a class="tlink" id="hostLink"><div class="host" id="hostName">&mdash;</div>
+        <div class="host" id="hostTime"></div></a>
+        <div class="more" id="more"></div>
+    </div>
+    <div class="search">
+        <form id="search-form" action="https://www.google.com/search" method="get">
+            <input type="text" id="search-input" class="search-input" name="q"
+                   placeholder="Search Google or ask anything..." autofocus autocomplete="off">
+        </form>
+    </div>
+    <div class="icons-area">
+        <!-- icons:1793935956245 -->
+        <div class="icon-row">
+            <a class="icon-sq" href="https://www.myleague.com/diamondspaders/" title="Diamond Spaders"><img src="/icons/ds.png" alt="Diamond Spaders"></a>
+            <a class="icon-sq" href="https://www.myleague.com/dagreathoudini/" title="houdini"><img src="/icons/houdini.png" alt="houdini"></a>
+            <a class="icon-sq" href="https://www.myleague.com/teamtfriends/index.php/" title="Team T Friends"><img src="/icons/tfs.png" alt="Team T Friends"></a>
+            <a class="icon-sq" href="https://www.myleague.com/allspaders/" title="All Spaders"><img src="/icons/as.png" alt="All Spaders"></a>
+            <a class="icon-sq" href="https://github.com/" title="github.com"><img src="/icons/emw4f5es40.png" alt="github.com"></a>
+        </div>
+        <div class="icon-row">
+            <a class="icon-sq" href="https://www.myleague.com/allspaders/tournament/11946653/" title="Tourney Kit"><img src="/icons/ta.png" alt="Tourney Kit"></a>
+            <a class="icon-sq" href="https://sites.google.com/" title="sites.google.com"><img src="/icons/emw43b6qf0.png" alt="sites.google.com"></a>
+            <a class="icon-sq" href="https://drive.google.com/drive/my-drive" title="drive.google.com"><img src="/icons/emw43b6qf1.png" alt="drive.google.com"></a>
+            <a class="icon-sq" href="https://docs.google.com/document/u/0/" title="docs.google.com"><img src="/icons/emw43b6qf2.png" alt="docs.google.com"></a>
+            <a class="icon-sq" href="https://notepad.uk.com/" title="notepad"><img src="/icons/np.png" alt="notepad"></a>
+        </div>
+        <div class="icon-row">
+            <a class="icon-sq" href="https://www.youtube.com" title="YouTube"><img src="/icons/youtube.png" alt="YouTube"></a>
+            <a class="icon-sq" href="https://tourneyking.com/app/home/" title="Tourney King"><img src="/icons/tk.png" alt="Tourney King"></a>
+            <a class="icon-sq" href="https://www.myleague.com/allspaders/admin.html" title="MyLeague Administration"><img src="/icons/admin.png" alt="MyLeague Administration"></a>
+            <a class="icon-sq" href="https://www.igl.net/tk/headtd/" title="IGL TD"><img src="/icons/htd.png" alt="IGL TD"></a>
+            <a class="icon-sq" href="https://thepiratebay.org/index.html" title="The Pirate Bay"><img src="/icons/pb.png" alt="The Pirate Bay"></a>
+            <a class="icon-sq" href="https://www.giphy.com" title="Giphy"><img src="/icons/giphy.png" alt="Giphy"></a>
+        </div>
+        <div class="icon-row">
+            <a class="icon-sq" href="https://grok.com" title="Grok"><img src="/icons/grok.png" alt="Grok"></a>
+            <a class="icon-sq" href="https://messages.google.com/web/" title="Messages"><img src="/icons/messages.png" alt="Messages"></a>
+            <a class="icon-sq" href="https://mail.google.com" title="Gmail"><img src="/icons/gmail.png" alt="Gmail"></a>
+            <a class="icon-sq" href="https://www.amazon.com" title="Amazon"><img src="/icons/amazon.png" alt="Amazon"></a>
+            <a class="icon-sq" href="https://www.safeway.com/" title="Safeway"><img src="/icons/safeway.png" alt="Safeway"></a>
+            <a class="icon-sq" href="https://www.walmart.com/" title="Walmart"><img src="/icons/walmart.png" alt="Walmart"></a>
+        </div>
+    </div>
+    <div class="wx" id="wx"></div>
+    <div class="hint">Press <span style="color:var(--accent)">Enter</span> to search Google • <span style="color:var(--accent)">Esc</span> to clear</div>
+    <script>
+        (function () { document.body.style.backgroundImage = 'url(/start-bg/lake-near-forest.jpg?v=20261111-lake)'; })();
+        (function(){var g=document.getElementById('ticks'),h='';for(var i=0;i<12;i++){var a=i*Math.PI/6;h+='<line x1="'+(50+40*Math.sin(a))+'" y1="'+(50-40*Math.cos(a))+'" x2="'+(50+45*Math.sin(a))+'" y2="'+(50-45*Math.cos(a))+'" stroke="#ccc" stroke-width="'+(i%3?1.5:3)+'"/>';}g.innerHTML=h;})();
+        var SKEW=0;function SNOW(){return new Date(Date.now()+SKEW);}function syncSkew(){var t0=Date.now();fetch('/api/live?skew='+t0,{method:'HEAD',cache:'no-store'}).then(function(r){var d=Date.parse(r.headers.get('date'));if(d)SKEW=d-(t0+Date.now())/2;if(Math.abs(SKEW)<3000)SKEW=0;updateClock();}).catch(function(){});}setTimeout(syncSkew,0);setInterval(syncSkew,600000);
+        function tzParts(tz){var p={};new Intl.DateTimeFormat('en-US',{timeZone:tz,hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).formatToParts(SNOW()).forEach(function(x){p[x.type]=x.value;});p.hour=(+p.hour)%24;return p;}
+        function hm(h,m){return (h%12||12)+':'+String(m).padStart(2,'0')+' '+(h>=12?'PM':'AM');}
+        function hh(h,m){return hm(+h,+m);}
+        function esc(x){return String(x==null?'':x).replace(/[&<>\"]/g,function(c){return '&#'+c.charCodeAt(0)+';';});}
+        function estAbbr(){var t=SNOW().toLocaleTimeString('en-US',{timeZone:'America/New_York',timeZoneName:'short'});return (t.match(/E[SD]T/)||['EST'])[0];}
+        function cetAbbr(){var t=SNOW().toLocaleTimeString('en-GB',{timeZone:'Europe/Zurich',timeZoneName:'short'});return /CEST|GMT\+2/.test(t)?'CEST':'CET';}
+        var TOURS=[],TERR=false;var U1="https://diamondspaders.online/Untouchable_One-ava.png";function setL(id,u){var a=document.getElementById(id);if(u)a.href=u;else a.removeAttribute('href');}
+        function rot(id,deg){document.getElementById(id).setAttribute('transform','rotate('+deg+' 50 50)');}
+        function updateClock(){
+            var v=tzParts('America/Los_Angeles');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
+            var e=tzParts('America/New_York'),ab=estAbbr();
+            document.getElementById('est').textContent=hm(+e.hour,+e.minute)+' '+ab;var pc=tzParts('Etc/GMT+7');document.getElementById('pct').textContent=hm(+pc.hour,+pc.minute)+' PCT';var c=tzParts('America/Chicago'),ca=(SNOW().toLocaleTimeString('en-US',{timeZone:'America/Chicago',timeZoneName:'short'}).match(/C[SD]T/)||['CST'])[0];document.getElementById('cst').textContent=hm(+c.hour,+c.minute)+' '+ca;var z=tzParts('Europe/Zurich');document.getElementById('cet').textContent=hm(+z.hour,+z.minute)+' '+cetAbbr();
+            var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
+            var up=TOURS.filter(function(t){if(!t.dt||t.dt===today)return (+t.h)*60+(+t.m)>nowMin;return t.dt>today;}).sort(function(a,b){return String(a.dt||today).localeCompare(String(b.dt||today))||((a.h*60+ +a.m)-(b.h*60+ +b.m));});
+            var nxt=up[0]||null;
+            var nn=document.getElementById('nextName'),nx=document.getElementById('nextTime');
+            setL('nextLink',(!TERR&&nxt)?nxt.url:'');if(TERR){nn.textContent='sign in for tours';nx.textContent='';}else if(!nxt){nn.textContent='8:15 AM';nx.textContent='';}else{nn.textContent=nxt.game+(nxt.td?' w/ '+nxt.td:'');var when=hh(+nxt.h,+nxt.m)+' '+ab;if(nxt.dt&&nxt.dt!==today)when=nxt.dt.slice(5).replace('-','/')+' '+when;nx.textContent=when;}
+            setL('hostLink','');var hn=document.getElementById('hostName'),ht=document.getElementById('hostTime'),mo=document.getElementById('more');
+            if(TERR){hn.textContent='sign in for tours';ht.textContent='';mo.innerHTML='';return;}
+            var mine=TOURS.filter(function(t){
+                if(!/^fetch_?it_?up$/i.test(String(t.td||'').trim())) return false;
+                if(t.dt && t.dt < today) return false;
+                if(t.dt && t.dt > today) return true;
+                return (+t.h)*60+(+t.m)>nowMin;
+            }).sort(function(a,b){return String(a.dt||'').localeCompare(String(b.dt||''))||((a.h*60+ +a.m)-(b.h*60+ +b.m));});
+            if(!mine.length){hn.textContent='none today';ht.textContent='';mo.innerHTML='';return;}
+            function stamp(t, timeOnly){var day=t.dt&&t.dt!==today?t.dt.slice(5).replace('-','/')+' ':'';return day+hh(+t.h,+t.m)+' '+ab+(timeOnly?'':' '+t.game);}
+            hn.textContent=mine[0].game;ht.textContent=stamp(mine[0], true);setL('hostLink',mine[0].url);
+            mo.innerHTML=mine.slice(1).map(function(t){return t.url?'<a class="tlink" style="display:inline" href="'+esc(t.url)+'">'+esc(stamp(t))+'</a>':esc(stamp(t));}).join('<br>');
+        }
+        function loadTours(){
+  fetch('/api/live?v='+Date.now(),{cache:'no-store'}).then(function(r){
+    if(!r.ok)throw new Error('live');
+    return r.json();
+  }).then(function(d){
+    if(d&&d.ok&&Array.isArray(d.tours)){TOURS=d.tours;TERR=false;updateClock();}
+    else throw new Error('bad');
+  }).catch(function(){
+/*BEGIN_DS_TOURS*/
+  TOURS = [
+    { dt: "2026-11-13", h: 8, m: 15, game: "CUT", td: "3Bid3Bags", url: "https://www.myleague.com/diamondspaders/tournament/11959416/", ava: "https://diamondspaders.online/3Bid3Bags-ava.png" },
+    { dt: "2026-11-13", h: 9, m: 15, game: "SINGLES", td: "3Bid3Bags", url: "https://www.myleague.com/diamondspaders/tournament/11959417/", ava: "https://diamondspaders.online/3Bid3Bags-ava.png" },
+    { dt: "2026-11-13", h: 10, m: 15, game: "CUT", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournament/11959538/", ava: "https://diamondspaders.online/fetch_it_up-ava.png" },
+    { dt: "2026-11-13", h: 14, m: 15, game: "CUT MIRRORS", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11958417/", ava: "https://diamondspaders.online/Treco521-ava.png" },
+    { dt: "2026-11-13", h: 15, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11958418/", ava: "https://diamondspaders.online/Treco521-ava.png" },
+    { dt: "2026-11-13", h: 16, m: 15, game: "SUI PASS 2 RANDOM", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11958419/", ava: "https://diamondspaders.online/Treco521-ava.png" },
+    { dt: "2026-11-13", h: 17, m: 15, game: "REG PARTNERS", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959545/", ava: U1 },
+    { dt: "2026-11-13", h: 18, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11958420/", ava: "https://diamondspaders.online/Treco521-ava.png" },
+    { dt: "2026-11-13", h: 19, m: 15, game: "SUI PASS 2", td: "Fetch_it_up", url: "https://www.myleague.com/diamondspaders/tournament/11959467/", ava: "https://diamondspaders.online/fetch_it_up-ava.png" },
+    { dt: "2026-11-13", h: 20, m: 15, game: "CUT", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournament/11959482/", ava: "https://diamondspaders.online/bluangel1950-ava.png" },
+    { dt: "2026-11-13", h: 22, m: 15, game: "LOSER WINS", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournament/11959484/", ava: "https://diamondspaders.online/bluangel1950-ava.png" },
+    { dt: "2026-11-13", h: 23, m: 15, game: "CUT", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournament/11959483/", ava: "https://diamondspaders.online/bluangel1950-ava.png" }
+  ];
+/*END_DS_TOURS*/
+  TERR = false; updateClock();
+  });
+}
+        var WXT=null;function loadTemp(tries){tries=tries||0;clearTimeout(WXT);var D={lat:40.5865,lon:-122.3917,name:'Redding, CA'};var L=(window.wxCur&&wxCur())||D;if(!L||!isFinite(+L.lat)||!isFinite(+L.lon)){L=D;}var box=document.getElementById('wx');if(box&&!box.innerHTML)box.innerHTML='<div class="now">weather loading…</div>';fetch('https://api.open-meteo.com/v1/forecast?latitude='+L.lat+'&longitude='+L.lon+'&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=4&wind_speed_unit=mph&temperature_unit=fahrenheit&timezone=auto',{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('wx '+r.status);return r.json();}).then(function(j){if(!j||!j.current||!j.daily)throw new Error('wx data');var d=j.daily;var W=function(c){return c==0?'☀️ Clear':c<=2?'⛅ Partly cloudy':c==3?'☁️ Cloudy':c<=48?'🌫️ Fog':c<=67||(c>=80&&c<=82)?'🌧️ Rain':c<=77||c==85||c==86?'❄️ Snow':'⛈️ Storm';};var h='<div class="now">'+L.name+' '+Math.round(j.current.temperature_2m)+'° '+W(j.current.weather_code)+' · wind '+Math.round(j.current.wind_speed_10m)+' mph</div>';for(var i=0;i<d.time.length;i++){var dn=i?new Date(d.time[i]+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today';h+='<div class="d"><span>'+dn+'</span><span>'+W(d.weather_code[i]).split(' ')[0]+'</span><span>'+Math.round(d.temperature_2m_max[i])+'° / '+Math.round(d.temperature_2m_min[i])+'°</span></div>';}document.getElementById('wx').innerHTML=h;}).catch(function(){if(L!==D&&tries<1){try{localStorage.removeItem('wxloc:'+location.pathname.replace(/\/$/,''));}catch(e){}}if(box&&(!box.innerHTML||/loading|unavailable/.test(box.textContent)))box.innerHTML='<div class="now">weather unavailable, retrying…</div>';WXT=setTimeout(function(){loadTemp(tries+1);},tries<3?15000:120000);});}
+        try{loadTemp();}catch(e){}setInterval(function(){loadTemp();},900000);setInterval(updateClock,1000);try{updateClock();}catch(e){}loadTours();setInterval(loadTours,300000);
+        const form = document.getElementById('search-form');
+        const input = document.getElementById('search-input');
+        form.addEventListener('submit', function (e) {
+            const query = input.value.trim();
+            if (!query) { e.preventDefault(); return; }
+            setTimeout(function () { input.value = ''; }, 300);
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { input.value = ''; input.focus(); }
+        });
+        document.body.addEventListener('click', function(e) {
+            if (e.target === document.body || e.target.classList.contains('background')) input.focus();
+        });
+    </script>
+<script>window.WX_DEFAULT={lat:40.5865,lon:-122.3917,name:"Redding, CA"};</script><script src="/wxloc.js?v=sugg1"></script>
+
+<script>
+(function () {
+  if (document.body.classList.contains("icon-edit")) return;
+  fetch("/api/startlayout?page=start", { credentials: "same-origin", cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      var area = document.querySelector(".icons-area");
+      var layout = data && data.layout;
+      if (!area || !layout || !layout.length) return;
+      area.innerHTML = "";
+      layout.forEach(function (row) {
+        var div = document.createElement("div");
+        div.className = "icon-row";
+        (row.items || []).forEach(function (it) {
+          var a = document.createElement("a");
+          a.className = "icon-sq";
+          a.href = it.href;
+          a.title = it.title || "";
+          var img = document.createElement("img");
+          img.src = it.img;
+          img.alt = it.title || it.label || "";
+          a.appendChild(img);
+          div.appendChild(a);
+        });
+        area.appendChild(div);
+      });
+    }).catch(function () {});
+})();
+</script>
+</body>
+</html>

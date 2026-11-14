@@ -1126,9 +1126,31 @@ function fmtPartnerRecord(gw, gp, tw, tp) {
   return gp ? `${games}; ${tours}` : tours;
 }
 const MIN_PARTNER_GAMES = 3;
+function isPartnerLabel(label, t) {
+  const lab = String(label || "").toUpperCase();
+  if (["REG PARTNERS", "SUI PASS 2", "PAB SUI PASS 2", "LOSER WINS"].includes(lab)) return true;
+  const pt = parseInt(t && t.perteam, 10);
+  return Number.isFinite(pt) && pt > 1;
+}
+function tourClock(t) {
+  const raw = String(t && t.time || "");
+  const m = raw.match(/^(\d{1,2}):(\d{2})$/);
+  if (m) return fmtTime(+m[1], +m[2]);
+  return raw;
+}
+function missingPartnerNote(missingRows) {
+  if (!missingRows.length) return "";
+  if (missingRows.length === 1) {
+    const t = missingRows[0].t || {};
+    const when = [t.date ? fmtDate(t.date) : "", tourClock(t)].filter(Boolean).join(" ");
+    const id = t.id ? ` (id ${t.id})` : "";
+    return ` Couldn't find a partner for the ${when} tour${id}. MyLeague's roster page has expired, and the daily report didn't list who they teamed with.`;
+  }
+  return ` Couldn't find a partner for ${missingRows.length} tours in that span. MyLeague's roster pages have expired, and the daily reports didn't list who they teamed with.`;
+}
 function gatherPartnerTours(data, { from, to, keys, wantGame, official }) {
   const rows = [];
-  let missingTeams = 0;
+  const missingRows = [];
   for (const t of data.tours || []) {
     if (t.date < from || t.date > to) continue;
     if (!playerIn(t.players, keys)) continue;
@@ -1136,7 +1158,7 @@ function gatherPartnerTours(data, { from, to, keys, wantGame, official }) {
     if (wantGame && !labelsMatch(wantGame, label)) continue;
     if (!tourIsFinished(t)) continue;
     const partners = partnersOf(t, keys);
-    if (!t.teams || !t.teams.length) missingTeams++;
+    if (isPartnerLabel(label, t) && !(partners && partners.length)) missingRows.push({ t, label });
     const wl = recordOf(t, keys);
     let gw = 0, gp = 0;
     if (wl && wl[0] + wl[1] > 0) { gw = wl[0]; gp = wl[0] + wl[1]; }
@@ -1144,7 +1166,7 @@ function gatherPartnerTours(data, { from, to, keys, wantGame, official }) {
     const hasWinner = !!(t.winners && t.winners.length);
     rows.push({ t, label, partners, gw, gp, won, hasWinner });
   }
-  return { rows, missingTeams };
+  return { rows, missingTeams: missingRows.length, missingRows };
 }
 function tallyRows(rows) {
   let gw = 0, gp = 0, tw = 0, tp = 0;
@@ -1162,12 +1184,10 @@ function answerPartnerRate({ q, data, cfg, official, who, keys, wantGame, from, 
   const when = periodWords(q, from, to, now);
   const kind = wantGame || "";
   const kindBit = kind ? kind + " " : "";
-  const { rows, missingTeams } = gatherPartnerTours(data, { from, to, keys, wantGame, official });
+  const { rows, missingTeams, missingRows } = gatherPartnerTours(data, { from, to, keys, wantGame, official });
   const partners = [];
   for (const r of rows) for (const n of r.partners || []) partners.push(n);
-  const missNote = missingTeams
-    ? ` Team rosters were missing for ${missingTeams} tour${missingTeams === 1 ? "" : "s"} in that span.`
-    : "";
+  const missNote = missingPartnerNote(missingRows || []);
   const clipNote = (from < coverFrom || (to > coverTo && coverTo < addDays(now.date, -1)))
     ? ` Records in the file cover ${fmtRange(coverFrom, coverTo < now.date ? coverTo : now.date)}.`
     : "";

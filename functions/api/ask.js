@@ -977,10 +977,14 @@ function stripPartnerPhrases(q) {
     .replace(/\bwhen\s+[A-Za-z][\w.'\-]{1,24}(?:\s+[A-Za-z][\w.'\-]{1,24}){0,2}\s+is\s+my\s+partner\b/gi, " ")
     .replace(/\bpartnered\s+with\s+[A-Za-z][\w.'\-]{1,24}(?:\s+[A-Za-z][\w.'\-]{1,24}){0,2}/gi, " ")
     .replace(/\b(?:who(?:['’]?s|\s+is)?\s+(?:my|the)\s+)?best\s+partners?\b/gi, " ")
+    .replace(/\bwith\s+different\s+partners?\b/gi, " ")
+    .replace(/\bwith\s+each(?:\s+of\s+(?:my|the))?\s+partners?\b/gi, " ")
+    .replace(/\b(?:by|per)\s+partners?\b/gi, " ")
+    .replace(/\beach\s+(?:of\s+(?:my|the)\s+)?partners?\b/gi, " ")
     .replace(/\bmy\s+partners?\b/gi, " ")
     .replace(/\s+/g, " ").trim();
 }
-const PARTNER_STOP = /^(a|an|the|my|me|i|this|last|that|reg|regular|partners?|pards?|pab|sui|suicide|cut|cuts|singles?|games?|tours?|record|month|week|today|yesterday|tonight|percent|percentage|win|wins|loss|losses|what|whats|what's|who|how|in|on|at|of|for|from|and|or|as|is|was|has|have|had|did|does|do)$/i;
+const PARTNER_STOP = /^(a|an|the|my|me|i|this|last|that|reg|regular|partners?|pards?|pab|sui|suicide|cut|cuts|singles?|games?|tours?|record|month|week|today|yesterday|tonight|percent|percentage|win|wins|loss|losses|what|whats|what's|who|how|in|on|at|of|for|from|and|or|as|is|was|has|have|had|did|does|do|different|each|every|all|other|others|any|both|some|several|various|multiple|many|more|most|least|few|new|old|same|another|someone|anyone|anybody|somebody|everyone|everybody|nobody|them|they|we|you|his|her|their|our|your|one|two|those|these|such|certain|own|no|not|only|just|also|even|very|first|next|previous|current|usual|random|once|times?|if|then|than|with|without|by|per)$/i;
 const HANDLE_RX = "[A-Za-z][A-Za-z0-9_.'\\-]{1,24}";
 function takePartnerHandle(s) {
   const tokens = String(s || "").trim().split(/\s+/).filter(Boolean);
@@ -994,10 +998,36 @@ function takePartnerHandle(s) {
   if (SIX_LABELS.some(lab => labelsMatch(lab, joined) || labelPhraseRx(lab).test(joined))) return "";
   return joined;
 }
+function minPartnerToursFromQ(q) {
+  const s = String(q || "");
+  if (/\bmore\s+than\s+once\b|\bmore\s+than\s+one\s+time\b|\bat\s+least\s+twice\b|\btwice\s+or\s+more\b|\btwo\s+or\s+more(?:\s+times?)?\b|\b2\s*\+\s*times?\b/i.test(s))
+    return 2;
+  let m = s.match(/\bat\s+least\s+(\d+)\s+(?:times?|tours?)\b/i);
+  if (m) return Math.max(1, +m[1]);
+  m = s.match(/\b(\d+)\s*\+\s*times?\b/i);
+  if (m) return Math.max(1, +m[1]);
+  m = s.match(/\bmore\s+than\s+(\d+)\s+(?:times?|tours?)\b/i);
+  if (m) return Math.max(1, +m[1] + 1);
+  return 0;
+}
+function isPartnerBreakdownQ(q) {
+  const s = String(q || "");
+  return /\bwith\s+different\s+partners?\b/i.test(s)
+    || /\bwith\s+each(?:\s+of\s+(?:my|the))?\s+partners?\b/i.test(s)
+    || /\beach\s+(?:of\s+(?:my|the)\s+)?partners?\b/i.test(s)
+    || /\b(?:by|per)\s+partners?\b/i.test(s)
+    || /\bbroken\s+down\s+by\s+partners?\b/i.test(s)
+    || /\ball\s+(?:of\s+(?:my|the)\s+)?partners?\b/i.test(s)
+    || /\bevery(?:\s+one\s+of(?:\s+(?:my|the))?)?\s+partners?\b/i.test(s)
+    || /\brecord\s+(?:with|for|by)\s+(?:different|each|every)\s+partners?\b/i.test(s);
+}
 function partnerFilterFromQ(q) {
   const s = String(q || "");
   if (/\b(?:who(?:['’]?s|\s+is)?\s+(?:my|the)\s+)?best\s+partners?\b|\bwhich\s+(?:of\s+my\s+)?partners?\b/i.test(s))
-    return { kind: "best", raw: "" };
+    return { kind: "best", raw: "", minTours: minPartnerToursFromQ(s) };
+  const minTours = minPartnerToursFromQ(s);
+  if (isPartnerBreakdownQ(s) || (minTours >= 2 && !/\b(?:with|without|partnered\s+with|not\s+with)\s+[A-Za-z][\w.'\-]{1,24}\b/i.test(s.replace(/\bwith\s+(?:different|each|every|all|my|other|any)\b/gi, " "))))
+    return { kind: "each", raw: "", minTours: minTours || 1 };
   let m = s.match(new RegExp("\\bwithout\\s+(" + HANDLE_RX + "(?:\\s+" + HANDLE_RX + "){0,2})(?:\\s+as\\s+(?:a\\s+|my\\s+)?partners?)?", "i"));
   if (m) {
     const name = takePartnerHandle(m[1]);
@@ -1026,8 +1056,9 @@ function partnerFilterFromQ(q) {
   m = s.match(new RegExp("\\bwith\\s+(" + HANDLE_RX + "(?:\\s+" + HANDLE_RX + "){0,2})\\b", "i"));
   if (m) {
     const name = takePartnerHandle(m[1]);
-    if (name) return { kind: "with", raw: name };
+    if (name) return { kind: "with", raw: name, minTours };
   }
+  if (minTours >= 2) return { kind: "each", raw: "", minTours };
   return null;
 }
 function partnersOf(t, keys) {
@@ -1141,6 +1172,33 @@ function answerPartnerRate({ q, data, cfg, official, who, keys, wantGame, from, 
     ? ` Records in the file cover ${fmtRange(coverFrom, coverTo < now.date ? coverTo : now.date)}.`
     : "";
 
+  if (pFilter.kind === "each") {
+    const minTours = Math.max(1, +pFilter.minTours || 1);
+    const by = new Map();
+    for (const r of rows) {
+      if (!(r.partners || []).length) continue;
+      for (const n of r.partners) {
+        const k = String(n).toLowerCase();
+        const rec = by.get(k) || { name: n, gw: 0, gp: 0, tw: 0, tp: 0, teamed: 0 };
+        rec.teamed++;
+        rec.gw += r.gw; rec.gp += r.gp;
+        if (r.hasWinner) { rec.tp++; if (r.won) rec.tw++; }
+        by.set(k, rec);
+      }
+    }
+    const listed = [...by.values()]
+      .filter(p => p.teamed >= minTours)
+      .sort((a, b) => b.gp - a.gp || b.teamed - a.teamed || a.name.localeCompare(b.name));
+    const minPhrase = minTours === 2 ? "teamed with more than once" : (minTours > 2 ? `teamed with at least ${minTours} times` : "");
+    if (!listed.length) {
+      const why = `${disp} has no counted ${kindBit}partners ${when}${minPhrase ? " " + minPhrase : ""}.`;
+      return { info: (why + clipNote + missNote).trim(), final: true, from, to, player: disp, unit: "both", partner: "each" };
+    }
+    const head = `${disp}'s ${kindBit}record ${when} with different partners${minPhrase ? ", " + minPhrase : ""}:`;
+    const lines = listed.map(p => `${shownOf(p.name, cfg, p.name)} — ${fmtPartnerRecord(p.gw, p.gp, p.tw, p.tp)}`);
+    const notes = `${clipNote}${missNote}`.trim();
+    return { info: `${head}\n${lines.join("\n")}${notes ? "\n" + notes : ""}`.trim(), final: true, from, to, player: disp, unit: "both", partner: "each", rows: listed };
+  }
   if (pFilter.kind === "best") {
     const by = new Map();
     for (const r of rows) {
@@ -1667,7 +1725,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
   const me = await signedInHandle(request, env);
-  const ansKey = `ans/v11/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v12/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());

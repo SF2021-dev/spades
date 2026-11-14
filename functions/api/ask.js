@@ -488,6 +488,7 @@ function labelPhraseRx(lab) {
   return new RegExp("\\b" + parts.join("\\s+") + "\\b", "i");
 }
 function gameFromQ(q, official, Q) {
+  q = stripPartnerPhrases(q);
   const aliases = [
     ["PAB SUI PASS 2", /\bpab\s+sui|\bpab\s+pass\s*2|\bsui(?:cide)?\s+pass\s*2\s+pab\b|\b(?:sui(?:cide)?\s+)?(?:pass\s*2\s+)?pab\b|\bpard\s+a\s+bot\b|\bpartner\s+a\s+bot\b|\breg(?:ular)?\s+(?:spades\s+)?pab\b/i],
     ["SUI PASS 2", /\b(?:sui(?:cide)?\s+)?pass\s*2\s+random\b|\bsui(?:cide)?(?:\s+pass\s*2)?\b|\bpass\s*2\b/i],
@@ -512,7 +513,9 @@ function gameFromQ(q, official, Q) {
 function wantsRank(q, wantGame) {
   // Ranking is only for best/worst/most-success/which-variation questions with no named variation.
   // Words like "only", "just", "what percent", "have I won" must not trigger it.
+  // "best partner" is a partner ranking, not a variation ranking.
   if (wantGame) return false;
+  if (partnerFilterFromQ(q)) return false;
   return /\b(?:best|worst|strongest|weakest)\b/i.test(q)
     || /\bmost\s+success\b/i.test(q)
     || /\b(?:which|what)\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
@@ -836,7 +839,9 @@ function successRateIntent(q, Q) {
     || /\b(?:variation|game\s*types?|formats?)\b.{0,50}\b(?:success|win\s*rate|percent|best|worst)\b/i.test(q)
     || /\b(?:success|win\s*rate|percent|best|worst)\b.{0,50}\b(?:variation|game\s*types?|formats?)\b/i.test(q)
     || (/\b(?:which|what)\s+(?:variation|game\s*types?|formats?)\b/i.test(q) && (named || /\b(?:success|win\s*rate|percent|best|worst|record|played)\b/i.test(q)))
-    || (named && /\b(?:games?|hands?|matches)\b/i.test(q.replace(/\bgame\s*types?\b/gi, " ")) && /\b(?:win|won|wins|winning|record|percent|percentage)\b/i.test(q));
+    || (named && /\b(?:games?|hands?|matches)\b/i.test(q.replace(/\bgame\s*types?\b/gi, " ")) && /\b(?:win|won|wins|winning|record|percent|percentage)\b/i.test(q))
+    || (named && /\brecord\b/i.test(q))
+    || !!partnerFilterFromQ(q);
   if (!rate) return null;
   return { worst, unit: rateUnit(q) };
 }
@@ -939,6 +944,245 @@ function fmtRecord(wins, played, unit, showLosses) {
 function shownOf(name, cfg, fallback) {
   return displayName(name, aliasGraph(cfg)) || fallback || name;
 }
+function stripPartnerPhrases(q) {
+  return String(q || "")
+    .replace(/\bas\s+(?:a\s+|my\s+)?partners?\b/gi, " ")
+    .replace(/\bwithout\s+[A-Za-z][\w.'\-]{1,24}(?:\s+[A-Za-z][\w.'\-]{1,24}){0,2}/gi, " ")
+    .replace(/\bnot\s+partnered\s+with\s+[A-Za-z][\w.'\-]{1,24}(?:\s+[A-Za-z][\w.'\-]{1,24}){0,2}/gi, " ")
+    .replace(/\bnot\s+with\s+[A-Za-z][\w.'\-]{1,24}(?:\s+[A-Za-z][\w.'\-]{1,24}){0,2}/gi, " ")
+    .replace(/\bwhen\s+[A-Za-z][\w.'\-]{1,24}(?:\s+[A-Za-z][\w.'\-]{1,24}){0,2}\s+is\s+my\s+partner\b/gi, " ")
+    .replace(/\bpartnered\s+with\s+[A-Za-z][\w.'\-]{1,24}(?:\s+[A-Za-z][\w.'\-]{1,24}){0,2}/gi, " ")
+    .replace(/\b(?:who(?:['’]?s|\s+is)?\s+(?:my|the)\s+)?best\s+partners?\b/gi, " ")
+    .replace(/\bmy\s+partners?\b/gi, " ")
+    .replace(/\s+/g, " ").trim();
+}
+const PARTNER_STOP = /^(a|an|the|my|me|i|this|last|that|reg|regular|partners?|pards?|pab|sui|suicide|cut|cuts|singles?|games?|tours?|record|month|week|today|yesterday|tonight|percent|percentage|win|wins|loss|losses|what|whats|what's|who|how|in|on|at|of|for|from|and|or|as|is|was|has|have|had|did|does|do)$/i;
+const HANDLE_RX = "[A-Za-z][A-Za-z0-9_.'\\-]{1,24}";
+function takePartnerHandle(s) {
+  const tokens = String(s || "").trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length || PARTNER_STOP.test(tokens[0])) return "";
+  const parts = [tokens[0]];
+  for (const t of tokens.slice(1, 3)) {
+    if (PARTNER_STOP.test(t)) break;
+    parts.push(t);
+  }
+  const joined = parts.join(" ");
+  if (SIX_LABELS.some(lab => labelsMatch(lab, joined) || labelPhraseRx(lab).test(joined))) return "";
+  return joined;
+}
+function partnerFilterFromQ(q) {
+  const s = String(q || "");
+  if (/\b(?:who(?:['’]?s|\s+is)?\s+(?:my|the)\s+)?best\s+partners?\b|\bwhich\s+(?:of\s+my\s+)?partners?\b/i.test(s))
+    return { kind: "best", raw: "" };
+  let m = s.match(new RegExp("\\bwithout\\s+(" + HANDLE_RX + "(?:\\s+" + HANDLE_RX + "){0,2})(?:\\s+as\\s+(?:a\\s+|my\\s+)?partners?)?", "i"));
+  if (m) {
+    const name = takePartnerHandle(m[1]);
+    if (name) return { kind: "without", raw: name };
+  }
+  m = s.match(new RegExp("\\bnot\\s+(?:partnered\\s+)?with\\s+(" + HANDLE_RX + "(?:\\s+" + HANDLE_RX + "){0,2})", "i"));
+  if (m) {
+    const name = takePartnerHandle(m[1]);
+    if (name) return { kind: "without", raw: name };
+  }
+  m = s.match(new RegExp("\\bwhen\\s+(" + HANDLE_RX + "(?:\\s+" + HANDLE_RX + "){0,2})\\s+is\\s+my\\s+partner\\b", "i"));
+  if (m) {
+    const name = takePartnerHandle(m[1]);
+    if (name) return { kind: "with", raw: name };
+  }
+  m = s.match(new RegExp("\\bpartnered\\s+with\\s+(" + HANDLE_RX + "(?:\\s+" + HANDLE_RX + "){0,2})", "i"));
+  if (m) {
+    const name = takePartnerHandle(m[1]);
+    if (name) return { kind: "with", raw: name };
+  }
+  m = s.match(new RegExp("\\bwith\\s+(" + HANDLE_RX + "(?:\\s+" + HANDLE_RX + "){0,2})\\s+as\\s+(?:a\\s+|my\\s+)?partners?\\b", "i"));
+  if (m) {
+    const name = takePartnerHandle(m[1]);
+    if (name) return { kind: "with", raw: name };
+  }
+  m = s.match(new RegExp("\\bwith\\s+(" + HANDLE_RX + "(?:\\s+" + HANDLE_RX + "){0,2})\\b", "i"));
+  if (m) {
+    const name = takePartnerHandle(m[1]);
+    if (name) return { kind: "with", raw: name };
+  }
+  return null;
+}
+function partnersOf(t, keys) {
+  for (const roster of t.teams || []) {
+    if (playerIn(roster, keys)) return (roster || []).filter(n => !namesMatch(keys, n));
+  }
+  return [];
+}
+function normHandle(s) {
+  return String(s || "").toLowerCase().replace(/[\s_\-'.]+/g, "");
+}
+function levenshtein(a, b) {
+  a = String(a || ""); b = String(b || "");
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => {
+    const row = new Array(b.length + 1);
+    row[0] = i;
+    return row;
+  });
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const c = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + c);
+    }
+  }
+  return dp[a.length][b.length];
+}
+function typoLimit(len) {
+  if (len >= 8) return 2;
+  if (len >= 4) return 1;
+  return 0;
+}
+function resolvePartnerHandle(want, candidates, cfg) {
+  const list = [...new Map((candidates || []).filter(Boolean).map(n => [String(n).toLowerCase(), n])).values()];
+  if (!want) return { name: "", suggestions: [] };
+  const keysWant = rateNameKeys(want, cfg);
+  for (const n of list) {
+    if (namesMatch(keysWant, n) || normHandle(n) === normHandle(want))
+      return { name: n, exact: true, suggestions: [] };
+  }
+  const nw = normHandle(want);
+  const scored = list.map(n => {
+    const norm = normHandle(n);
+    const d = levenshtein(nw, norm);
+    const starts = (norm.startsWith(nw) || nw.startsWith(norm)) && Math.min(norm.length, nw.length) >= 4;
+    return { n, d, starts, norm };
+  }).sort((a, b) => a.d - b.d || a.n.localeCompare(b.n));
+  const lim = typoLimit(nw.length);
+  const close = scored.filter(s => s.d > 0 && (s.d <= Math.max(lim, 2) || s.starts));
+  const typoHits = scored.filter(s => s.d > 0 && s.d <= lim);
+  if (typoHits.length === 1)
+    return { name: typoHits[0].n, exact: false, typo: true, suggestions: close.slice(0, 3).map(s => s.n) };
+  return { name: "", suggestions: close.slice(0, 3).map(s => s.n) };
+}
+function fmtPartnerRecord(gw, gp, tw, tp) {
+  if (!gp && !tp) return "no counted games or tours";
+  const losses = Math.max(0, gp - gw);
+  const games = gp
+    ? `${gw} win${gw === 1 ? "" : "s"}, ${losses} loss${losses === 1 ? "" : "es"} in ${gp} game${gp === 1 ? "" : "s"} (${fmtPct(gw, gp)})`
+    : "no counted games";
+  const tours = tp ? `won ${tw} of ${tp} tour${tp === 1 ? "" : "s"}` : "no counted tours";
+  return gp ? `${games}; ${tours}` : tours;
+}
+const MIN_PARTNER_GAMES = 3;
+function gatherPartnerTours(data, { from, to, keys, wantGame, official }) {
+  const rows = [];
+  let missingTeams = 0;
+  for (const t of data.tours || []) {
+    if (t.date < from || t.date > to) continue;
+    if (!playerIn(t.players, keys)) continue;
+    const label = officialize(t.label || "", official, t.perteam) || "UNKNOWN";
+    if (wantGame && !labelsMatch(wantGame, label)) continue;
+    if (!tourIsFinished(t)) continue;
+    const partners = partnersOf(t, keys);
+    if (!t.teams || !t.teams.length) missingTeams++;
+    const wl = recordOf(t, keys);
+    let gw = 0, gp = 0;
+    if (wl && wl[0] + wl[1] > 0) { gw = wl[0]; gp = wl[0] + wl[1]; }
+    const won = !!(t.winners && t.winners.length && playerIn(t.winners, keys));
+    const hasWinner = !!(t.winners && t.winners.length);
+    rows.push({ t, label, partners, gw, gp, won, hasWinner });
+  }
+  return { rows, missingTeams };
+}
+function tallyRows(rows) {
+  let gw = 0, gp = 0, tw = 0, tp = 0;
+  for (const r of rows) {
+    gw += r.gw; gp += r.gp;
+    if (r.hasWinner) { tp++; if (r.won) tw++; }
+  }
+  return { gw, gp, tw, tp };
+}
+function partnerInRow(r, pkeys) {
+  return (r.partners || []).some(n => namesMatch(pkeys, n));
+}
+function answerPartnerRate({ q, data, cfg, official, who, keys, wantGame, from, to, lname, pFilter, coverFrom, coverTo, now }) {
+  const disp = shownOf(who, cfg, who);
+  const when = periodWords(q, from, to, now);
+  const kind = wantGame || "";
+  const kindBit = kind ? kind + " " : "";
+  const { rows, missingTeams } = gatherPartnerTours(data, { from, to, keys, wantGame, official });
+  const partners = [];
+  for (const r of rows) for (const n of r.partners || []) partners.push(n);
+  const missNote = missingTeams
+    ? ` Team rosters were missing for ${missingTeams} tour${missingTeams === 1 ? "" : "s"} in that span.`
+    : "";
+  const clipNote = (from < coverFrom || (to > coverTo && coverTo < addDays(now.date, -1)))
+    ? ` Records in the file cover ${fmtRange(coverFrom, coverTo < now.date ? coverTo : now.date)}.`
+    : "";
+
+  if (pFilter.kind === "best") {
+    const by = new Map();
+    for (const r of rows) {
+      if (!r.partners.length) continue;
+      for (const n of r.partners) {
+        const k = String(n).toLowerCase();
+        const rec = by.get(k) || { name: n, gw: 0, gp: 0, tw: 0, tp: 0 };
+        rec.gw += r.gw; rec.gp += r.gp;
+        if (r.hasWinner) { rec.tp++; if (r.won) rec.tw++; }
+        by.set(k, rec);
+      }
+    }
+    const all = [...by.values()].sort((a, b) => {
+      const ap = a.gp ? a.gw / a.gp : 0, bp = b.gp ? b.gw / b.gp : 0;
+      return bp - ap || b.gw - a.gw || b.gp - a.gp || a.name.localeCompare(b.name);
+    });
+    const ranked = all.filter(p => p.gp >= MIN_PARTNER_GAMES);
+    if (!ranked.length) {
+      const most = all[0];
+      const why = most
+        ? `No partner has at least ${MIN_PARTNER_GAMES} ${kindBit}games ${when}. Closest is ${shownOf(most.name, cfg, most.name)}, with ${fmtPartnerRecord(most.gw, most.gp, most.tw, most.tp)}.`
+        : `${disp} has no counted ${kindBit}partners ${when}.`;
+      return { info: why + clipNote + missNote, final: true, from, to, player: disp, unit: "both", partner: "best" };
+    }
+    const show = ranked.slice(0, 8);
+    const top = show[0];
+    let head = `${disp}'s best ${kindBit}partner ${when} is ${shownOf(top.name, cfg, top.name)}, with ${fmtPartnerRecord(top.gw, top.gp, top.tw, top.tp)}.`;
+    if (show.length > 1) {
+      const rest = show.slice(1).map((p, i) => `${i + 2}. ${shownOf(p.name, cfg, p.name)} — ${fmtPartnerRecord(p.gw, p.gp, p.tw, p.tp)}`);
+      head += ` Ranked by game win % (at least ${MIN_PARTNER_GAMES} games):\n1. ${shownOf(top.name, cfg, top.name)} — ${fmtPartnerRecord(top.gw, top.gp, top.tw, top.tp)}\n${rest.join("\n")}`;
+    }
+    return { info: (head + clipNote + missNote).trim(), final: true, from, to, player: disp, unit: "both", partner: "best", rows: show };
+  }
+
+  const resolved = resolvePartnerHandle(pFilter.raw, partners, cfg);
+  const pname = resolved.name;
+  if (!pname) {
+    const asked = pFilter.raw;
+    const sugg = resolved.suggestions || [];
+    const hint = sugg.length
+      ? ` Closest handle${sugg.length === 1 ? "" : "s"}: ${sugg.map(n => shownOf(n, cfg, n)).join(", ")}.`
+      : (partners.length ? ` Known ${kindBit}partners ${when} include ${[...new Set(partners)].slice(0, 5).map(n => shownOf(n, cfg, n)).join(", ")}.` : "");
+    return {
+      info: `${asked} was not one of ${disp}'s ${kindBit}partners ${when}.${hint}${clipNote}${missNote}`.trim(),
+      final: true, from, to, player: disp, unit: "both", partner: asked,
+    };
+  }
+  const pkeys = rateNameKeys(pname, cfg);
+  const shownP = shownOf(pname, cfg, pname);
+  const withRows = rows.filter(r => partnerInRow(r, pkeys));
+  const withoutRows = rows.filter(r => !partnerInRow(r, pkeys));
+  const withT = tallyRows(withRows);
+  const withoutT = tallyRows(withoutRows);
+  const main = pFilter.kind === "with" ? withT : withoutT;
+  const other = pFilter.kind === "with" ? withoutT : withT;
+  const prep = pFilter.kind === "with" ? "with" : "without";
+  const otherPrep = pFilter.kind === "with" ? "Without" : "With";
+  const head = `${disp}'s ${kindBit}record ${when} ${prep} ${shownP}: ${fmtPartnerRecord(main.gw, main.gp, main.tw, main.tp)}.`;
+  const counterpart = `${otherPrep} ${shownP}: ${fmtPartnerRecord(other.gw, other.gp, other.tw, other.tp)}.`;
+  return {
+    info: `${head}\n${counterpart}${clipNote}${missNote}`.trim(),
+    final: true, from, to, player: disp, unit: "both", partner: shownP, filter: pFilter.kind,
+    with: withT, without: withoutT,
+  };
+}
+
 async function playerRate(q, Q, now, intent, ctx) {
   const who = resolveAskPlayer(q, Q);
   if (!who) return { info: "Name the player, or ask with \"I\" / \"me\" (that is treated as Ochwiay).", final: true };
@@ -955,6 +1199,13 @@ async function playerRate(q, Q, now, intent, ctx) {
   }
   const keys = rateNameKeys(who, cfg);
   const wantGame = gameFromQ(q, official, Q);
+  const pFilter = partnerFilterFromQ(q);
+  if (pFilter) {
+    return answerPartnerRate({
+      q, data, cfg, official, who, keys, wantGame, from, to, lname, pFilter,
+      coverFrom, coverTo, now,
+    });
+  }
   const unit = (intent && intent.unit) || rateUnit(q);
   const rank = wantsRank(q, wantGame);
   const showTours = unit === "tours" || unit === "both";
@@ -1386,7 +1637,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { q = String((await request.json()).q || "").trim().slice(0, 300); } catch (_) {}
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
-  const ansKey = `ans/v9/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v10/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());
@@ -1394,7 +1645,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const ip = request.headers.get("cf-connecting-ip") || "x", hr = new Date().toISOString().slice(0, 13);
   const rk = new Request(`https://ask-cache.local/rl/${encodeURIComponent(ip)}/${hr}`);
   const n = +(await (await c.match(rk))?.text() || 0);
-  if (n >= RATE_PER_HOUR) return json({ answer: "Too many questions from this connection this hour." }, 429);
+  if (!env.DEBUG && n >= RATE_PER_HOUR) return json({ answer: "Too many questions from this connection this hour." }, 429);
   await c.put(rk, new Response(String(n + 1), { headers: { "cache-control": "max-age=3600" } }));
 
   let Q, data, answer;

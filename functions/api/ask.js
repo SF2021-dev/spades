@@ -828,7 +828,8 @@ function successRateIntent(q, Q) {
   if (/\b(?:the\s+)?\d{1,2}:\d{2}\b/.test(q) && !/\b(?:win\s*rates?|success|percentage[- ]wise|percent(?:age)?\s*wise|record\s+by)\b/i.test(q)) return null;
   if (/\bwho\s+won\s+the\s+most\b|\bwho\s+(?:played|hosted|ran)\s+the\s+most\b|\btop\s+\d+\b/i.test(q) && !SAYS_ME.test(q) && !(Q.player && !NOT_PLAYER.test(String(Q.player).trim()) && !isMePronoun(Q.player))) return null;
   const named = (Q.player && okPlayerName(String(Q.player).trim())) || SAYS_ME.test(q);
-  const rate = /\b(?:win\s*rates?|win\s*%|winning\s+percentage|success\s+rates?|percentage[- ]wise|percent(?:age)?\s*wise|most\s+success|success\s+with|(?:what\s+)?percent(?:age)?s?)\b/i.test(q)
+  const rate = /\bwin\s*\/\s*los|\bloss(?:es)?\s+numbers?\b/i.test(q)
+    || /\b(?:win\s*rates?|win\s*%|winning\s+percentage|success\s+rates?|percentage[- ]wise|percent(?:age)?\s*wise|most\s+success|success\s+with|(?:what\s+)?percent(?:age)?s?)\b/i.test(q)
     || /\b(?:best|worst|strongest|weakest)\s+(?:variation|game\s*types?|formats?|game)\b/i.test(q)
     || /\brecord\s+by\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
     || /\b(?:by|per|each|every|broken\s+down\s+by)\s+(?:variation|game\s*types?|formats?)\b/i.test(q)
@@ -918,9 +919,22 @@ function recordOf(t, keys) {
   }
   return null;
 }
-function fmtRecord(wins, played, unit) {
+function tourIsFinished(t) {
+  if (t && Array.isArray(t.winners) && t.winners.length) return true;
+  const st = String((t && t.status) || "");
+  return !st || st === "finished" || st === "2";
+}
+function wantsLosses(q) {
+  return /\bwin\s*\/\s*los|\bloss(?:es)?\s*\/\s*win|\bwin\s*-\s*los|\bwins?\s*(?:and|&)\s*los|\blos(?:ses)?\s*(?:and|&)\s*wins?|\bw\s*\/\s*l\b|\bwin\s*(?:and|&)\s*loss|\bloss\s*(?:and|&)\s*win|\bloss(?:es)?\s+numbers?\b/i.test(q);
+}
+function fmtRecord(wins, played, unit, showLosses) {
   const noun = unit === "games" ? (played === 1 ? "game" : "games") : (played === 1 ? "tour" : "tours");
-  return `${wins} win${wins === 1 ? "" : "s"} in ${played} ${noun} (${fmtPct(wins, played)})`;
+  const pct = fmtPct(wins, played);
+  if (showLosses) {
+    const losses = Math.max(0, played - wins);
+    return `${wins} win${wins === 1 ? "" : "s"}, ${losses} loss${losses === 1 ? "" : "es"} in ${played} ${noun} (${pct})`;
+  }
+  return `${wins} win${wins === 1 ? "" : "s"} in ${played} ${noun} (${pct})`;
 }
 function shownOf(name, cfg, fallback) {
   return displayName(name, aliasGraph(cfg)) || fallback || name;
@@ -945,14 +959,15 @@ async function playerRate(q, Q, now, intent, ctx) {
   const rank = wantsRank(q, wantGame);
   const showTours = unit === "tours" || unit === "both";
   const showGames = unit === "games" || unit === "both";
+  const showLosses = wantsLosses(q);
   const by = new Map();
   let pending = 0, openN = 0, missingRec = 0;
   for (const t of data.tours) {
     if (t.date < from || t.date > to) continue;
     if (!playerIn(t.players, keys)) continue;
-    if (t.status && t.status !== "finished") { openN++; continue; }
     const label = officialize(t.label || "", official, t.perteam) || "UNKNOWN";
     if (wantGame && !labelsMatch(wantGame, label)) continue;
+    if (!tourIsFinished(t)) { openN++; continue; }
     const hasWinner = !!(t.winners && t.winners.length);
     if (!hasWinner) pending++;
     const rec = by.get(label) || { label, played: 0, wins: 0, gPlayed: 0, gWins: 0 };
@@ -1029,19 +1044,19 @@ async function playerRate(q, Q, now, intent, ctx) {
     : sortRows;
   const bestPct = ordered.length ? metricPct(ordered[0]) : 0;
   const leads = ordered.filter(r => metricPct(r) === bestPct);
-  const oneTour = r => `${r.label}, with ${fmtRecord(r.wins, r.played, "tours")}`;
-  const oneGame = r => `${r.label}, with ${fmtRecord(r.gWins, r.gPlayed, "games")}`;
+  const oneTour = r => `${r.label}, with ${fmtRecord(r.wins, r.played, "tours", showLosses)}`;
+  const oneGame = r => `${r.label}, with ${fmtRecord(r.gWins, r.gPlayed, "games", showLosses)}`;
   const one = useGamesSort ? oneGame : oneTour;
   const kind = wantGame || "game type";
   const bothLine = r => {
     const parts = [];
-    if (showTours && r.played) parts.push(fmtRecord(r.wins, r.played, "tours"));
-    if (showGames && r.gPlayed) parts.push(fmtRecord(r.gWins, r.gPlayed, "games"));
+    if (showTours && r.played) parts.push(fmtRecord(r.wins, r.played, "tours", showLosses));
+    if (showGames && r.gPlayed) parts.push(fmtRecord(r.gWins, r.gPlayed, "games", showLosses));
     return parts.join(", and ");
   };
   const overallParts = [];
-  if (showTours && totalP) overallParts.push(fmtRecord(totalW, totalP, "tours"));
-  if (showGames && totalGP) overallParts.push(fmtRecord(totalGW, totalGP, "games"));
+  if (showTours && totalP) overallParts.push(fmtRecord(totalW, totalP, "tours", showLosses));
+  if (showGames && totalGP) overallParts.push(fmtRecord(totalGW, totalGP, "games", showLosses));
   const overall = overallParts.length ? `Overall: ${overallParts.join(", and ")}.` : "";
   const recordLine = overallParts.join(", and ");
   let head;
@@ -1371,7 +1386,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   try { q = String((await request.json()).q || "").trim().slice(0, 300); } catch (_) {}
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
-  const ansKey = `ans/v8/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v9/${now.date}/${now.time.slice(0, 4)}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());

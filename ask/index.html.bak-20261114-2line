@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ask MyLeague · Diamond Spaders</title>
+<style>
+body{margin:0;background:#000;color:#fff;font-family:Segoe UI,Arial,sans-serif;display:flex;justify-content:center}
+main{width:min(720px,92vw);padding:48px 0}
+h1{color:#fbe646;font-size:30px;margin:0 0 6px;letter-spacing:1px}
+p.sub{color:#aaa;margin:0 0 24px;font-size:14px}
+form{display:flex;gap:10px}
+input{flex:1;background:#111;color:#fff;border:2px solid #fbe646;border-radius:8px;padding:14px;font-size:17px;outline:none}
+button{background:#fbe646;color:#000;border:0;border-radius:8px;padding:0 26px;font-size:17px;font-weight:800;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+.searching{color:#fbe646;font-style:italic}.searching::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4) infinite}@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+#a{margin-top:24px;min-height:60px;border:1px solid #fbe646;border-radius:8px;padding:18px;background:#1a1200;font-size:18px;line-height:1.5;white-space:pre-wrap;display:none}
+</style></head><body><main>
+<h1>ASK MYLEAGUE</h1>
+<p class="sub">One question, one answer, from MyLeague's tour data. Times are Eastern.</p>
+<form id="f"><input id="q" maxlength="300" autocomplete="off" placeholder="e.g. What variation have I had the most success with this month?" autofocus><button id="b">Ask</button></form>
+<div id="a"></div>
+<script>
+const f=document.getElementById("f"),q=document.getElementById("q"),a=document.getElementById("a"),b=document.getElementById("b");
+f.onsubmit=async e=>{
+  e.preventDefault();
+  const v=q.value.trim();
+  a.style.display="block";
+  if(!v){a.className="";a.textContent="Type a question first — the grey text in the box is only an example.";return;}
+  b.disabled=true;a.className="searching";a.textContent="♠ Searching";
+  const ac=new AbortController();const to=setTimeout(()=>ac.abort(),20000);
+  try{
+    const r=await fetch("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({q:v}),signal:ac.signal});
+    const d=await r.json();
+    a.className="";
+    a.textContent=r.status===401?"Please sign in to ask a question.":(d.answer||"No answer.");
+  }catch(err){
+    a.className="";
+    a.textContent=(err&&err.name==="AbortError")?"The answer is taking too long. Please try again.":"The answer service could not be reached.";
+  }
+  clearTimeout(to);b.disabled=false;
+};
+</script></main></body></html>

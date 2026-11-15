@@ -167,8 +167,10 @@
       return { dt: t.dt, h: t.h, m: t.m, label: h12 + ":" + pad(t.m) + " " + ap + "  " + t.game };
     });
   }
+  function dedupeTours(list) { var seen = {}, out = []; for (var i = 0; i < list.length; i++) { var t = list[i], k = (t.dt || "") + "|" + t.h + "|" + t.m + "|" + String(t.td || "").toLowerCase(); if (seen[k]) continue; seen[k] = 1; out.push(t); } return out; }
+  TOURS = dedupeTours(TOURS);
   var GAMES = mkGames(TOURS);
-  window.dsSetTours = function (list) { TOURS = list; GAMES = mkGames(TOURS); tick(); };
+  window.dsSetTours = function (list) { TOURS = dedupeTours(list); GAMES = mkGames(TOURS); tick(); };
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function etDate(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
   function etNow() { return new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" })); }
@@ -284,10 +286,16 @@
       if (t.sub || prev.sub) merged.sub = t.sub || prev.sub;
       byId[id] = merged;
     }
-    for (var i = 0; i < TOURS.length; i++) keep(TOURS[i]);
-    for (var j = 0; j < (apiTours || []).length; j++) keep(apiTours[j]);
-    var list = [];
-    for (var id in byId) if (Object.prototype.hasOwnProperty.call(byId, id)) list.push(byId[id]);
+    // The API's list is current: when it has today's tours, it replaces the static list (drops removed or replaced tours).
+    var apiToday = (apiTours || []).filter(function (t) { return t && (!t.dt || t.dt === today); });
+    var src = apiToday.length ? apiToday : TOURS;
+    for (var i = 0; i < src.length; i++) keep(src[i]);
+    var list = [], seen = {};
+    for (var id in byId) if (Object.prototype.hasOwnProperty.call(byId, id)) {
+      var k = (byId[id].dt || "") + "|" + byId[id].h + "|" + byId[id].m + "|" + String(byId[id].td || "").toLowerCase();
+      if (seen[k]) continue;   // rule (user 2026-11-15): never list a tour twice
+      seen[k] = 1; list.push(byId[id]);
+    }
     list.sort(function (a, b) { return (a.dt || "").localeCompare(b.dt || "") || (a.h - b.h) || (a.m - b.m); });
     return list;
   }

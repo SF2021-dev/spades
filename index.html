@@ -158,16 +158,7 @@
   var TOURS = [
     { dt: "2026-11-14", h: 19, m: 15, game: "SUI PASS 2", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959817/", ava: U1 },
     { dt: "2026-11-14", h: 20, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11959509/", ava: "https://diamondspaders.online/Treco521-ava.png" },
-    { dt: "2026-11-14", h: 21, m: 15, game: "REG PARTNERS", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959818/", ava: U1 },
-    { dt: "2026-11-15", h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959447/", ava: U1 },
-    { dt: "2026-11-15", h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959452/", ava: U1 },
-    { dt: "2026-11-15", h: 13, m: 15, game: "CUT", td: "AceInBlack", url: "https://www.myleague.com/diamondspaders/tournament/11959725/", ava: "https://diamondspaders.online/aceinblack-ava.png" },
-    { dt: "2026-11-15", h: 14, m: 15, game: "SUI PASS 2", td: "AceInBlack", url: "https://www.myleague.com/diamondspaders/tournament/11959726/", ava: "https://diamondspaders.online/aceinblack-ava.png" },
-    { dt: "2026-11-15", h: 15, m: 15, game: "CUT", td: "EgammeR", url: "https://www.myleague.com/diamondspaders/tournament/11959778/", ava: "https://diamondspaders.online/EgammeR-ava.png" },
-    { dt: "2026-11-15", h: 17, m: 15, game: "REG PARTNERS", td: "AceInBlack", url: "https://www.myleague.com/diamondspaders/tournament/11959727/", ava: "https://diamondspaders.online/aceinblack-ava.png" },
-    { dt: "2026-11-15", h: 18, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11958708/", ava: "https://diamondspaders.online/AceyLynn-ava.png" },
-    { dt: "2026-11-15", h: 20, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11958710/", ava: "https://diamondspaders.online/AceyLynn-ava.png" },
-    { dt: "2026-11-15", h: 23, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11958704/", ava: "https://diamondspaders.online/AceyLynn-ava.png" }
+    { dt: "2026-11-14", h: 21, m: 15, game: "REG PARTNERS", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959818/", ava: U1 }
   ];
   function mkGames(list) {
     return list.map(function (t) {
@@ -260,6 +251,61 @@
   }
   tick();
   setInterval(tick, 1000);
+  // Refresh only the tour list from /api/live. Do not update winners or results.
+  // New tours added after page load show up; in-progress tours stay listed (JOIN hides once start time passes).
+  function tourId(t) {
+    var m = String(t && t.url || "").match(/\/tournament\/(\d+)/);
+    return m ? m[1] : "";
+  }
+  function winnerSlots(d) {
+    var slots = {}, today = (d && d.today) || etDate(etNow());
+    var day = d && d.days && d.days[today];
+    var keys = day && day.keys;
+    if (!keys) return slots;
+    for (var i = 0; i < keys.length; i++) {
+      var p = String(keys[i] || "").split("|");
+      if (p.length >= 3 && p[2]) slots[p[0] + "|" + p[1]] = true;
+    }
+    return slots;
+  }
+  function mergeTodayTours(apiTours, d) {
+    var today = etDate(etNow());
+    var won = winnerSlots(d);
+    var byId = {};
+    function keep(t) {
+      if (!t) return;
+      if (t.dt && t.dt !== today) return;   // main board: today only
+      if (won[amp(t.h, t.m) + "|" + t.game]) return;
+      var id = tourId(t);
+      if (!id) return;
+      var prev = byId[id];
+      if (!prev) { byId[id] = t; return; }
+      var merged = { dt: t.dt || prev.dt, h: t.h, m: t.m, game: t.game || prev.game, td: t.td || prev.td, url: t.url || prev.url, ava: t.ava || prev.ava };
+      if (t.sub || prev.sub) merged.sub = t.sub || prev.sub;
+      byId[id] = merged;
+    }
+    for (var i = 0; i < TOURS.length; i++) keep(TOURS[i]);
+    for (var j = 0; j < (apiTours || []).length; j++) keep(apiTours[j]);
+    var list = [];
+    for (var id in byId) if (Object.prototype.hasOwnProperty.call(byId, id)) list.push(byId[id]);
+    list.sort(function (a, b) { return (a.dt || "").localeCompare(b.dt || "") || (a.h - b.h) || (a.m - b.m); });
+    return list;
+  }
+  var toursBusy = false;
+  function refreshTours() {
+    if (toursBusy || document.hidden) return;
+    toursBusy = true;
+    fetch("/api/live?v=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      return r.ok ? r.json() : null;
+    }).then(function (d) {
+      if (!d || !d.ok || !Array.isArray(d.tours)) return;
+      var list = mergeTodayTours(d.tours, d);
+      if (JSON.stringify(list) !== JSON.stringify(TOURS)) window.dsSetTours(list);
+    }).catch(function () {}).then(function () { toursBusy = false; });
+  }
+  refreshTours();
+  setInterval(refreshTours, 120000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) refreshTours(); });
 })();
 </script>
 <script src="/alerts.js?v=20"></script>

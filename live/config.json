@@ -216,7 +216,7 @@
 "reginaldanderson": "https://diamondspaders.online/ReginaldAnderson-ava.png",
 "rookie_bagger": "https://diamondspaders.online/rookie_bagger-ava.png",
 "sadiee": "https://diamondspaders.online/sadiee-ava.png",
-"silkrollz": "https://diamondspaders.online/SILK%20ROLLZ-ava.png?v=2",
+"silkrollz": "https://diamondspaders.online/SILK%20ROLLZ-ava.png",
 "skippyjjones": "https://diamondspaders.online/SkippyJJones-ava.png",
 "slovell_too": "https://diamondspaders.online/slovell_too-ava.png",
 "soloryder": "https://diamondspaders.online/soloryder-ava.png",
@@ -288,7 +288,6 @@
 "10:15 AM|makinpa": 22,
 "10:15 AM|ochwiay": 22,
 "10:15 AM|potsayhitokettle": 16,
-"10:15 AM|tatsujin": 22,
 "10:15 AM|trifolium": 22,
 "10:15 AM|untouchable_one": 18,
 "10:15 PM|aceinblack": 20,
@@ -301,7 +300,6 @@
 "10:15 PM|muziklvr": 22,
 "10:15 PM|ochwiay": 22,
 "10:15 PM|really_why": 20,
-"10:15 PM|silkrollz": 22,
 "10:15 PM|treco521": 22,
 "10:15 PM|untouchable_one": 18,
 "10:15 PM|va_country_guy": 18,
@@ -316,8 +314,6 @@
 "11:15 AM|treco521": 22,
 "11:15 AM|trifolium": 22,
 "11:15 AM|untouchable_one": 18,
-"11:15 AM|waskelwabbit": 20,
-"11:15 PM|bluangel1950": 20,
 "11:15 PM|ellisandrew80": 18,
 "11:15 PM|huskernut50265": 18,
 "11:15 PM|jays_26": 22,
@@ -347,7 +343,6 @@
 "1:15 PM|makinpa": 22,
 "1:15 PM|melicious_1": 20,
 "1:15 PM|mybagsrgucci": 20,
-"1:15 PM|ochwiay": 22,
 "1:15 PM|peakoh": 22,
 "1:15 PM|potsayhitokettle": 16,
 "1:15 PM|silkrollz": 22,
@@ -410,11 +405,9 @@
 "8:15 PM|huskernut50265": 18,
 "8:15 PM|ochwiay": 22,
 "8:15 PM|really_why": 20,
-"8:15 PM|sadiee": 22,
 "8:15 PM|soloryder": 22,
 "8:15 PM|sumpin2du": 22,
 "8:15 PM|sunshinegal63": 18,
-"8:30 AM|makinpa": 22,
 "9:15 AM|3bid3bags": 22,
 "9:15 AM|aceinblack": 20,
 "9:15 AM|bob2112": 22,
@@ -426,7 +419,6 @@
 "9:15 AM|maggie_may": 20,
 "9:15 AM|o_siris": 22,
 "9:15 AM|ochwiay": 22,
-"9:15 AM|soloryder": 22,
 "9:15 AM|trifolium": 22
 },
 "hidden": [
@@ -2327,6 +2319,9 @@
 "11959863": [
 "Eager_1",
 "TinaBus"
+],
+"11959872": [
+"Ochwiay"
 ],
 "11959957": [
 "MsZigs",

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Videos · Diamond Spaders</title>
+<style>
+  html, body { margin:0; padding:0; background:#0a0a0a; color:#fbe646; font-family:Arial,Helvetica,sans-serif; }
+  .wrap { max-width:760px; margin:0 auto; padding:0 0 40px; }
+  .banner { width:100%; height:auto; max-height:140px; object-fit:contain; display:block; background:#0a0a0a; }
+  .top { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin:16px 16px 4px; }
+  h1 { font-size:24px; letter-spacing:.08em; margin:0; }
+  .back { color:#c9a227; font-size:13px; font-weight:700; text-decoration:none; }
+  .back:hover { color:#fbe646; text-decoration:underline; }
+  .sub { color:#c9a227; font-size:13px; margin:0 16px 16px; }
+  .share { margin:0 16px 22px; padding:16px; background:#120c08; border:2px solid #fbe646; border-radius:12px; }
+  .share h2 { margin:0 0 12px; font-size:13px; letter-spacing:.12em; }
+  label { display:block; font-size:12px; font-weight:800; letter-spacing:.08em; color:#c9a227; margin:0 0 6px; }
+  input[type=text], input[type=url] {
+    width:100%; box-sizing:border-box; background:#111; color:#fff; border:1px solid #444; border-radius:8px;
+    padding:10px 12px; font-size:15px; font-family:inherit; outline:none;
+  }
+  input:focus { border-color:#fbe646; }
+  .row { display:flex; gap:8px; margin-top:10px; align-items:stretch; }
+  .row input { flex:1; }
+  button, .filebtn {
+    background:#fbe646; color:#000; border:0; border-radius:8px; padding:0 18px; font-size:15px; font-weight:800;
+    cursor:pointer; font-family:inherit; white-space:nowrap;
+  }
+  button:hover, .filebtn:hover { filter:brightness(1.08); }
+  button:disabled, .filebtn.disabled { opacity:.5; cursor:wait; }
+  .filebtn { display:inline-flex; align-items:center; height:40px; box-sizing:border-box; }
+  #file { position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
+  .hint { color:#888; font-size:12px; margin:8px 0 0; }
+  .err { color:#ff6b6b; font-size:13px; font-weight:700; margin:8px 0 0; min-height:1em; }
+  .note { color:#c9a227; font-size:13px; margin:8px 0 0; }
+  .feed { margin:0 16px; display:flex; flex-direction:column; gap:18px; }
+  .card { position:relative; background:#120c08; border:1px solid #3a2a10; border-radius:12px; padding:14px 14px 12px; }
+  .card:hover { border-color:#fbe646; }
+  .who { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .ava, .ph { width:44px; height:44px; border-radius:8px; border:1px solid #fbe646; object-fit:cover; flex:0 0 auto; background:#1a1200; }
+  .ph { display:flex; align-items:center; justify-content:center; font-size:22px; color:#fbe646; }
+  .meta { min-width:0; }
+  .name { font-size:16px; font-weight:800; color:#ffd84a; }
+  .when { font-size:12px; color:#c9a227; margin-top:2px; }
+  .cap { font-size:16px; color:#fff; margin:0 0 10px; line-height:1.4; }
+  .frame { position:relative; width:100%; aspect-ratio:16/9; background:#000; border-radius:8px; overflow:hidden; }
+  .frame iframe, .frame video { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; }
+  .del {
+    position:absolute; top:8px; right:8px; width:28px; height:28px; padding:0; border-radius:6px;
+    background:#4a0000; color:#ff6b6b; font-size:20px; line-height:26px; border:1px solid #ff6b6b;
+    opacity:0; transition:opacity .15s; display:none;
+  }
+  .card.can-del .del { display:block; }
+  .card.can-del:hover .del, .card.can-del:focus-within .del { opacity:1; }
+  .del:hover { background:#8a0000; color:#fff; }
+  .empty { text-align:center; color:#c9a227; padding:28px 10px; border:1px dashed #3a2a10; border-radius:12px; }
+  .loading { text-align:center; color:#c9a227; padding:20px; font-style:italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="banner" src="/dsaltbanner.png" alt="Diamond Spaders">
+  <div class="top">
+    <h1>VIDEOS</h1>
+    <a class="back" href="/">← Back to the board</a>
+  </div>
+  <p class="sub">Share a clip with the league — upload a file or paste a YouTube, Vimeo, or video link.</p>
+  <form class="share" id="share" autocomplete="off">
+    <h2>SHARE A VIDEO</h2>
+    <label for="title">Title or caption (optional)</label>
+    <input id="title" type="text" maxlength="200" placeholder="What's this video?">
+    <div class="row">
+      <input id="url" type="url" placeholder="Paste a YouTube, Vimeo, or direct video link">
+      <button type="submit" id="sharebtn">Share</button>
+    </div>
+    <div class="row" id="uprow">
+      <input id="file" type="file" accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v">
+      <label class="filebtn" id="filebtn" for="file">Choose video</label>
+      <span class="hint" id="fname" style="align-self:center;margin:0;flex:1;">mp4, webm, or mov · up to 100 MB</span>
+      <button type="button" id="upbtn">Upload</button>
+    </div>
+    <p class="note" id="upnote" hidden></p>
+    <p class="err" id="err"></p>
+  </form>
+  <div class="feed" id="feed"><div class="loading">Loading videos…</div></div>
+</div>
+<script>
+(function () {
+  var feed = document.getElementById("feed");
+  var errEl = document.getElementById("err");
+  var titleEl = document.getElementById("title");
+  var urlEl = document.getElementById("url");
+  var fileEl = document.getElementById("file");
+  var fnameEl = document.getElementById("fname");
+  var shareBtn = document.getElementById("sharebtn");
+  var upBtn = document.getElementById("upbtn");
+  var upNote = document.getElementById("upnote");
+  var upRow = document.getElementById("uprow");
+  var fileBtn = document.getElementById("filebtn");
+  var uploadsOn = false;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function showErr(s) { errEl.textContent = s || ""; }
+  function fmtWhen(ms) {
+    var d = new Date(ms);
+    var date = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", year: "numeric" }).format(d);
+    var time = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit", hour12: true }).format(d);
+    return date + " · " + time + " ET";
+  }
+  function media(v) {
+    if (v.kind === "youtube") {
+      return '<div class="frame"><iframe src="https://www.youtube-nocookie.com/embed/' + esc(v.src) + '" title="' + esc(v.title || "YouTube video") + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>';
+    }
+    if (v.kind === "vimeo") {
+      return '<div class="frame"><iframe src="https://player.vimeo.com/video/' + esc(v.src) + '" title="' + esc(v.title || "Vimeo video") + '" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>';
+    }
+    var src = v.kind === "file" ? esc(v.file) : esc(v.src);
+    var typ = v.mime ? ' type="' + esc(v.mime) + '"' : "";
+    return '<div class="frame"><video controls preload="metadata" src="' + src + '"' + typ + ' playsinline></video></div>';
+  }
+  function card(v) {
+    var ava = v.ava
+      ? '<img class="ava" src="' + esc(v.ava) + '" alt="" onerror="this.replaceWith(Object.assign(document.createElement(\'div\'),{className:\'ph\',textContent:\'♠\'}))">'
+      : '<div class="ph">♠</div>';
+    var cap = v.title ? '<div class="cap">' + esc(v.title) + "</div>" : "";
+    var del = v.canDelete ? '<button type="button" class="del" data-id="' + esc(v.id) + '" aria-label="Delete" title="Delete">×</button>' : "";
+    return '<article class="card' + (v.canDelete ? " can-del" : "") + '" data-id="' + esc(v.id) + '">' + del +
+      '<div class="who">' + ava + '<div class="meta"><div class="name">' + esc(v.username) + '</div><div class="when">' + esc(fmtWhen(v.created_at)) + "</div></div></div>" +
+      cap + media(v) + "</article>";
+  }
+  function render(videos) {
+    if (!videos || !videos.length) {
+      feed.innerHTML = '<div class="empty">No videos yet — share the first one.</div>';
+      return;
+    }
+    feed.innerHTML = videos.map(card).join("");
+  }
+  function setUploads(on) {
+    uploadsOn = !!on;
+    upBtn.disabled = !uploadsOn;
+    fileEl.disabled = !uploadsOn;
+    fileBtn.classList.toggle("disabled", !uploadsOn);
+    if (!uploadsOn) {
+      upNote.hidden = false;
+      upNote.textContent = "File uploads aren't set up yet — paste a YouTube, Vimeo, or direct video link for now.";
+    } else {
+      upNote.hidden = true;
+      upNote.textContent = "";
+    }
+  }
+  function api(url, opts) {
+    return fetch(url, Object.assign({ credentials: "same-origin", cache: "no-store" }, opts || {})).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (r.status === 401) {
+          location.replace("/register?gate=1&next=" + encodeURIComponent(location.pathname + location.search));
+          throw new Error("Please sign in.");
+        }
+        if (!r.ok) throw new Error(j.error || ("Error " + r.status));
+        return j;
+      });
+    });
+  }
+
+  api("/api/videos").then(function (d) {
+    setUploads(d.uploads);
+    render(d.videos || []);
+  }).catch(function (e) {
+    feed.innerHTML = '<div class="empty">' + esc(e.message || "Could not load videos.") + "</div>";
+  });
+
+  fileEl.addEventListener("change", function () {
+    var f = fileEl.files && fileEl.files[0];
+    fnameEl.textContent = f ? f.name + " · " + (f.size / 1048576).toFixed(1) + " MB" : "mp4, webm, or mov · up to 100 MB";
+  });
+
+  document.getElementById("share").addEventListener("submit", function (e) {
+    e.preventDefault();
+    showErr("");
+    var url = urlEl.value.trim();
+    if (!url) { showErr("Paste a link, or choose a file and click Upload."); return; }
+    shareBtn.disabled = true;
+    api("/api/videos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: url, title: titleEl.value })
+    }).then(function () {
+      urlEl.value = "";
+      titleEl.value = "";
+      return api("/api/videos");
+    }).then(function (d) {
+      setUploads(d.uploads);
+      render(d.videos || []);
+    }).catch(function (e) { showErr(e.message); })
+      .then(function () { shareBtn.disabled = false; });
+  });
+
+  upBtn.addEventListener("click", function () {
+    showErr("");
+    if (!uploadsOn) { showErr("File uploads aren't available yet. Paste a link instead."); return; }
+    var f = fileEl.files && fileEl.files[0];
+    if (!f) { showErr("Choose a video file first."); return; }
+    if (f.size > 100 * 1024 * 1024) { showErr("Videos must be 100 MB or smaller."); return; }
+    var fd = new FormData();
+    fd.append("file", f);
+    fd.append("title", titleEl.value);
+    upBtn.disabled = true;
+    fileBtn.classList.add("disabled");
+    api("/api/videos/upload", { method: "POST", body: fd }).then(function () {
+      fileEl.value = "";
+      titleEl.value = "";
+      fnameEl.textContent = "mp4, webm, or mov · up to 100 MB";
+      return api("/api/videos");
+    }).then(function (d) {
+      setUploads(d.uploads);
+      render(d.videos || []);
+    }).catch(function (e) { showErr(e.message); })
+      .then(function () { upBtn.disabled = !uploadsOn; fileBtn.classList.toggle("disabled", !uploadsOn); });
+  });
+
+  feed.addEventListener("click", function (e) {
+    var btn = e.target.closest(".del");
+    if (!btn) return;
+    if (!confirm("Delete this video?")) return;
+    showErr("");
+    api("/api/videos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", id: btn.getAttribute("data-id") })
+    }).then(function () { return api("/api/videos"); })
+      .then(function (d) { setUploads(d.uploads); render(d.videos || []); })
+      .catch(function (e) { showErr(e.message); });
+  });
+})();
+</script>
+</body>
+</html>

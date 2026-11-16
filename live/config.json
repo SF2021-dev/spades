@@ -1044,7 +1044,6 @@
 "11958701": "SINGLES",
 "11958702": "REG PARTNERS",
 "11958703": "LOSER WINS",
-"11958704": "CUT",
 "11958706": "REG PARTNERS",
 "11958708": "CUT",
 "11958709": "SUI PASS 2",
@@ -1193,7 +1192,8 @@
 "11956059": "Northern Exposure",
 "11956987": "muziklvr & Untouchable_One",
 "11958615": "ROLL WITH IT",
-"11959585": "Here To Win"
+"11959585": "Here To Win",
+"11959842": "Shadowbrook Road"
 },
 "manual_winners": {
 "11923667": [
@@ -2315,6 +2315,10 @@
 "11959840": [
 "EgammeR",
 "MEL1c1ous_1"
+],
+"11959842": [
+"Ochwiay",
+"Fetch_it_up"
 ],
 "11959863": [
 "Eager_1",

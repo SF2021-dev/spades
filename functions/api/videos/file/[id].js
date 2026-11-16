@@ -1,6 +1,6 @@
 // GET /api/videos/file/<id>  -> video bytes from R2, members only. Supports Range for seeking.
-import { wrap, HttpError } from "../../../../_shared/auth.js";
-import { init, posterName } from "../../../../_shared/videos.js";
+import { wrap, HttpError } from "../../../_shared/auth.js";
+import { init, posterName } from "../../../_shared/videos.js";
 
 export const onRequestGet = wrap(async ({ request, env, params }) => {
   await posterName(env, request);

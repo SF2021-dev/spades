@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUI PASS 2 Tutorial — Diamond Spaders</title>
+<meta name="description" content="A strategy tutorial for SUI PASS 2: when to nil, how to pass as the nil hand and as cover, and why the cover always adds two.">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #0a0a0a; overflow-x: hidden; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #fbe646; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+  a { color: #fbe646; }
+  .wrap { width: 100%; max-width: 880px; margin: 0 auto; background: #0a0a0a; }
+  .banner { width: 100%; height: auto; max-height: 140px; object-fit: contain; display: block; background: #0a0a0a; }
+
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 18px 0; }
+  .top .back { color: #c9a227; font-size: 13px; font-weight: 700; text-decoration: none; }
+  .top .back:hover, .top .back:focus-visible { color: #fbe646; text-decoration: underline; }
+
+  .hero { text-align: center; padding: 22px 22px 24px; margin: 10px 0 0; background: #120c08; border-top: 2px solid #fbe646; border-bottom: 2px solid #fbe646; }
+  .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.22em; color: #c9a227; text-transform: uppercase; }
+  .hero h1 { margin: 8px 0 10px; font-size: clamp(26px, 5vw, 40px); line-height: 1.15; font-weight: 800; color: #fbe646; letter-spacing: 0.01em; }
+  .hero p { margin: 0 auto; max-width: 640px; font-size: clamp(15px, 1.8vw, 17px); color: #e8dca0; }
+
+  .jump { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
+  .jump a { text-decoration: none; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 7px 12px; border: 1px solid #444; border-radius: 999px; background: #161616; color: #fbe646; }
+  .jump a:hover, .jump a:focus-visible { border-color: #fbe646; background: #2a1608; }
+
+  .page { padding: 22px 18px 8px; display: grid; gap: 18px; }
+
+  .tips { background: #120c08; border: 2px solid #fbe646; border-radius: 14px; padding: 18px 20px 16px; }
+  .tips h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.14em; color: #fbe646; }
+  .tips ol { margin: 0; padding: 0; list-style: none; counter-reset: tip; }
+  .tips li { position: relative; padding: 6px 0 6px 36px; color: #f1e7b8; font-size: 16px; counter-increment: tip; }
+  .tips li::before { content: counter(tip); position: absolute; left: 0; top: 6px; width: 24px; height: 24px; border-radius: 50%; background: #161616; border: 1px solid #c9a227; color: #fbe646; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .tips strong { color: #fbe646; }
+
+  .sec { background: #161616; border: 1px solid #3a3020; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.45); scroll-margin-top: 12px; }
+  .sec h2 { margin: 0; padding: 16px 22px 0; font-size: clamp(20px, 2.6vw, 26px); line-height: 1.25; font-weight: 800; color: #fbe646; }
+  .lead { margin: 4px 22px 0; color: #c9a227; font-size: 14px; font-weight: 700; letter-spacing: 0.03em; }
+  .body { padding: 14px 22px 20px; }
+  .body p, .body li { color: #f1e7b8; font-size: 16.5px; }
+  .body p { margin: 0 0 12px; }
+  .body p:last-child { margin-bottom: 0; }
+  .body strong { color: #fbe646; }
+
+  .ex { margin: 16px 0 4px; padding: 14px 16px 12px; background: #120c08; border: 1px solid #3a2a10; border-radius: 12px; }
+  .ex h3 { margin: 0 0 8px; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #fbe646; }
+  .ex p { margin: 8px 0 0; font-size: 15px; color: #e8dca0; }
+  .ex .who { margin: 0 0 8px; color: #c9a227; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
+  .pass-note { display: inline-block; margin-top: 8px; padding: 4px 10px; border-radius: 999px; background: #2a1608; border: 1px solid #fbe646; color: #fbe646; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  .hand { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin: 4px 0 2px; }
+  .suit-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; }
+  .pc {
+    /* 10s need a hair more width */
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 48px; height: 68px; padding: 4px 0 2px;
+    background: linear-gradient(180deg, #fffef8 0%, #f3e9c6 100%);
+    border: 1px solid #8a7018; border-radius: 8px;
+    box-shadow: 0 2px 0 #3a3020, 0 5px 12px rgba(0,0,0,.35);
+    font-family: Georgia, "Times New Roman", serif; font-weight: 700; line-height: 1;
+    user-select: none;
+  }
+  .pc .r { font-size: 18px; letter-spacing: -0.02em; }
+  .pc .s { font-size: 22px; margin-top: 3px; }
+  .pc .r.ten { font-size: 15px; letter-spacing: -0.06em; }
+  .pc.red { color: #b01515; }
+  .pc.black { color: #161616; }
+  .pc.pass { box-shadow: 0 0 0 2px #fbe646, 0 5px 14px rgba(251,230,70,.28); }
+  .legend { margin: 6px 0 0; font-size: 12px; color: #c9a227; }
+
+  .tip { margin: 14px 0 0; padding: 12px 14px; border-left: 4px solid #c9a227; background: #120c08; border-radius: 0 8px 8px 0; color: #e8dca0; font-size: 15px; }
+  .tip b { color: #fbe646; }
+
+  .back-bottom { text-align: center; padding: 10px 16px 8px; }
+  .back-bottom a { display: inline-block; text-decoration: none; font-weight: 800; font-size: 16px; letter-spacing: 0.05em; padding: 12px 22px; border: 2px solid #fbe646; border-radius: 10px; background: #120c08; color: #fbe646; }
+  .back-bottom a:hover, .back-bottom a:focus-visible { background: #2a1608; }
+
+  .copy { text-align: center; padding: 16px 10px 28px; color: #c9a227; font-size: 13px; font-weight: 700; font-family: Arial, Helvetica, sans-serif; }
+
+  @media (max-width: 520px) {
+    .page { padding: 16px 12px 6px; }
+    .body { padding: 12px 16px 18px; }
+    .sec h2, .lead { padding-left: 16px; padding-right: 16px; }
+    .lead { margin-left: 0; margin-right: 0; }
+    .pc {
+    /* 10s need a hair more width */ width: 42px; height: 60px; }
+    .pc .r { font-size: 16px; }
+    .pc .s { font-size: 20px; }
+    .tips li, .body p, .body li { font-size: 15.5px; }
+  }
+</style>
+<script data-goatcounter="/api/count" async src="/gc.js"></script>
+<noscript><img src="/api/count?p=/sui-pass-2-tutorial/&noscript=1" alt="" width="1" height="1" style="position:absolute;left:-9999px"></noscript>
+</head>
+<body>
+<div class="wrap">
+  <a href="/"><img class="banner" src="/dsaltbanner.png" alt="Diamond Spaders"></a>
+  <div class="top">
+    <span></span>
+    <a class="back" href="/">&larr; Back to the board</a>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">Diamond Spaders &middot; Strategy</div>
+    <h1>Suicide Pass 2 (SUI PASS 2)</h1>
+    <p>How I think about the nil, the cover, and the two-card pass — with a few hands to make it concrete.</p>
+    <nav class="jump" aria-label="Sections">
+      <a href="#tips">Quick tips</a>
+      <a href="#how">How it works</a>
+      <a href="#nil-or-bid">Nil or bid</a>
+      <a href="#nil-pass">Passing as nil</a>
+      <a href="#cover-pass">Passing as cover</a>
+      <a href="#add-two">Add two</a>
+    </nav>
+  </header>
+
+  <main class="page">
+
+    <section class="tips" id="tips">
+      <h2>QUICK TIPS</h2>
+      <ol>
+        <li>A <strong>strong hand is often best for nil</strong>, because the main idea is to give your partner a strong hand.</li>
+        <li>When you <strong>cannot</strong> give partner that help, it is often best to <strong>bid</strong> — be the cover, and avoid setting them.</li>
+        <li>As the <strong>nil hand</strong>, always pass to strengthen the cover, unless the alternative is extreme peril — a lone King, for example.</li>
+        <li>As <strong>cover</strong>, pass chiefly to strengthen your own hand, within reason. A good option, often, is to pass to make yourself short-suited.</li>
+        <li>Always <strong>add two</strong> to the bid, trusting your partner to pass two winners.</li>
+      </ol>
+    </section>
+
+    <section class="sec" id="how">
+      <h2>How it works</h2>
+      <div class="lead">The shape of the game, in brief</div>
+      <div class="body">
+        <p>In <strong>SUI PASS 2</strong>, one partner on each team must bid nil, and the other is the cover. After bidding, partners each pass two cards to each other.</p>
+        <p>That's the whole frame. Everything below is judgment — how I decide who nils, and what I pass.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="nil-or-bid">
+      <h2>Deciding whether to nil</h2>
+      <div class="lead">The main idea is to give your partner a strong hand</div>
+      <div class="body">
+        <p>A strong hand is often best for the nil. That may sound backwards, but it isn't. If you have the strength, you can pass it to your partner and leave them a real cover hand. That is the point of the pass.</p>
+        <p>When you cannot — the hand is too weak to help them, or too dangerous to nil — it is often best to bid. Be the cover. You avoid putting your partner on a nil you cannot support, and you avoid setting them.</p>
+
+        <div class="ex" aria-label="Example: a strong hand, often a nil">
+          <h3>Example &middot; A strong hand</h3>
+          <p class="who">You pick up:</p>
+          <div class="hand" aria-label="Ace, King, nine of spades; Ace, Jack, six of hearts; King, eight, four of diamonds; nine, seven, two of clubs">
+            <div class="suit-group">
+              <span class="pc black pass" title="Ace of spades"><span class="r">A</span><span class="s">♠</span></span>
+              <span class="pc black pass" title="King of spades"><span class="r">K</span><span class="s">♠</span></span>
+              <span class="pc black" title="Nine of spades"><span class="r">9</span><span class="s">♠</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red" title="Ace of hearts"><span class="r">A</span><span class="s">♥</span></span>
+              <span class="pc red" title="Jack of hearts"><span class="r">J</span><span class="s">♥</span></span>
+              <span class="pc red" title="Six of hearts"><span class="r">6</span><span class="s">♥</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red" title="King of diamonds"><span class="r">K</span><span class="s">♦</span></span>
+              <span class="pc red" title="Eight of diamonds"><span class="r">8</span><span class="s">♦</span></span>
+              <span class="pc red" title="Four of diamonds"><span class="r">4</span><span class="s">♦</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc black" title="Nine of clubs"><span class="r">9</span><span class="s">♣</span></span>
+              <span class="pc black" title="Seven of clubs"><span class="r">7</span><span class="s">♣</span></span>
+              <span class="pc black" title="Two of clubs"><span class="r">2</span><span class="s">♣</span></span>
+            </div>
+          </div>
+          <p class="legend">Gold outline marks a natural pass to partner — two winners.</p>
+          <p>This is a strong hand. Nil is often best, because you can pass two winners — the <strong>♠A</strong> and <strong>♠K</strong>, or the <strong>♠A</strong> and <strong>♥A</strong> — and give your partner a strong hand. That is the main idea.</p>
+        </div>
+
+        <div class="ex" aria-label="Example: when you cannot help, bid">
+          <h3>Example &middot; When you cannot</h3>
+          <p class="who">You pick up:</p>
+          <div class="hand" aria-label="Queen, eight, five, two of spades; King, ten, seven of hearts; Jack, nine, six of diamonds; Queen, eight, three of clubs">
+            <div class="suit-group">
+              <span class="pc black" title="Queen of spades"><span class="r">Q</span><span class="s">♠</span></span>
+              <span class="pc black" title="Eight of spades"><span class="r">8</span><span class="s">♠</span></span>
+              <span class="pc black" title="Five of spades"><span class="r">5</span><span class="s">♠</span></span>
+              <span class="pc black" title="Two of spades"><span class="r">2</span><span class="s">♠</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red" title="King of hearts"><span class="r">K</span><span class="s">♥</span></span>
+              <span class="pc red" title="Ten of hearts"><span class="r ten">10</span><span class="s">♥</span></span>
+              <span class="pc red" title="Seven of hearts"><span class="r">7</span><span class="s">♥</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red" title="Jack of diamonds"><span class="r">J</span><span class="s">♦</span></span>
+              <span class="pc red" title="Nine of diamonds"><span class="r">9</span><span class="s">♦</span></span>
+              <span class="pc red" title="Six of diamonds"><span class="r">6</span><span class="s">♦</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc black" title="Queen of clubs"><span class="r">Q</span><span class="s">♣</span></span>
+              <span class="pc black" title="Eight of clubs"><span class="r">8</span><span class="s">♣</span></span>
+              <span class="pc black" title="Three of clubs"><span class="r">3</span><span class="s">♣</span></span>
+            </div>
+          </div>
+          <p>No clean winners to give, and plenty of ways to get caught if you nil. You cannot give your partner a strong hand. Bid, and be the cover, so you are not setting them.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="nil-pass">
+      <h2>Passing as the nil hand</h2>
+      <div class="lead">Strengthen the cover — unless the alternative is extreme peril</div>
+      <div class="body">
+        <p>As the nil hand, you always pass to strengthen the cover hand. Give them winners. That is what the pass is for.</p>
+        <p>The exception is extreme peril. A lone King, for example — if keeping it is likely to catch you, pass it off, even if that means the cover gets a slightly less helpful card.</p>
+
+        <div class="ex" aria-label="Example: pass winners to the cover">
+          <h3>Example &middot; Strengthen the cover</h3>
+          <p class="who">You have bid nil. You hold:</p>
+          <div class="hand" aria-label="Ace, Queen, six of spades; King, eight, four of hearts; ten, seven, three of diamonds; nine, five, two of clubs">
+            <div class="suit-group">
+              <span class="pc black pass" title="Ace of spades"><span class="r">A</span><span class="s">♠</span></span>
+              <span class="pc black" title="Queen of spades"><span class="r">Q</span><span class="s">♠</span></span>
+              <span class="pc black" title="Six of spades"><span class="r">6</span><span class="s">♠</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red pass" title="King of hearts"><span class="r">K</span><span class="s">♥</span></span>
+              <span class="pc red" title="Eight of hearts"><span class="r">8</span><span class="s">♥</span></span>
+              <span class="pc red" title="Four of hearts"><span class="r">4</span><span class="s">♥</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red" title="Ten of diamonds"><span class="r ten">10</span><span class="s">♦</span></span>
+              <span class="pc red" title="Seven of diamonds"><span class="r">7</span><span class="s">♦</span></span>
+              <span class="pc red" title="Three of diamonds"><span class="r">3</span><span class="s">♦</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc black" title="Nine of clubs"><span class="r">9</span><span class="s">♣</span></span>
+              <span class="pc black" title="Five of clubs"><span class="r">5</span><span class="s">♣</span></span>
+              <span class="pc black" title="Two of clubs"><span class="r">2</span><span class="s">♣</span></span>
+            </div>
+          </div>
+          <span class="pass-note">Pass ♠A and ♥K</span>
+          <p>Send the two winners. Keep the rest and play the nil. Your job now is to stay under; their job is to take the tricks — so give them the cards that do that.</p>
+        </div>
+
+        <div class="ex" aria-label="Example: a lone King is extreme peril">
+          <h3>Example &middot; Extreme peril — a lone King</h3>
+          <p class="who">You have bid nil. You hold:</p>
+          <div class="hand" aria-label="Ace, seven, four of spades; King of hearts; Queen, nine, eight, three of diamonds; ten, six, five, two of clubs">
+            <div class="suit-group">
+              <span class="pc black pass" title="Ace of spades"><span class="r">A</span><span class="s">♠</span></span>
+              <span class="pc black" title="Seven of spades"><span class="r">7</span><span class="s">♠</span></span>
+              <span class="pc black" title="Four of spades"><span class="r">4</span><span class="s">♠</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red pass" title="King of hearts"><span class="r">K</span><span class="s">♥</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red" title="Queen of diamonds"><span class="r">Q</span><span class="s">♦</span></span>
+              <span class="pc red" title="Nine of diamonds"><span class="r">9</span><span class="s">♦</span></span>
+              <span class="pc red" title="Eight of diamonds"><span class="r">8</span><span class="s">♦</span></span>
+              <span class="pc red" title="Three of diamonds"><span class="r">3</span><span class="s">♦</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc black" title="Ten of clubs"><span class="r ten">10</span><span class="s">♣</span></span>
+              <span class="pc black" title="Six of clubs"><span class="r">6</span><span class="s">♣</span></span>
+              <span class="pc black" title="Five of clubs"><span class="r">5</span><span class="s">♣</span></span>
+              <span class="pc black" title="Two of clubs"><span class="r">2</span><span class="s">♣</span></span>
+            </div>
+          </div>
+          <span class="pass-note">Pass ♥K and ♠A</span>
+          <p>The <strong>♥K</strong> is a lone King. If you keep it, it is extreme peril. Pass it off — and you can still send a winner, the <strong>♠A</strong>, along with it. Do not ship two side winners and leave that bare King sitting in your hand.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="cover-pass">
+      <h2>Passing as cover</h2>
+      <div class="lead">Strengthen your own hand, within reason</div>
+      <div class="body">
+        <p>As cover, you also pass chiefly to strengthen your own hand, within reason. You are the one who has to take the tricks, so the pass should make that job easier — not just shuffle the deck around.</p>
+        <p>A good option, often, is to pass to make yourself short-suited. Void a side suit, or get down to one card in it, and those trumps start working for you.</p>
+
+        <div class="ex" aria-label="Example: pass to short-suit yourself">
+          <h3>Example &middot; Short-suit yourself</h3>
+          <p class="who">You are the cover. You hold:</p>
+          <div class="hand" aria-label="King, Queen, ten, eight of spades; Ace, nine, six, three of hearts; Ace, seven, four of diamonds; eight, three of clubs">
+            <div class="suit-group">
+              <span class="pc black" title="King of spades"><span class="r">K</span><span class="s">♠</span></span>
+              <span class="pc black" title="Queen of spades"><span class="r">Q</span><span class="s">♠</span></span>
+              <span class="pc black" title="Ten of spades"><span class="r ten">10</span><span class="s">♠</span></span>
+              <span class="pc black" title="Eight of spades"><span class="r">8</span><span class="s">♠</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red" title="Ace of hearts"><span class="r">A</span><span class="s">♥</span></span>
+              <span class="pc red" title="Nine of hearts"><span class="r">9</span><span class="s">♥</span></span>
+              <span class="pc red" title="Six of hearts"><span class="r">6</span><span class="s">♥</span></span>
+              <span class="pc red" title="Three of hearts"><span class="r">3</span><span class="s">♥</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc red" title="Ace of diamonds"><span class="r">A</span><span class="s">♦</span></span>
+              <span class="pc red" title="Seven of diamonds"><span class="r">7</span><span class="s">♦</span></span>
+              <span class="pc red" title="Four of diamonds"><span class="r">4</span><span class="s">♦</span></span>
+            </div>
+            <div class="suit-group">
+              <span class="pc black pass" title="Eight of clubs"><span class="r">8</span><span class="s">♣</span></span>
+              <span class="pc black pass" title="Three of clubs"><span class="r">3</span><span class="s">♣</span></span>
+            </div>
+          </div>
+          <span class="pass-note">Pass ♣8 and ♣3</span>
+          <p>Pass both clubs and make yourself void. Now you can ruff clubs, and your own hand is stronger for it. That is often a better pass than poking at a hand that is already fairly solid.</p>
+        </div>
+
+        <div class="tip"><b>Within reason.</b> Short-suiting is a good option — not a command. Don't gut the hand just to void a suit if it costs you a card you need.</div>
+      </div>
+    </section>
+
+    <section class="sec" id="add-two">
+      <h2>Always add two</h2>
+      <div class="lead">Trust your partner to pass two winners</div>
+      <div class="body">
+        <p>You should always add two to the bid, trusting your partner to pass two winners. If your hand looks like a 4, bid 6. Those two tricks are on the way — count them before you have even seen them.</p>
+        <p>That trust runs both ways. The nil hand is supposed to send you help. Bid as if they will.</p>
+        <div class="tip"><b>A simple habit.</b> Count your own tricks, then add two. Don't shade it back to “maybe one.” The whole variation is built on that pass.</div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="back-bottom">
+    <a href="/">&larr; Back to the board</a>
+  </div>
+  <div class="copy">&copy;Copyright 2026 Diamond Spaders, Wayward Cats &amp; Ochwiay</div>
+</div>
+</body>
+</html>

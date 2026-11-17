@@ -37,31 +37,19 @@
   }
 
   function sortShortRows() {
-    var area = document.querySelector(".icons-area");
-    if (!area) return;
-    var anchor = area.querySelector(":scope > .new-icon");
-    Array.prototype.slice.call(area.querySelectorAll(".icon-row")).sort(function (a, b) {
-      return a.querySelectorAll(".icon-sq").length - b.querySelectorAll(".icon-sq").length;
-    }).forEach(function (row) {
-      if (anchor) area.insertBefore(row, anchor);
-      else area.appendChild(row);
-    });
+    if (window.balanceStartIconRows) window.balanceStartIconRows();
   }
 
   function placeNew(url, dataUrl, title) {
     var area = document.querySelector(".icons-area");
     var rows = Array.prototype.slice.call(area.querySelectorAll(".icon-row"));
-    var row = rows[0];
+    var row = rows.length ? rows[rows.length - 1] : null;
     if (!row) {
       row = document.createElement("div");
       row.className = "icon-row";
       var anchor = area.querySelector(":scope > .new-icon");
       if (anchor) area.insertBefore(row, anchor);
       else area.appendChild(row);
-    } else {
-      rows.forEach(function (r) {
-        if (r.querySelectorAll(".icon-sq").length < row.querySelectorAll(".icon-sq").length) row = r;
-      });
     }
     var a = document.createElement("a");
     a.className = "icon-sq";
@@ -401,6 +389,7 @@
       area.appendChild(div);
     });
     if (add) area.appendChild(add);
+    if (window.balanceStartIconRows) window.balanceStartIconRows();
   }
 
   function serializeLayout() {
@@ -539,9 +528,9 @@
   }
 
   function pinAdd(add) {
-    var row = document.querySelector(".icons-area .icon-row");
-    if (!row || !add) return;
-    if (row.lastElementChild !== add) row.appendChild(add);
+    var area = document.querySelector(".icons-area");
+    if (!area || !add) return;
+    if (area.lastElementChild !== add) area.appendChild(add);
   }
 
   css();

@@ -271,6 +271,7 @@
     </script>
 <script>window.WX_DEFAULT={lat:40.5865,lon:-122.3917,name:"Redding, CA"};</script><script src="/wxloc.js?v=sugg1"></script>
 
+<script src="/start-icon-rows.js?v=1"></script>
 <script>
 (function () {
   if (document.body.classList.contains("icon-edit")) return;
@@ -297,6 +298,7 @@
         });
         area.appendChild(div);
       });
+      if (window.balanceStartIconRows) window.balanceStartIconRows();
     }).catch(function () {});
 })();
 </script>

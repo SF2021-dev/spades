@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All Pages — Diamond Spaders</title>
+<meta name="description" content="A directory of every Diamond Spaders subpage — the board, chat, guides, start pages, and archives.">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #0a0a0a; overflow-x: hidden; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #fbe646; line-height: 1.45; -webkit-text-size-adjust: 100%; }
+  a { color: #fbe646; }
+  .wrap { width: 100%; max-width: 1100px; margin: 0 auto; background: #0a0a0a; }
+  .banner { width: 100%; height: auto; max-height: 140px; object-fit: contain; display: block; background: #0a0a0a; }
+
+  .top { display: flex; align-items: baseline; justify-content: flex-end; gap: 12px; padding: 12px 18px 0; }
+  .top .back { color: #c9a227; font-size: 13px; font-weight: 700; text-decoration: none; }
+  .top .back:hover, .top .back:focus-visible { color: #fbe646; text-decoration: underline; }
+
+  .hero { text-align: center; padding: 22px 22px 24px; margin: 10px 0 0; background: #120c08; border-top: 2px solid #fbe646; border-bottom: 2px solid #fbe646; }
+  .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.22em; color: #c9a227; text-transform: uppercase; }
+  .hero h1 { margin: 8px 0 10px; font-size: clamp(26px, 5vw, 40px); line-height: 1.15; font-weight: 800; color: #fbe646; letter-spacing: 0.01em; }
+  .hero p { margin: 0 auto; max-width: 640px; font-size: clamp(15px, 1.8vw, 17px); color: #e8dca0; }
+
+  .page { padding: 22px 18px 8px; }
+  .sec { margin: 0 0 28px; }
+  .sec h2 { margin: 0 0 12px; font-size: 13px; font-weight: 800; letter-spacing: 0.14em; color: #fbe646; text-transform: uppercase; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+
+  .tile {
+    display: flex; gap: 14px; align-items: flex-start; text-decoration: none; color: #fbe646;
+    padding: 14px 14px 13px; border: 1px solid #444; border-radius: 12px; background: #161616;
+  }
+  .tile:hover, .tile:focus-visible { border-color: #fbe646; background: #2a1608; outline: none; }
+  .ico {
+    width: 48px; height: 48px; object-fit: cover; border-radius: 8px; flex: 0 0 auto;
+    background: #120c08; display: block;
+  }
+  .ico.emoji { object-fit: contain; padding: 7px; background: #f3e9c6; border: 1px solid #8a7018; }
+  .body { min-width: 0; }
+  .tile h3 { margin: 0 0 3px; font-size: 15px; font-weight: 800; letter-spacing: 0.03em; color: #fbe646; }
+  .tile p { margin: 0; font-size: 13px; color: #e8dca0; line-height: 1.35; font-weight: 500; }
+  .path { display: block; margin-top: 6px; font-size: 11px; color: #c9a227; font-weight: 700; letter-spacing: 0.04em; }
+
+  .back-bottom { text-align: center; padding: 10px 16px 8px; }
+  .back-bottom a {
+    display: inline-block; text-decoration: none; font-weight: 800; font-size: 16px; letter-spacing: 0.05em;
+    padding: 12px 22px; border: 2px solid #fbe646; border-radius: 10px; background: #120c08; color: #fbe646;
+  }
+  .back-bottom a:hover, .back-bottom a:focus-visible { background: #2a1608; }
+  .copy { text-align: center; padding: 16px 10px 28px; color: #c9a227; font-size: 13px; font-weight: 700; }
+
+  @media (max-width: 520px) {
+    .page { padding: 16px 12px 6px; }
+    .tile { padding: 12px; }
+    .tile p { font-size: 12.5px; }
+  }
+</style>
+<script data-goatcounter="/api/count" async src="/gc.js"></script>
+<noscript><img src="/api/count?p=/all/&noscript=1" alt="" width="1" height="1" style="position:absolute;left:-9999px"></noscript>
+</head>
+<body>
+<div class="wrap">
+  <a href="/"><img class="banner" src="/dsaltbanner.png" alt="Diamond Spaders"></a>
+  <div class="top">
+    <a class="back" href="/">&larr; Back to the board</a>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">Diamond Spaders</div>
+    <h1>All pages</h1>
+    <p>Every subpage on the site, in one place.</p>
+  </header>
+
+  <main class="page">
+
+    <section class="sec">
+      <h2>The board</h2>
+      <div class="grid">
+        <a class="tile" href="/">
+          <img class="ico" src="/icons/board.png" alt="">
+          <div class="body">
+            <h3>Main board</h3>
+            <p>Today’s tours, winners, and ranks.</p>
+            <span class="path">/</span>
+          </div>
+        </a>
+        <a class="tile" href="/update/">
+          <img class="ico" src="/icons/tours.png" alt="">
+          <div class="body">
+            <h3>Today’s board</h3>
+            <p>Load today’s tours and winners on a simple list.</p>
+            <span class="path">/update/</span>
+          </div>
+        </a>
+        <a class="tile" href="/nov26/">
+          <img class="ico emoji" src="/all/icons/1f4c5.svg" alt="">
+          <div class="body">
+            <h3>November 2026</h3>
+            <p>Archived winners from November.</p>
+            <span class="path">/nov26/</span>
+          </div>
+        </a>
+        <a class="tile" href="/october2026/">
+          <img class="ico emoji" src="/all/icons/1f4c6.svg" alt="">
+          <div class="body">
+            <h3>October 2026</h3>
+            <p>Archived winners from October.</p>
+            <span class="path">/october2026/</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Play and tools</h2>
+      <div class="grid">
+        <a class="tile" href="/ask/">
+          <img class="ico emoji" src="/all/icons/2753.svg" alt="">
+          <div class="body">
+            <h3>Ask</h3>
+            <p>Ask MyLeague questions from the board.</p>
+            <span class="path">/ask/</span>
+          </div>
+        </a>
+        <a class="tile" href="/snoop/">
+          <img class="ico emoji" src="/all/icons/1f50d.svg" alt="">
+          <div class="body">
+            <h3>Snoop</h3>
+            <p>Look up a player’s tours by time frame.</p>
+            <span class="path">/snoop/</span>
+          </div>
+        </a>
+        <a class="tile" href="/stats/">
+          <img class="ico emoji" src="/all/icons/1f4ca.svg" alt="">
+          <div class="body">
+            <h3>Stats</h3>
+            <p>Daily stats across the spades leagues.</p>
+            <span class="path">/stats/</span>
+          </div>
+        </a>
+        <a class="tile" href="/videos/">
+          <img class="ico" src="/icons/youtube.png" alt="">
+          <div class="body">
+            <h3>Videos</h3>
+            <p>Share and watch clips with the league.</p>
+            <span class="path">/videos/</span>
+          </div>
+        </a>
+        <a class="tile" href="/chat/">
+          <img class="ico" src="/chat-icon.png" alt="">
+          <div class="body">
+            <h3>Private chat</h3>
+            <p>One-to-one chat with other members.</p>
+            <span class="path">/chat/</span>
+          </div>
+        </a>
+        <a class="tile" href="/group-chat/">
+          <img class="ico emoji" src="/all/icons/1f4c1.svg" alt="">
+          <div class="body">
+            <h3>Folders</h3>
+            <p>Shared folders and group chat.</p>
+            <span class="path">/group-chat/</span>
+          </div>
+        </a>
+        <a class="tile" href="/dailyreport/">
+          <img class="ico emoji" src="/all/icons/1f4cb.svg" alt="">
+          <div class="body">
+            <h3>Daily reports</h3>
+            <p>The latest all-leagues report, plus the archive of earlier days.</p>
+            <span class="path">/dailyreport/</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Guides</h2>
+      <div class="grid">
+        <a class="tile" href="/howtoplayinadiamondstournament/">
+          <img class="ico" src="/sign%20up.jpg" alt="">
+          <div class="body">
+            <h3>New player guide</h3>
+            <p>How to play in a Diamonds tournament.</p>
+            <span class="path">/howtoplayinadiamondstournament/</span>
+          </div>
+        </a>
+        <a class="tile" href="/how-to-create-a-myleague-tournament/">
+          <img class="ico" src="/how%20to%20create%20a%20tour.jpg" alt="">
+          <div class="body">
+            <h3>How to create a tournament</h3>
+            <p>Step-by-step MyLeague tour setup.</p>
+            <span class="path">/how-to-create-a-myleague-tournament/</span>
+          </div>
+        </a>
+        <a class="tile" href="/sui-pass-2-tutorial/">
+          <img class="ico emoji" src="/all/icons/2660.svg" alt="">
+          <div class="body">
+            <h3>SUI PASS 2 Tips</h3>
+            <p>Strategy for SUI PASS 2 — the nil, the cover, and the two-card pass.</p>
+            <span class="path">/sui-pass-2-tutorial/</span>
+          </div>
+        </a>
+        <a class="tile" href="/windows-clipboard/">
+          <img class="ico" src="/windows%20cliopboard.jpg" alt="">
+          <div class="body">
+            <h3>Windows clipboard</h3>
+            <p>Copy and paste on Windows, including the clipboard history.</p>
+            <span class="path">/windows-clipboard/</span>
+          </div>
+        </a>
+        <a class="tile" href="/reconnect/">
+          <img class="ico emoji" src="/all/icons/1f50c.svg" alt="">
+          <div class="body">
+            <h3>Reconnect help</h3>
+            <p>Step-by-step fix if MyLeague or the site will not stay connected.</p>
+            <span class="path">/reconnect/</span>
+          </div>
+        </a>
+        <a class="tile" href="/register">
+          <img class="ico emoji" src="/all/icons/1f511.svg" alt="">
+          <div class="body">
+            <h3>Sign in / Register</h3>
+            <p>Sign up or log in to Diamond Spaders.</p>
+            <span class="path">/register</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Start pages</h2>
+      <div class="grid">
+        <a class="tile" href="/start">
+          <img class="ico" src="/icons/ds.png" alt="">
+          <div class="body">
+            <h3>Start</h3>
+            <p>Start page with clocks, weather, and tours.</p>
+            <span class="path">/start</span>
+          </div>
+        </a>
+        <a class="tile" href="/start2/">
+          <img class="ico" src="/icons/ds-start2.png" alt="">
+          <div class="body">
+            <h3>Start 2</h3>
+            <p>A second start page with clocks, weather, and tours.</p>
+            <span class="path">/start2/</span>
+          </div>
+        </a>
+        <a class="tile" href="/start3/">
+          <img class="ico emoji" src="/all/icons/1f550.svg" alt="">
+          <div class="body">
+            <h3>Start 3</h3>
+            <p>German start page (Startseite) with clocks and shortcuts.</p>
+            <span class="path">/start3/</span>
+          </div>
+        </a>
+        <a class="tile" href="/startb/">
+          <img class="ico emoji" src="/all/icons/1f550.svg" alt="">
+          <div class="body">
+            <h3>Start B</h3>
+            <p>An alternate start page.</p>
+            <span class="path">/startb/</span>
+          </div>
+        </a>
+        <a class="tile" href="/startx/">
+          <img class="ico" src="/icons/ds.png" alt="">
+          <div class="body">
+            <h3>Start X</h3>
+            <p>Start X — clocks, weather, and tours.</p>
+            <span class="path">/startx/</span>
+          </div>
+        </a>
+        <a class="tile" href="/start-edit.html">
+          <img class="ico emoji" src="/all/icons/2699.svg" alt="">
+          <div class="body">
+            <h3>Edit Start</h3>
+            <p>Rearrange the icons on the Start page.</p>
+            <span class="path">/start-edit.html</span>
+          </div>
+        </a>
+        <a class="tile" href="/start2-edit.html">
+          <img class="ico emoji" src="/all/icons/270f.svg" alt="">
+          <div class="body">
+            <h3>Edit Start 2</h3>
+            <p>Rearrange the icons on Start 2.</p>
+            <span class="path">/start2-edit.html</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h2>Other</h2>
+      <div class="grid">
+        <a class="tile" href="/caroline/">
+          <img class="ico emoji" src="/all/icons/1f4ac.svg" alt="">
+          <div class="body">
+            <h3>Caroline</h3>
+            <p>A saved lobby chat, in order, with screenshots.</p>
+            <span class="path">/caroline/</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="back-bottom">
+    <a href="/">&larr; Back to the board</a>
+  </div>
+  <div class="copy">&copy;Copyright 2026 Diamond Spaders, Wayward Cats &amp; Ochwiay</div>
+</div>
+</body>
+</html>

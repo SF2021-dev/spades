@@ -12,11 +12,12 @@
   function css() {
     var tag = document.createElement("style");
     tag.textContent = [
-      "body.icon-edit .icons-area { top: 126px; }",
-      ".edit-bar { position:absolute; top:82px; left:0; right:290px; display:flex; justify-content:center; align-items:center; gap:12px; z-index:40; pointer-events:none; }",
+      "body.icon-edit .search, body.icon-edit .hint { z-index: 50; }",
+      "body.icon-edit .icons-area { top: 128px; bottom: 48px; overflow: hidden; }",
+      ".edit-bar { position:absolute; top:78px; left:20px; right:290px; display:flex; justify-content:flex-start; align-items:center; gap:10px; z-index:40; pointer-events:none; }",
       ".edit-bar > * { pointer-events:auto; }",
       ".edits-complete {",
-      "  background:#fbe646; color:#1a1200; border:0; border-radius:8px; font-weight:800; font-size:16px; padding:8px 16px; cursor:pointer; }",
+      "  background:#fbe646; color:#1a1200; border:0; border-radius:8px; font-weight:800; font-size:15px; padding:7px 14px; cursor:pointer; }",
       ".edits-complete:disabled { opacity:0.6; cursor:wait; }",
       ".icon-sq { position:relative; }",
       ".icon-dots { display:none; position:absolute; top:2px; right:2px; width:18px; height:22px; padding:0; border:0; border-radius:4px;",
@@ -30,8 +31,7 @@
       ".icon-pick p { margin:0 0 12px; }",
       ".icon-pick button { display:block; width:100%; margin:8px 0 0; background:#fbe646; color:#1a1200; border:0; border-radius:8px; font-weight:800; font-size:15px; padding:8px 10px; cursor:pointer; }",
       ".icon-pick .cancel { background:transparent; color:#fbe646; border:1px solid #fbe646; }",
-      ".icon-row .new-icon { align-self:center; margin-left:4px; }",
-      ".new-icon { margin-top:0; background:transparent; color:#fbe646; border:1px solid #fbe646; border-radius:8px; font-weight:800; font-size:15px; padding:8px 14px; cursor:pointer; }"
+      ".new-icon { background:transparent; color:#fbe646; border:1px solid #fbe646; border-radius:8px; font-weight:800; font-size:15px; padding:7px 14px; cursor:pointer; }"
     ].join("\n");
     document.head.appendChild(tag);
   }
@@ -370,7 +370,6 @@
   function applySavedLayout(layout) {
     var area = document.querySelector(".icons-area");
     if (!area || !layout || !layout.length) return;
-    var add = area.querySelector(".new-icon");
     area.innerHTML = "";
     layout.forEach(function (row) {
       var div = document.createElement("div");
@@ -388,7 +387,6 @@
       });
       area.appendChild(div);
     });
-    if (add) area.appendChild(add);
     if (window.balanceStartIconRows) window.balanceStartIconRows();
   }
 
@@ -464,7 +462,7 @@
     });
     document.addEventListener("mousedown", function (e) {
       if (e.button !== 0) return;
-      if (e.target.closest(".icon-dots, .icon-menu, .edits-complete, .icon-pick")) return;
+      if (e.target.closest(".icon-dots, .icon-menu, .edits-complete, .icon-pick, .new-icon, .edit-bar")) return;
       var icon = e.target.closest(".icon-sq");
       if (!icon) return;
       e.preventDefault();
@@ -503,11 +501,6 @@
         alert(err.message || String(err));
       });
     });
-    var bar = document.createElement("div");
-    bar.className = "edit-bar";
-    bar.appendChild(done);
-    document.body.appendChild(bar);
-    var area = document.querySelector(".icons-area");
     var add = document.createElement("button");
     add.type = "button";
     add.className = "new-icon";
@@ -522,15 +515,12 @@
         placeNew(url, dataUrl, name);
       });
     });
+    var bar = document.createElement("div");
+    bar.className = "edit-bar";
+    bar.appendChild(done);
+    bar.appendChild(add);
+    document.body.appendChild(bar);
     sortShortRows();
-    pinAdd(add);
-    new MutationObserver(function () { pinAdd(add); }).observe(area || document.body, { childList: true, subtree: true });
-  }
-
-  function pinAdd(add) {
-    var area = document.querySelector(".icons-area");
-    if (!area || !add) return;
-    if (area.lastElementChild !== add) area.appendChild(add);
   }
 
   css();

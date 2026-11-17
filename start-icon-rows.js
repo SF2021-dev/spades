@@ -1,8 +1,13 @@
-/* Balance start-page icon rows: same count per row when N divides evenly
-   (e.g. 12 icons with room for 8 → 2×6; 9 with room for 7 → 3×3).
-   Otherwise rows differ by at most one. Recomputes on resize. */
+/* Always 4 icon rows on /start and /start2 (and their edit pages).
+   k = ceil(N/4):
+     N = 4k     → four rows of k
+     N = 4k-1   → top row k-1, other three k
+     N = 4k-2   → top two rows k-1, bottom two k
+     N = 4k-3   → top three rows k-1, bottom row k
+   Width no longer changes the row count. If a row would overflow,
+   shrink icon gaps (then icon size only if gap is already 0). */
 (function (w) {
-  var timer = null, busy = false;
+  var timer = null, busy = false, styleTag = null;
 
   function areaEl() { return document.querySelector(".icons-area"); }
 
@@ -16,39 +21,106 @@
     });
   }
 
-  function measure(area, icons) {
-    var width = area.clientWidth;
-    var icon = icons[0];
-    var iw = icon ? icon.offsetWidth : 0;
-    if (!iw && icon) iw = parseFloat(w.getComputedStyle(icon).width) || 0;
-    if (!iw) iw = 68;
-    var gap = 14;
-    var row = area.querySelector(".icon-row");
-    if (row) {
-      var g = parseFloat(w.getComputedStyle(row).columnGap || w.getComputedStyle(row).gap);
-      if (isFinite(g)) gap = g;
-    }
-    return { width: width, icon: iw, gap: gap };
+  function ensureStyle() {
+    if (styleTag) return;
+    styleTag = document.createElement("style");
+    styleTag.setAttribute("data-start-icon-rows", "1");
+    styleTag.textContent = [
+      ".icons-area.start-icon-fitted { gap: var(--start-row-gap, 16px); }",
+      ".icons-area.start-icon-fitted .icon-row { gap: var(--start-icon-gap, 14px); justify-content: center; }",
+      ".icons-area.start-icon-fitted .icon-sq { width: var(--start-icon-size) !important; height: var(--start-icon-size) !important; }"
+    ].join("\n");
+    document.head.appendChild(styleTag);
   }
 
-  function rowSizes(n, maxCols) {
+  function measureDefaults(area, icons) {
+    var icon = icons[0];
+    var iw = 0;
+    if (icon) {
+      /* Prefer the stylesheet size, not a previously fitted (shrunk) size. */
+      var cs = w.getComputedStyle(icon);
+      var raw = (cs.getPropertyValue("width") || "").trim();
+      /* If we already fitted, read the original from data or CSS without the fitted class. */
+      if (area.classList.contains("start-icon-fitted")) {
+        iw = parseFloat(area.getAttribute("data-icon-natural")) || 0;
+      }
+      if (!iw) iw = icon.offsetWidth;
+      if (!iw) iw = parseFloat(cs.width) || 0;
+    }
+    if (!iw) iw = 68;
+    var gap = 14, rowGap = 16;
+    var row = area.querySelector(".icon-row");
+    if (row && !area.classList.contains("start-icon-fitted")) {
+      var g = parseFloat(w.getComputedStyle(row).columnGap || w.getComputedStyle(row).gap);
+      if (isFinite(g)) gap = g;
+    } else if (area.getAttribute("data-icon-gap")) {
+      gap = parseFloat(area.getAttribute("data-icon-gap")) || gap;
+    }
+    if (!area.classList.contains("start-icon-fitted")) {
+      var rg = parseFloat(w.getComputedStyle(area).rowGap || w.getComputedStyle(area).gap);
+      if (isFinite(rg)) rowGap = rg;
+      area.setAttribute("data-icon-natural", String(iw));
+      area.setAttribute("data-icon-gap", String(gap));
+      area.setAttribute("data-row-gap", String(rowGap));
+    } else {
+      iw = parseFloat(area.getAttribute("data-icon-natural")) || iw;
+      gap = parseFloat(area.getAttribute("data-icon-gap")) || gap;
+      rowGap = parseFloat(area.getAttribute("data-row-gap")) || rowGap;
+    }
+    return { width: area.clientWidth, height: area.clientHeight, icon: iw, gap: gap, rowGap: rowGap };
+  }
+
+  function rowSizes(n) {
     if (n <= 0) return [];
-    maxCols = Math.max(1, maxCols);
-    if (n <= maxCols) return [n];
-    var d;
-    for (d = Math.min(maxCols, n); d >= 2; d--) {
-      if (n % d === 0) {
-        var even = [];
-        for (var i = 0, rows = n / d; i < rows; i++) even.push(d);
-        return even;
+    if (n <= 4) {
+      var ones = [];
+      for (var i = 0; i < n; i++) ones.push(1);
+      return ones;
+    }
+    var k = Math.ceil(n / 4);
+    var rem = n % 4;
+    if (rem === 0) return [k, k, k, k];
+    if (rem === 3) return [k - 1, k, k, k];
+    if (rem === 2) return [k - 1, k - 1, k, k];
+    return [k - 1, k - 1, k - 1, k];
+  }
+
+  function applyFit(area, m, longRow, rowCount) {
+    ensureStyle();
+    var width = m.width, height = m.height;
+    var size = m.icon, gap = m.gap, rowGap = m.rowGap;
+    if (longRow >= 2 && width > 20) {
+      var need = longRow * size + (longRow - 1) * gap;
+      if (need > width) {
+        gap = (width - longRow * size) / (longRow - 1);
+        if (gap < 0) {
+          gap = 0;
+          size = Math.max(24, Math.floor(width / longRow));
+        }
       }
     }
-    var rowCount = Math.ceil(n / maxCols);
-    var base = Math.floor(n / rowCount);
-    var rem = n % rowCount;
-    var out = [];
-    for (var r = 0; r < rowCount; r++) out.push(base + (r < rem ? 1 : 0));
-    return out;
+    rowCount = Math.max(1, rowCount || 4);
+    if (rowCount >= 2 && height > 20) {
+      var needH = rowCount * size + (rowCount - 1) * rowGap;
+      if (needH > height) {
+        rowGap = (height - rowCount * size) / (rowCount - 1);
+        if (rowGap < 0) {
+          rowGap = 0;
+          var fit = Math.floor(height / rowCount);
+          if (fit >= 24 && fit < size) size = fit;
+          /* Re-check horizontal fit at the new size */
+          if (longRow >= 2 && longRow * size + (longRow - 1) * Math.max(gap, 0) > width) {
+            gap = Math.max(0, (width - longRow * size) / (longRow - 1));
+          }
+        }
+      }
+    }
+    if (gap < 0) gap = 0;
+    if (rowGap < 0) rowGap = 0;
+    area.style.setProperty("--start-icon-gap", gap + "px");
+    area.style.setProperty("--start-row-gap", rowGap + "px");
+    area.style.setProperty("--start-icon-size", size + "px");
+    area.classList.add("start-icon-fitted");
   }
 
   function balance() {
@@ -56,10 +128,12 @@
     if (!area) return;
     var icons = iconsIn(area);
     if (!icons.length) return;
-    var m = measure(area, icons);
+    var m = measureDefaults(area, icons);
     if (m.width < 20) return;
-    var maxCols = Math.max(1, Math.floor((m.width + m.gap) / (m.icon + m.gap) + 1e-6));
-    var sizes = rowSizes(icons.length, maxCols);
+    var sizes = rowSizes(icons.length);
+    var longRow = 0;
+    sizes.forEach(function (s) { if (s > longRow) longRow = s; });
+    applyFit(area, m, longRow, sizes.length);
     var rest = extras(area);
     var same = area.querySelectorAll(".icon-row").length === sizes.length;
     if (same) {

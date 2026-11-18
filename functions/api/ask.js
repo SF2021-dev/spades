@@ -3,6 +3,7 @@
 // Leagues: /ask/leagues.json. Limits: /ask/limits.md.
 import REG from "../../ask/leagues.json";
 import RATES from "../../ask/player_tours.json";
+import H2H from "../../ask/h2h_matches.json";
 
 const CAL_URL = "https://www.myleague.com/pages/remote/tournamentCalendar.php";
 const UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120";
@@ -122,8 +123,9 @@ Fields:
 - "league": league name or abbreviation exactly as written in the question, or "" if none mentioned.
 - "date_from","date_to": YYYY-MM-DD in US Eastern time. "last night"/"yesterday" = yesterday. A late-night time "last night" (e.g. 11pm) = yesterday. No date mentioned = today, except "last time"/"most recent" questions: for "player_tours" leave both dates "" (whole history); for "last_win" use the last 60 days. Weekday names = most recent such day (today or earlier).
 - "time": "HH:MM" 24-hour ET if a time is mentioned, else "". A time with no AM/PM from 1:00 to 7:59 means PM (e.g. "1:15" = "13:15"); 8:00 to 11:59 means AM.
-- "ask": one of "winner" (who won a specific tour), "players" (who was on the winning team of a specific tour), "td" (who ran/hosted a specific tour), "game" (game type/format/rules of a specific tour), "count_tours" (how many tours), "player_wins" (how many / which tours a named player won), "last_win" (when a named player last won), "list" (what tours ran / all winners), "player_tours" (how many / which / what tours a named player played, entered or joined, e.g. "what tours did X play in today", when a player last played, a player's placings / 2nd / 3rd places / bux won), "participants" (who played / who entered / who is in a specific tour, e.g. "who played in the 6:15"; set "time" and no player), "leaderboard" (who won / played / hosted the most tours, most wins, top winners; no player name needed), "player_rate" (a named player's win rate / success rate / best or worst game type or variation, record by variation, percentage of wins, including when the question asks about games / matches / hands vs tours; set "player"), "unsupported" (anything else, e.g. ratings, individual hand or trick scores).
-- "player": player name exactly as written, or "". If the question says "I"/"me"/"my"/"mine" and gives no other name, leave "player" "" (the server fills in the signed-in user's MyLeague handle). For "leaderboard" leave "player" "".
+- "ask": one of "winner" (who won a specific tour), "players" (who was on the winning team of a specific tour), "td" (who ran/hosted a specific tour), "game" (game type/format/rules of a specific tour), "count_tours" (how many tours), "player_wins" (how many / which tours a named player won), "last_win" (when a named player last won), "list" (what tours ran / all winners), "player_tours" (how many / which / what tours a named player played, entered or joined, e.g. "what tours did X play in today", when a player last played, a player's placings / 2nd / 3rd places / bux won), "participants" (who played / who entered / who is in a specific tour, e.g. "who played in the 6:15"; set "time" and no player), "leaderboard" (who won / played / hosted the most tours, most wins, top winners; no player name needed), "player_rate" (a named player's win rate / success rate / best or worst game type or variation, record by variation, percentage of wins, including when the question asks about games / matches / hands vs tours; set "player"), "head_to_head" (games / matches between two named players, or between a named player and "I"/"me"/"myself", for a game type such as CUT; set "player" and "player2"), "unsupported" (anything else, e.g. ratings, individual hand or trick scores).
+- "player": player name exactly as written, or "". If the question says "I"/"me"/"my"/"mine" and gives no other name, leave "player" "" (the server fills in the signed-in user's MyLeague handle). For "leaderboard" leave "player" "". For "head_to_head", set "player" and "player2" to the two names ("myself"/"I"/"me" may be left "" to be filled in).
+- "player2": second player for "head_to_head", else "".
 - "game": game type if mentioned (CUT, SINGLES, SUI PASS 2, REG PARTNERS, etc.), else "".
 - "td": host/TD name if the question filters to tours hosted by someone, else "".
 - "metric": for "leaderboard" only: "wins" (default), "played", or "hosted".
@@ -1738,6 +1740,338 @@ function shouldCacheAnswer(answer) {
   return t && !/could not be reached/i.test(t) && !/not configured/i.test(t) && !/taking too long/i.test(t);
 }
 
+
+// ---------------- head-to-head from MyLeague STANDINGS brackets
+// Source: https://cgi6.igl.net/tourneysystem/standings.php?tcount=<id>&path=diamondspaders
+// A game is one table in the single-elim bracket (often 2 or 3 players in CUT). Byes are not games.
+const DATEISH_TOKEN = /^(?:\d{4}|\d{1,2}\/\d{1,2}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*)$/i;
+const H2H_SHAPE = /\b(?:head\s*-?\s*to\s*-?\s*head|\bh2h\b|\bbetween\b|\bversus\b|\bvs\.?\b|\bagainst\b|\boutcome\b|\brecord\b)\b/i;
+function h2hTokenOk(n) {
+  const t = String(n || "").trim();
+  if (!t || DATEISH_TOKEN.test(t)) return false;
+  if (isMePronoun(t) || /^myself$|^yourself$/i.test(t)) return true;
+  return okPlayerName(t);
+}
+function resolveH2HName(n, me) {
+  const t = String(n || "").replace(/^@/, "").trim();
+  if (!t) return "";
+  if (isMePronoun(t) || /^myself$|^yourself$/i.test(t)) return me || "";
+  return t;
+}
+function h2hPlayersFromQ(q, me) {
+  const names = [];
+  const add = (a, b) => {
+    if (!h2hTokenOk(a) || !h2hTokenOk(b)) return false;
+    const A = resolveH2HName(a, me), B = resolveH2HName(b, me);
+    if (!A && isMePronoun(a)) return "needMe";
+    if (!B && isMePronoun(b)) return "needMe";
+    if (!A || !B) return false;
+    if (A.toLowerCase() === B.toLowerCase()) return false;
+    names.push(A, B);
+    return true;
+  };
+  const between = q.match(/\bbetween\s+@?([A-Za-z][\w.\-]{1,24})\s+and\s+@?([A-Za-z][\w.\-]{1,24})\b/i);
+  if (between) {
+    const r = add(between[1], between[2]);
+    if (r === "needMe") return { needMe: true };
+    if (r && names.length === 2) return { a: names[0], b: names[1] };
+  }
+  const vs = q.match(/\b@?([A-Za-z][\w.\-]{1,24})\s+(?:vs\.?|versus|against)\s+@?([A-Za-z][\w.\-]{1,24})\b/i);
+  if (vs) {
+    const r = add(vs[1], vs[2]);
+    if (r === "needMe") return { needMe: true };
+    if (r && names.length === 2) return { a: names[0], b: names[1] };
+  }
+  if (SAYS_ME.test(q)) {
+    const withMe = q.match(/\b(?:with|against|versus|vs\.?|and)\s+@?([A-Za-z][\w.\-]{1,24})\b/i);
+    if (withMe && h2hTokenOk(withMe[1]) && !isMePronoun(withMe[1])) {
+      if (!me) return { needMe: true };
+      return { a: me, b: withMe[1] };
+    }
+  }
+  return null;
+}
+function h2hIntent(q, me) {
+  const pair = h2hPlayersFromQ(q, me);
+  if (!pair) return null;
+  const shaped = H2H_SHAPE.test(q) || (/\b(?:games?|matches|tables?)\b/i.test(q) && /\b(?:and|with|between|versus|vs\.?|against)\b/i.test(q));
+  if (!shaped) return null;
+  return { ...pair, game: gameFromQ(q, officialNames(), {}) || "" };
+}
+async function loadH2H(ctx) {
+  if (ETC.h2h && Date.now() - ETC.h2h.t < 60000) return ETC.h2h.v;
+  let v = null;
+  try {
+    const r = await ctx.env.ASSETS.fetch(new Request(new URL("/ask/h2h_matches.json", ctx.url)));
+    if (r.ok) v = await r.json();
+  } catch (_) {}
+  if (!v || !v.tours || typeof v.tours !== "object") v = H2H;
+  ETC.h2h = { t: Date.now(), v };
+  return v;
+}
+function slotParse(text) {
+  const m = String(text || "").trim().match(/^\((\d+|N\/A)\)\s+(.+)$/);
+  if (!m) return null;
+  const seed = m[1], name = m[2].trim();
+  const bye = seed.toUpperCase() === "N/A" || name.toLowerCase() === "bye";
+  return { seed, name, bye };
+}
+function parseStandingsHtml(page) {
+  if (!page || /invalid\s+tourney/i.test(page)) return null;
+  const html = String(page).replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "");
+  const tables = [];
+  const stack = [];
+  const re = /<\/?(table|tr|td|img)\b([^>]*)>|<\/?[a-zA-Z][^>]*>|([^<]+)/gi;
+  let m;
+  while ((m = re.exec(html))) {
+    const raw = m[0], tag = (m[1] || "").toLowerCase(), attrs = m[2] || "", text = m[3];
+    const close = raw.startsWith("</");
+    if (!tag && text == null) continue; // other tags such as <font> / <b> / <br>
+    if (text != null) {
+      if (stack.length && stack[stack.length - 1].tdDepth && text.trim())
+        stack[stack.length - 1].parts.push(text.trim());
+      continue;
+    }
+    if (tag === "table") {
+      if (close) { if (stack.length) stack.pop(); }
+      else {
+        const t = { rows: [], cur: null, tdDepth: 0, parts: [], bg: "" };
+        tables.push(t); stack.push(t);
+      }
+    } else if (tag === "tr" && stack.length && !close) {
+      const row = [];
+      stack[stack.length - 1].cur = row;
+      stack[stack.length - 1].rows.push(row);
+    } else if (tag === "td" && stack.length) {
+      const t = stack[stack.length - 1];
+      if (!close) {
+        t.tdDepth++;
+        if (t.tdDepth === 1) {
+          t.parts = [];
+          const bg = /bgcolor\s*=\s*["']?([#\w]+)/i.exec(attrs);
+          t.bg = bg ? bg[1] : "";
+        }
+      } else if (t.tdDepth) {
+        t.tdDepth--;
+        if (t.tdDepth === 0 && t.cur) {
+          const cellText = t.parts.join(" ").replace(/\s+/g, " ").trim();
+          t.cur.push({ t: cellText, bg: t.bg || "" });
+        }
+      }
+    } else if (tag === "img" && stack.length && stack[stack.length - 1].tdDepth) {
+      stack[stack.length - 1].parts.push("[img]");
+    }
+  }
+  let best = null, bestN = 0;
+  for (const t of tables) {
+    let n = 0;
+    for (const row of t.rows) for (const c of row) if (slotParse(c.t)) n++;
+    if (n > bestN) { bestN = n; best = t; }
+  }
+  if (!best || !best.rows.length) return null;
+  const grid = best.rows;
+  const ncol = Math.max(0, ...grid.map(r => r.length));
+  const cols = [];
+  for (let c = 0; c < ncol; c++) {
+    let names = 0, reserved = 0;
+    for (const row of grid) {
+      if (c >= row.length) continue;
+      if (slotParse(row[c].t)) names++;
+      else {
+        const bg = String(row[c].bg || "").toLowerCase();
+        if (!row[c].t && bg && bg !== "ffffff" && bg !== "white" && bg !== "#ffffff") reserved++;
+      }
+    }
+    if (names || reserved) cols.push(c);
+  }
+  if (cols.length < 2) return null;
+  const slots = (col, includeEmpty) => {
+    const out = [];
+    grid.forEach((row, r) => {
+      if (col >= row.length) return;
+      const s = slotParse(row[col].t);
+      if (s) { out.push({ ...s, row: r, empty: false }); return; }
+      if (includeEmpty) {
+        const bg = String(row[col].bg || "").toLowerCase();
+        if (!row[col].t && bg && bg !== "ffffff" && bg !== "white" && bg !== "#ffffff")
+          out.push({ row: r, seed: "", name: "", bye: false, empty: true });
+      }
+    });
+    return out;
+  };
+  const matches = [];
+  for (let ri = 0; ri < cols.length - 1; ri++) {
+    const feeders = slots(cols[ri], false);
+    const winners = slots(cols[ri + 1], true);
+    if (!feeders.length || !winners.length) continue;
+    const groups = winners.map(() => []);
+    for (const f of feeders) {
+      let bi = 0, bd = Infinity;
+      winners.forEach((w, i) => {
+        const d = Math.abs(w.row - f.row);
+        if (d < bd || (d === bd && w.row < winners[bi].row)) { bd = d; bi = i; }
+      });
+      groups[bi].push(f);
+    }
+    winners.forEach((w, i) => {
+      const actual = groups[i].filter(f => !f.bye);
+      if (actual.length < 2) return;
+      const players = actual.map(f => f.name);
+      let winner = null;
+      if (!w.empty && w.name && !w.bye) {
+        const hit = players.find(n => n.toLowerCase() === w.name.toLowerCase());
+        if (hit) winner = hit;
+      }
+      matches.push({ round: ri + 1, players, winner });
+    });
+  }
+  return matches;
+}
+async function fetchStandingsMatches(tid) {
+  for (const srv of ["cgi6", "plus2"]) {
+    try {
+      const page = await (await fetch(`https://${srv}.igl.net/tourneysystem/standings.php?tcount=${encodeURIComponent(tid)}&path=diamondspaders`, { headers: { "User-Agent": UA } })).text();
+      if (/invalid\s+tourney/i.test(page)) return { standings: "expired", matches: [] };
+      const matches = parseStandingsHtml(page);
+      if (matches) return { standings: "ok", matches };
+    } catch (_) {}
+  }
+  return null;
+}
+function tourLabelOf(t) {
+  const raw = String((t && t.label) || "").trim();
+  // Only the six official board labels; never coerce an unlabeled/SPADES tour into CUT.
+  return SIX_LABELS.includes(raw) ? raw : "";
+}
+function inPeriod(date, from, to) {
+  if (from && date < from) return false;
+  if (to && date > to) return false;
+  return true;
+}
+function fmtHM(hhmm) {
+  const [h, m] = String(hhmm || "0:0").split(":").map(Number);
+  return fmtTime(h || 0, m || 0);
+}
+async function headToHead(q, intent, now, ctx) {
+  if (intent.needMe) return { info: unknownMeMessage(), final: true };
+  let a = intent.a, b = intent.b;
+  const meName = (ctx && ctx.me) || "";
+  if (meName && b.toLowerCase() === meName.toLowerCase()) { a = intent.b; b = intent.a; }
+  const cfg = await loadCfg(ctx);
+  const keysA = rateNameKeys(a, cfg), keysB = rateNameKeys(b, cfg);
+  const shownA = shownOf(a, cfg, a), shownB = shownOf(b, cfg, b);
+  const want = officialize(intent.game, officialNames()) || "";
+  const per = periodFromQ(q, now);
+  const from = per ? per[0] : "", to = per ? per[1] : "";
+  const rates = await loadRates(ctx);
+  const h2h = await loadH2H(ctx);
+  const byId = Object.assign({}, (h2h && h2h.tours) || {});
+  const tours = Array.isArray(rates && rates.tours) ? rates.tours : [];
+  const both = [];
+  for (const t of tours) {
+    const lab = tourLabelOf(t);
+    if (want && !labelsMatch(want, lab)) continue;
+    if (!SIX_LABELS.includes(lab)) continue;
+    if (!inPeriod(t.date, from, to)) continue;
+    if (!playerIn(t.players, keysA) || !playerIn(t.players, keysB)) continue;
+    both.push({ ...t, label: lab, id: String(t.id) });
+  }
+  // Live-refresh open or uncached tours they both played (cap 8, newest first).
+  const refresh = both
+    .filter(t => {
+      const rec = byId[t.id];
+      const open = !tourIsFinished(t) || String(t.status || "") === "open";
+      return open || !rec || rec.standings === "error" || rec.standings === "missing";
+    })
+    .sort((x, y) => (y.date + y.time).localeCompare(x.date + x.time))
+    .slice(0, 8);
+  if (refresh.length) {
+    const got = await Promise.all(refresh.map(t => fetchStandingsMatches(t.id).then(r => [t.id, r]).catch(() => [t.id, null])));
+    for (const [id, r] of got) {
+      if (!r) continue;
+      const prev = byId[id] || {};
+      // Never replace a good cached bracket with a failed or expired fetch.
+      if (r.standings === "ok")
+        byId[id] = { ...prev, id, standings: "ok", matches: r.matches || [] };
+      else if (prev.standings !== "ok")
+        byId[id] = { ...prev, id, standings: r.standings, matches: prev.matches || [] };
+    }
+  }
+  const games = [];
+  const metIds = new Set();
+  const expired = [];
+  const noMeet = [];
+  for (const t of both) {
+    const rec = byId[t.id] || {};
+    const st = rec.standings || "missing";
+    if (st !== "ok") { expired.push(t); continue; }
+    const hits = (rec.matches || []).filter(m => playerIn(m.players, keysA) && playerIn(m.players, keysB));
+    if (hits.length) {
+      metIds.add(t.id);
+      for (const m of hits) games.push({ t, m });
+    } else noMeet.push(t);
+  }
+  const done = games.filter(g => g.m && g.m.winner);
+  const openGames = games.filter(g => !g.m || !g.m.winner);
+  let aWins = 0, bWins = 0, third = 0;
+  const thirdNames = [];
+  for (const g of done) {
+    const w = g.m.winner;
+    if (namesMatch(keysA, w)) aWins++;
+    else if (namesMatch(keysB, w)) bWins++;
+    else { third++; thirdNames.push(shownOf(w, cfg, w)); }
+  }
+  const kind = want || "tour";
+  const kindBit = want ? ` ${want}` : "";
+  const span = both.length ? (from || to ? ` ${fmtRange(from || both[both.length - 1].date, to || both[0].date)}` : "") : "";
+  const lines = [];
+  const sorted = [...games].sort((x, y) => (y.t.date + y.t.time).localeCompare(x.t.date + x.t.time));
+  for (const g of sorted) {
+    const when = `${fmtDate(g.t.date)} ${fmtHM(g.t.time)} ${g.t.label}`;
+    const others = (g.m.players || []).filter(n => !namesMatch(keysA, n) && !namesMatch(keysB, n) && !namesMatch(rateNameKeys(g.m.winner || "", cfg), n));
+    const extra = others.length ? ` (also at the table: ${others.map(n => shownOf(n, cfg, n)).join(", ")})` : "";
+    if (!g.m.winner) lines.push(`• ${when}: in progress${extra}`);
+    else lines.push(`• ${when}: ${shownOf(g.m.winner, cfg, g.m.winner)} won${extra}`);
+  }
+  if (!games.length && !expired.length && !noMeet.length) {
+    const who = `${shownA} and ${shownB}`;
+    const perBit = span ? span : "";
+    return { info: want
+      ? `There are no recorded ${want} tours that both ${who} played${perBit}.`
+      : `There are no recorded tours that both ${who} played${perBit}.`, final: true, player: shownA, player2: shownB };
+  }
+  let lead;
+  if (done.length || openGames.length) {
+    const thirdBit = third ? `, and a third player won ${third}` : "";
+    const openBit = openGames.length ? ` ${openGames.length} ${openGames.length === 1 ? "game is" : "games are"} still in progress.` : "";
+    lead = `${shownA} and ${shownB} have played each other in ${games.length}${kindBit} game${games.length === 1 ? "" : "s"} (from MyLeague standings). ${shownA} has won ${aWins}, ${shownB} has won ${bWins}${thirdBit}.`.replace(/\s+/g, " ");
+    if (openBit) lead = lead.replace(/\.\s*$/, ".") + openBit;
+  } else {
+    lead = `${shownA} and ${shownB} have no recorded head-to-head${kindBit} games in the standings still available.`;
+  }
+  const parts = [lead];
+  if (lines.length) parts.push("The games:\n" + lines.join("\n"));
+  if (noMeet.length) {
+    parts.push(`They also both played in ${noMeet.length} other${kindBit} tour${noMeet.length === 1 ? "" : "s"} without meeting at the same table.`);
+  }
+  if (expired.length) {
+    const dates = expired.map(t => t.date).sort();
+    const aTour = expired.filter(t => playerIn(t.winners, keysA)).length;
+    const bTour = expired.filter(t => playerIn(t.winners, keysB)).length;
+    const posted = expired.filter(t => (t.winners || []).length).length;
+    const none = expired.length - posted;
+    const fromD = fmtDate(dates[0]), toD = fmtDate(dates[dates.length - 1]);
+    const when = dates[0] === dates[dates.length - 1] ? ` on ${fromD}` : ` (${fromD} to ${toD})`;
+    let note = `Standings for ${expired.length} older${kindBit} tour${expired.length === 1 ? "" : "s"} they both entered${when} are no longer available, so those individual games are not in this head-to-head.`;
+    note += ` Of those tours, ${shownA} was posted as the tour winner in ${aTour} and ${shownB} in ${bTour}`;
+    note += none ? `; ${none} ha${none === 1 ? "s" : "ve"} no posted winner in the records.` : ".";
+    parts.push(note);
+  }
+  return { info: parts.join("\n\n"), final: true, player: shownA, player2: shownB, game: want, aWins, bWins, third, games: done.length, open: openGames.length };
+}
+export { h2hIntent, headToHead, parseStandingsHtml };
+
+
 // ---------------- handler
 export async function onRequestPost({ request, env, waitUntil }) {
   let q = "";
@@ -1745,7 +2079,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
   const me = await signedInHandle(request, env);
-  const ansKey = `ans/v12/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v13/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());
@@ -1760,6 +2094,20 @@ export async function onRequestPost({ request, env, waitUntil }) {
   // Fast path first — never block these on Workers AI.
   const stub = { ask: "", player: "", date_from: "", date_to: "", league: "", game: "", time: "", td: "", metric: "", top: 5 };
   stub.player = resolveAskPlayer(q, stub, me);
+  const h2hQ = h2hIntent(q, me);
+  if (h2hQ) {
+    Q = stub;
+    Q.ask = "head_to_head";
+    Q.player = h2hQ.needMe ? "" : h2hQ.a;
+    Q.player2 = h2hQ.needMe ? "" : h2hQ.b;
+    Q.game = h2hQ.game || "";
+    const ctx = { env, url: request.url, debug: !!env.DEBUG, me };
+    try { data = await headToHead(q, h2hQ, now, ctx); } catch (_) { data = { info: "MyLeague's standings data could not be read right now.", final: true }; }
+    answer = data.info || "The answer could not be produced.";
+    const out = { answer, query: { ...Q, ask: "head_to_head" }, data };
+    if (shouldCacheAnswer(out.answer)) waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
+    return json(out);
+  }
   const rateIntent = successRateIntent(q, stub);
   if (rateIntent) {
     Q = stub;

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUI PASS 2 bids — Review — Diamond Spaders</title>
+<meta name="description" content="Owner review of SUI PASS 2 what's-my-bid answers.">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #0a0a0a; overflow-x: hidden; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #fbe646; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+  a { color: #fbe646; }
+  .wrap { width: 100%; max-width: 960px; margin: 0 auto; background: #0a0a0a; }
+  .banner { width: 100%; height: auto; max-height: 140px; object-fit: contain; display: block; background: #0a0a0a; }
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 18px 0; }
+  .top a { color: #c9a227; font-size: 13px; font-weight: 700; text-decoration: none; }
+  .top a:hover, .top a:focus-visible { color: #fbe646; text-decoration: underline; }
+  .hero { text-align: center; padding: 22px 22px 24px; margin: 10px 0 0; background: #120c08; border-top: 2px solid #fbe646; border-bottom: 2px solid #fbe646; }
+  .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.22em; color: #c9a227; text-transform: uppercase; }
+  .hero h1 { margin: 8px 0 10px; font-size: clamp(26px, 5vw, 40px); line-height: 1.15; font-weight: 800; color: #fbe646; }
+  .hero p { margin: 0 auto; max-width: 640px; font-size: 16px; color: #e8dca0; }
+  .page { padding: 22px 18px 8px; display: grid; gap: 18px; }
+  .status { color: #e8dca0; font-size: 16px; text-align: center; padding: 20px; }
+  .status.err { color: #f3bf56; }
+  .player { background: #161616; border: 1px solid #3a3020; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.45); }
+  .player-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; padding: 16px 20px 12px; border-bottom: 1px solid #3a3020; }
+  .player-head h2 { margin: 0; font-size: 22px; color: #fbe646; }
+  .when { color: #c9a227; font-size: 13px; font-weight: 700; }
+  .del { appearance: none; border: 1px solid #444; background: #120c08; color: #c9a227; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+  .del:hover, .del:focus-visible { border-color: #fbe646; color: #fbe646; outline: none; }
+  .grid { display: grid; gap: 12px; padding: 14px 16px 18px; }
+  .hand { display: grid; grid-template-columns: 160px 1fr; gap: 12px; align-items: center; background: #120c08; border: 1px solid #3a2a10; border-radius: 12px; padding: 10px; }
+  .hand img { width: 100%; height: auto; display: block; border-radius: 8px; background: #07140c; }
+  .meta { color: #f1e7b8; font-size: 15px; }
+  .meta b { color: #fbe646; }
+  .meta .n { color: #c9a227; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+  .pass-note { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 999px; background: #2a1608; border: 1px solid #fbe646; color: #fbe646; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+  .back-bottom { text-align: center; padding: 10px 16px 8px; }
+  .back-bottom a { display: inline-block; text-decoration: none; font-weight: 800; font-size: 16px; letter-spacing: 0.05em; padding: 12px 22px; border: 2px solid #fbe646; border-radius: 10px; background: #120c08; color: #fbe646; }
+  .back-bottom a:hover, .back-bottom a:focus-visible { background: #2a1608; }
+  .copy { text-align: center; padding: 16px 10px 28px; color: #c9a227; font-size: 13px; font-weight: 700; }
+  @media (max-width: 620px) {
+    .hand { grid-template-columns: 1fr; }
+    .hand img { max-width: 100%; }
+  }
+</style>
+<script data-goatcounter="/api/count" async src="/gc.js"></script>
+<noscript><img src="/api/count?p=/sui-pass-2-bids/review/&noscript=1" alt="" width="1" height="1" style="position:absolute;left:-9999px"></noscript>
+</head>
+<body>
+<div class="wrap">
+  <a href="/"><img class="banner" src="/dsaltbanner.png" alt="Diamond Spaders"></a>
+  <div class="top">
+    <a href="/sui-pass-2-bids/">&larr; Back to the examples</a>
+    <a href="/">Board</a>
+  </div>
+  <header class="hero">
+    <div class="eyebrow">Diamond Spaders &middot; SUI PASS 2</div>
+    <h1>Review answers</h1>
+    <p id="subhead">Every saved submission, by player.</p>
+  </header>
+  <main class="page" id="list">
+    <p class="status">Loading…</p>
+  </main>
+  <div class="back-bottom">
+    <a href="/sui-pass-2-bids/">&larr; Back to the examples</a>
+  </div>
+  <div class="copy">&copy;Copyright 2026 Diamond Spaders, Wayward Cats &amp; Ochwiay</div>
+</div>
+<script src="../hands.js"></script>
+<script>
+(function(){
+  var HANDS = window.SUI_BIDS_HANDS || [];
+  var list = document.getElementById("list");
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]; }); }
+  function when(ts){
+    if (!ts) return "";
+    try {
+      return new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", weekday: "short", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true }).format(new Date(ts)) + " PT";
+    } catch(e){ return ""; }
+  }
+  function handSrc(n){
+    var h = HANDS[n-1];
+    return h ? h.src : "../hands/hand"+n+".webp";
+  }
+  function render(subs){
+    if (!subs.length) {
+      list.innerHTML = '<p class="status">No submissions yet.</p>';
+      return;
+    }
+    document.getElementById("subhead").textContent = subs.length + (subs.length===1?" submission":" submissions") + ", newest first.";
+    list.innerHTML = subs.map(function(s){
+      var answers = Array.isArray(s.answers) ? s.answers : [];
+      var rows = "";
+      for (var i=1;i<=10;i++){
+        var a = answers.find(function(x){ return x && Number(x.hand)===i; }) || answers[i-1] || {};
+        var bid = a.bid || "—";
+        var pass = Array.isArray(a.pass) && a.pass.length ? a.pass.join(", ") : "—";
+        rows += '<div class="hand">'+
+          '<img src="'+esc(handSrc(i))+'" alt="Hand '+i+'">'+
+          '<div class="meta"><div class="n">Example '+i+'</div>'+
+          "<div>Bid: <b>"+esc(String(bid))+"</b></div>"+
+          '<div class="pass-note">Pass '+esc(pass)+"</div></div></div>";
+      }
+      return '<article class="player" data-name="'+esc(s.username)+'">'+
+        '<div class="player-head"><h2>'+esc(s.username)+"</h2>"+
+        '<span class="when">'+(s.created_at && s.updated_at && s.updated_at!==s.created_at ? "First saved "+when(s.created_at)+" · Updated "+when(s.updated_at) : "Saved "+when(s.updated_at || s.created_at))+"</span>"+
+        '<button type="button" class="del" data-del="'+esc(s.username)+'">Delete</button></div>'+
+        '<div class="grid">'+rows+"</div></article>";
+    }).join("");
+  }
+  function load(){
+    return fetch("/api/sui-bids?review=1", { credentials: "same-origin" })
+      .then(function(r){ return r.json().then(function(j){ return { status: r.status, j: j }; }); })
+      .then(function(res){
+        if (res.status === 403) { list.innerHTML = '<p class="status err">This review page is for the site owner only.</p>'; return; }
+        if (res.status === 401) { list.innerHTML = '<p class="status err">Please <a href="/register?gate=1&next=/sui-pass-2-bids/review/">sign in</a> first.</p>'; return; }
+        if (!res.j || !res.j.ok) { list.innerHTML = '<p class="status err">' + esc((res.j && res.j.error) || "Could not load submissions.") + "</p>"; return; }
+        render(res.j.submissions || []);
+      })
+      .catch(function(){ list.innerHTML = '<p class="status err">Could not load submissions.</p>'; });
+  }
+  list.addEventListener("click", function(ev){
+    var btn = ev.target.closest("[data-del]");
+    if (!btn) return;
+    var name = btn.getAttribute("data-del");
+    if (!confirm("Delete the saved answers for " + name + "?")) return;
+    fetch("/api/sui-bids?name="+encodeURIComponent(name), { method: "DELETE", credentials: "same-origin" })
+      .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+      .then(function(res){
+        if (!res.ok) { alert((res.j && res.j.error) || "Could not delete."); return; }
+        load();
+      })
+      .catch(function(){ alert("Could not delete."); });
+  });
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUI PASS 2: What's My Bid? — Diamond Spaders</title>
+<meta name="description" content="Read the notes on SUI PASS 2, then complete ten what's-my-bid examples: bid or call nil, and pass two cards.">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #0a0a0a; overflow-x: hidden; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #fbe646; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+  a { color: #fbe646; }
+  .wrap { width: 100%; max-width: 880px; margin: 0 auto; background: #0a0a0a; }
+  .banner { width: 100%; height: auto; max-height: 140px; object-fit: contain; display: block; background: #0a0a0a; }
+
+  .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 18px 0; }
+  .top .back, .top .who { color: #c9a227; font-size: 13px; font-weight: 700; text-decoration: none; }
+  .top .back:hover, .top .back:focus-visible { color: #fbe646; text-decoration: underline; }
+  .top .who { margin-left: auto; }
+
+  .hero { text-align: center; padding: 22px 22px 24px; margin: 10px 0 0; background: #120c08; border-top: 2px solid #fbe646; border-bottom: 2px solid #fbe646; }
+  .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.22em; color: #c9a227; text-transform: uppercase; }
+  .hero h1 { margin: 8px 0 10px; font-size: clamp(26px, 5vw, 40px); line-height: 1.15; font-weight: 800; color: #fbe646; letter-spacing: 0.01em; }
+  .hero p { margin: 0 auto; max-width: 700px; font-size: clamp(15px, 1.8vw, 17px); color: #e8dca0; }
+
+  .jump { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
+  .jump a { text-decoration: none; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 7px 12px; border: 1px solid #444; border-radius: 999px; background: #161616; color: #fbe646; }
+  .jump a:hover, .jump a:focus-visible { border-color: #fbe646; background: #2a1608; }
+
+  .page { padding: 22px 18px 8px; display: grid; gap: 18px; }
+
+  .tips { background: #120c08; border: 2px solid #fbe646; border-radius: 14px; padding: 18px 20px 16px; }
+  .tips h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 0.14em; color: #fbe646; }
+  .tips ol { margin: 0; padding: 0; list-style: none; counter-reset: tip; }
+  .tips li { position: relative; padding: 6px 0 6px 36px; color: #f1e7b8; font-size: 16px; counter-increment: tip; }
+  .tips li::before { content: counter(tip); position: absolute; left: 0; top: 6px; width: 24px; height: 24px; border-radius: 50%; background: #161616; border: 1px solid #c9a227; color: #fbe646; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .tips strong { color: #fbe646; }
+
+  .sec { background: #161616; border: 1px solid #3a3020; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.45); scroll-margin-top: 12px; }
+  .sec h2 { margin: 0; padding: 16px 22px 0; font-size: clamp(20px, 2.6vw, 26px); line-height: 1.25; font-weight: 800; color: #fbe646; }
+  .lead { margin: 4px 22px 0; color: #c9a227; font-size: 14px; font-weight: 700; letter-spacing: 0.03em; }
+  .body { padding: 14px 22px 20px; }
+  .body p, .body li { color: #f1e7b8; font-size: 16.5px; }
+  .body p { margin: 0 0 12px; }
+  .body p:last-child { margin-bottom: 0; }
+  .body strong { color: #fbe646; }
+
+  .tip { margin: 14px 0 0; padding: 12px 14px; border-left: 4px solid #c9a227; background: #120c08; border-radius: 0 8px 8px 0; color: #e8dca0; font-size: 15px; }
+  .tip b { color: #fbe646; }
+
+  .ex { margin: 0; padding: 16px 16px 14px; background: #120c08; border: 1px solid #3a2a10; border-radius: 12px; }
+  .ex h3 { margin: 0 0 10px; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #fbe646; }
+
+  .fan-wrap { position: relative; width: 100%; line-height: 0; border-radius: 10px; overflow: hidden; background: #07140c; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+  .fan-wrap img { width: 100%; height: auto; display: block; pointer-events: none; -webkit-user-drag: none; }
+  .hot { position: absolute; border: 2px solid transparent; border-radius: 8px; background: transparent; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .hot:hover, .hot:focus-visible { border-color: rgba(251,230,70,.55); background: rgba(251,230,70,.08); outline: none; }
+  .hot.on { border-color: #fbe646; background: rgba(251,230,70,.16); box-shadow: 0 0 0 2px rgba(251,230,70,.35), 0 8px 16px rgba(0,0,0,.35); transform: translateY(-5%); z-index: 2; }
+
+  .bid-row { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .bid-row .lab { color: #c9a227; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-right: 6px; width: 100%; }
+  .bid-btn {
+    appearance: none; border: 1px solid #444; background: #161616; color: #fbe646;
+    font-weight: 800; font-size: 13px; letter-spacing: 0.04em;
+    padding: 8px 10px; min-width: 40px; border-radius: 8px; cursor: pointer;
+  }
+  .bid-btn.nil { min-width: 52px; }
+  .bid-btn:hover, .bid-btn:focus-visible { border-color: #fbe646; outline: none; }
+  .bid-btn.on { background: #2a1608; border-color: #fbe646; box-shadow: 0 0 0 1px #fbe646; }
+
+  .pass-line { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 28px; }
+  .pass-note { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #2a1608; border: 1px solid #fbe646; color: #fbe646; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+  .pass-note.wait { border-color: #444; background: #161616; color: #c9a227; }
+  .clear-pass { appearance: none; border: 0; background: none; color: #c9a227; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0; }
+  .clear-pass:hover, .clear-pass:focus-visible { color: #fbe646; }
+  .hint { margin: 8px 0 0; color: #c9a227; font-size: 12px; }
+
+  .submit-box { text-align: center; padding: 8px 16px 4px; }
+  .submit-box button {
+    appearance: none; display: inline-block; font-weight: 800; font-size: 16px; letter-spacing: 0.05em;
+    padding: 12px 26px; border: 2px solid #fbe646; border-radius: 10px; background: #120c08; color: #fbe646; cursor: pointer;
+  }
+  .submit-box button:hover, .submit-box button:focus-visible { background: #2a1608; outline: none; }
+  .submit-box button:disabled { opacity: .55; cursor: default; }
+  .status { margin: 10px auto 0; max-width: 640px; color: #e8dca0; font-size: 15px; }
+  .status.ok { color: #fbe646; font-weight: 700; }
+  .status.err { color: #f3bf56; }
+  .status a { font-weight: 800; }
+
+  .back-bottom { text-align: center; padding: 10px 16px 8px; }
+  .back-bottom a { display: inline-block; text-decoration: none; font-weight: 800; font-size: 16px; letter-spacing: 0.05em; padding: 12px 22px; border: 2px solid #fbe646; border-radius: 10px; background: #120c08; color: #fbe646; }
+  .back-bottom a:hover, .back-bottom a:focus-visible { background: #2a1608; }
+
+  .copy { text-align: center; padding: 16px 10px 28px; color: #c9a227; font-size: 13px; font-weight: 700; font-family: Arial, Helvetica, sans-serif; }
+
+  @media (max-width: 520px) {
+    .page { padding: 16px 12px 6px; }
+    .body { padding: 12px 16px 18px; }
+    .sec h2, .lead { padding-left: 16px; padding-right: 16px; }
+    .lead { margin-left: 0; margin-right: 0; }
+    .tips li, .body p, .body li { font-size: 15.5px; }
+    .bid-btn { padding: 9px 9px; min-width: 38px; }
+  }
+</style>
+<script data-goatcounter="/api/count" async src="/gc.js"></script>
+<noscript><img src="/api/count?p=/sui-pass-2-bids/&noscript=1" alt="" width="1" height="1" style="position:absolute;left:-9999px"></noscript>
+</head>
+<body>
+<div class="wrap">
+  <a href="/"><img class="banner" src="/dsaltbanner.png" alt="Diamond Spaders"></a>
+  <div class="top">
+    <a class="back" href="/">&larr; Back to the board</a>
+    <span class="who" id="who"></span>
+  </div>
+
+  <header class="hero">
+    <div class="eyebrow">Diamond Spaders &middot; SUI PASS 2</div>
+    <h1>SUI PASS 2: What's My Bid?</h1>
+    <p>Please read the following carefully, then complete the ten "what's my bid?" examples. When you've completed it successfully &mdash; most have more than one acceptable answer &mdash; we can move on.</p>
+    <nav class="jump" aria-label="Sections">
+      <a href="#notes">The idea</a>
+      <a href="#examples">The ten examples</a>
+    </nav>
+  </header>
+
+  <main class="page">
+
+    <section class="tips" id="notes">
+      <h2>THE IDEA</h2>
+      <ol>
+        <li>Decide early whether you're setting the nil or the cover. With two hands protecting it, the nil is hard to break, and at only 50 points, setting the cover is usually the better play.</li>
+        <li>A <strong>strong hand is often best for nil</strong>, because the main idea is to give your partner a strong hand.</li>
+        <li>When you <strong>cannot</strong> give partner that help, it is often best to <strong>bid</strong> &mdash; be the cover, and avoid setting them.</li>
+        <li>As the <strong>nil hand</strong>, always pass to strengthen the cover, unless the alternative is extreme peril &mdash; a lone King, for example.</li>
+        <li>As <strong>cover</strong>, pass chiefly to strengthen your own hand, within reason. A good option, often, is to pass to make yourself short-suited.</li>
+        <li>Always <strong>add two</strong> to the bid, trusting your partner to pass two winners.</li>
+      </ol>
+    </section>
+
+    <section class="sec" id="why-cover">
+      <h2>Why the cover hand matters</h2>
+      <div class="lead">Pick your target: the nil or the cover</div>
+      <div class="body">
+        <p>Trying to set a nil means playing different cards than if you're trying to set the cover, so you need to decide which is your goal. With two hands covering nils, a nil is not easy to break, and you risk setting yourself trying to set it. Additionally, a nil in <strong>SUI PASS 2</strong> is only worth 50 points, so setting the cover will be a push even if your side's nil is broken.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="how">
+      <h2>Nil, bid, and the pass</h2>
+      <div class="lead">The main idea is to give your partner a strong hand</div>
+      <div class="body">
+        <p>A strong hand is often best for the nil. That may sound backwards, but it isn't. If you have the strength, you can pass it to your partner and leave them a real cover hand. That is the point of the pass.</p>
+        <p>When you cannot &mdash; the hand is too weak to help them, or too dangerous to nil &mdash; it is often best to bid. Be the cover. You avoid putting your partner on a nil you cannot support, and you avoid setting them.</p>
+        <p>As the nil hand, you always pass to strengthen the cover hand. Give them winners. That is what the pass is for. The exception is extreme peril. A lone King, for example &mdash; if keeping it is likely to catch you, pass it off, even if that means the cover gets a slightly less helpful card.</p>
+        <p>As cover, pass chiefly to strengthen your own hand, within reason. A good option, often, is to pass to make yourself short-suited. Don't gut the hand just to void a suit if it costs you a card you need.</p>
+        <p>You should always add two to the bid, trusting your partner to pass two winners. If your hand looks like a 4, bid 6. Those two tricks are on the way &mdash; count them before you have even seen them. That trust runs both ways. The nil hand is supposed to send you help. Bid as if they will.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="examples">
+      <h2>What's my bid?</h2>
+      <div class="lead">Bid or call nil, then click the two cards you would pass</div>
+      <div class="body" id="examples-body">
+        <p>For each hand, choose a bid of 1&ndash;13 or Nil, and pass exactly two cards by tapping or clicking them on the picture. Click a selected card again to deselect it.</p>
+        <div id="hands"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="submit-box">
+    <button type="button" id="submit">Save my answers</button>
+    <p class="status" id="status" role="status"></p>
+  </div>
+  <div class="back-bottom">
+    <a href="/">&larr; Back to the board</a>
+  </div>
+  <div class="copy">&copy;Copyright 2026 Diamond Spaders, Wayward Cats &amp; Ochwiay</div>
+</div>
+<script src="hands.js"></script>
+<script>
+(function(){
+  var HANDS = window.SUI_BIDS_HANDS || [];
+  var BIDS = ["Nil","1","2","3","4","5","6","7","8","9","10","11","12","13"];
+  var state = HANDS.map(function(){ return { bid: "", passIdx: [] }; });
+  var me = null, isOwner = false, savedAt = 0;
+
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]; }); }
+  function passLabels(i){
+    var st = state[i], h = HANDS[i];
+    return st.passIdx.map(function(n){ return h.cards[n]; });
+  }
+  function passText(i){
+    var labs = passLabels(i);
+    return labs.length ? labs.join(", ") : "";
+  }
+  function zoneStyle(h, n){
+    var z, next, L, R, T = h.top, B = h.bottom;
+    if (h.lefts && h.lefts.length === 13 && h.fullW) {
+      L = h.lefts[n];
+      R = (n < 12) ? h.lefts[n + 1] : (h.lefts[n] + h.fullW);
+    } else {
+      z = h.zones && h.zones[n];
+      if (z) return "left:"+(z.x*100)+"%;top:"+(z.y*100)+"%;width:"+(z.w*100)+"%;height:"+(z.h*100)+"%;";
+      var left = h.left != null ? h.left : 0.02;
+      var right = h.right != null ? h.right : 0.985;
+      var lastW = h.fullW || ((right - left) * 0.145);
+      var step = (right - left - lastW) / 12;
+      L = left + n * step;
+      R = (n < 12) ? (left + (n + 1) * step) : (left + 12 * step + lastW);
+      T = h.top != null ? h.top : 0.20;
+      B = h.bottom != null ? h.bottom : 0.92;
+    }
+    if (R < L) { var t = L; L = R; R = t; }
+    return "left:"+(L*100)+"%;top:"+(T*100)+"%;width:"+((R-L)*100)+"%;height:"+((B-T)*100)+"%;";
+  }
+  function cardName(h, n){
+    var c = h.cards[n] || ("card " + (n+1));
+    var m = c.match(/^([AKQJ]|10|[2-9])([♠♥♦♣])$/);
+    if (!m) return "Select " + c;
+    var r = ({A:"Ace",K:"King",Q:"Queen",J:"Jack","10":"Ten","9":"Nine","8":"Eight","7":"Seven","6":"Six","5":"Five","4":"Four","3":"Three","2":"Two"})[m[1]] || m[1];
+    var s = ({"♠":"spades","♥":"hearts","♦":"diamonds","♣":"clubs"})[m[2]] || "";
+    return "Select " + r + " of " + s;
+  }
+  function renderPass(i){
+    var el = $("pass-"+i);
+    if (!el) return;
+    var labs = passLabels(i);
+    var n = labs.length;
+    var note = n === 2 ? labs.join(", ") : (n === 1 ? labs[0] + " — pick one more" : "Pass which two cards");
+    el.innerHTML = '<span class="pass-note'+(n===2?'':' wait')+'">'+esc(note)+'</span>' +
+      (n ? ' <button type="button" class="clear-pass" data-clear="'+i+'">Clear</button>' : '');
+  }
+  function renderHand(i){
+    var h = HANDS[i], st = state[i];
+    var bids = BIDS.map(function(b){
+      return '<button type="button" class="bid-btn'+(b==="Nil"?" nil":"")+(st.bid===b?" on":"")+'" data-hand="'+i+'" data-bid="'+b+'" aria-pressed="'+(st.bid===b?"true":"false")+'">'+b+"</button>";
+    }).join("");
+    var hots = h.cards.map(function(c, n){
+      return '<button type="button" class="hot'+(st.passIdx.indexOf(n)>=0?" on":"")+'" style="'+zoneStyle(h,n)+'" data-hand="'+i+'" data-card="'+n+'" aria-pressed="'+(st.passIdx.indexOf(n)>=0?"true":"false")+'" aria-label="'+esc(cardName(h,n))+'"></button>';
+    }).join("");
+    return '<div class="ex" id="ex-'+(i+1)+'" data-hand="'+i+'">'+
+      "<h3>Example "+(i+1)+" of 10</h3>"+
+      '<div class="fan-wrap" data-hand="'+i+'">'+
+        '<img src="'+esc(h.src)+'" alt="Example '+(i+1)+': thirteen-card hand" width="'+(h.width||1280)+'" height="'+(h.height||400)+'" draggable="false">'+
+        hots+
+      "</div>"+
+      '<div class="bid-row"><span class="lab">Bid or call nil</span>'+bids+"</div>"+
+      '<div class="pass-line" id="pass-'+i+'"></div>'+
+      '<p class="hint">Tap two cards to pass. A selected card lifts; tap it again to put it back.</p>'+
+    "</div>";
+  }
+  function renderAll(){
+    var root = $("hands");
+    if (!HANDS.length) {
+      root.innerHTML = '<p class="status err">The ten hands could not be loaded.</p>';
+      return;
+    }
+    root.innerHTML = HANDS.map(function(_,i){ return renderHand(i); }).join("");
+    HANDS.forEach(function(_,i){ renderPass(i); });
+  }
+  function setBid(i, bid){
+    state[i].bid = (state[i].bid === bid) ? "" : bid;
+    var box = $("ex-"+(i+1));
+    if (!box) return;
+    box.querySelectorAll(".bid-btn").forEach(function(b){
+      var on = b.getAttribute("data-bid") === state[i].bid;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  function toggleCard(i, n){
+    var arr = state[i].passIdx;
+    var at = arr.indexOf(n);
+    if (at >= 0) arr.splice(at, 1);
+    else if (arr.length < 2) arr.push(n);
+    var box = $("ex-"+(i+1));
+    if (box) {
+      box.querySelectorAll(".hot").forEach(function(b){
+        var idx = Number(b.getAttribute("data-card"));
+        var on = arr.indexOf(idx) >= 0;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    }
+    renderPass(i);
+  }
+  function applySaved(sub){
+    if (!sub || !Array.isArray(sub.answers)) return;
+    sub.answers.forEach(function(a, i){
+      if (!state[i] || !a) return;
+      if (a.bid) state[i].bid = String(a.bid);
+      if (Array.isArray(a.passIdx) && a.passIdx.length) {
+        state[i].passIdx = a.passIdx.map(Number).filter(function(n){ return n>=0 && n<=12; }).slice(0,2);
+      } else if (Array.isArray(a.pass)) {
+        state[i].passIdx = a.pass.map(function(lab){ return HANDS[i].cards.indexOf(lab); }).filter(function(n){ return n>=0; }).slice(0,2);
+      }
+    });
+    savedAt = sub.updated_at || 0;
+  }
+  function payload(){
+    return { answers: state.map(function(st, i){
+      return { hand: i+1, bid: st.bid, pass: passLabels(i), passIdx: st.passIdx.slice() };
+    }) };
+  }
+  function incomplete(){
+    for (var i=0;i<10;i++){
+      if (!state[i] || !state[i].bid || state[i].passIdx.length !== 2) return i+1;
+    }
+    return 0;
+  }
+  function say(msg, kind){
+    var el = $("status");
+    el.className = "status" + (kind ? " "+kind : "");
+    el.innerHTML = msg;
+  }
+  function when(ts){
+    if (!ts) return "";
+    try {
+      return new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true }).format(new Date(ts)) + " PT";
+    } catch(e){ return ""; }
+  }
+
+  $("hands").addEventListener("click", function(ev){
+    var t = ev.target.closest("[data-bid], [data-card], [data-clear]");
+    if (!t) return;
+    if (t.hasAttribute("data-clear")) {
+      var i = Number(t.getAttribute("data-clear"));
+      state[i].passIdx = [];
+      var box = $("ex-"+(i+1));
+      if (box) box.querySelectorAll(".hot").forEach(function(b){ b.classList.remove("on"); b.setAttribute("aria-pressed","false"); });
+      renderPass(i);
+      return;
+    }
+    if (t.hasAttribute("data-bid")) setBid(Number(t.getAttribute("data-hand")), t.getAttribute("data-bid"));
+    else if (t.hasAttribute("data-card")) toggleCard(Number(t.getAttribute("data-hand")), Number(t.getAttribute("data-card")));
+  });
+
+  $("submit").addEventListener("click", function(){
+    var miss = incomplete();
+    if (miss) {
+      say("Please finish example " + miss + " — each one needs a bid or Nil, and exactly two pass cards.", "err");
+      var el = $("ex-"+miss); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    var btn = $("submit");
+    btn.disabled = true;
+    say("Saving…");
+    fetch("/api/sui-bids", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload()) })
+      .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+      .then(function(res){
+        btn.disabled = false;
+        if (!res.ok) { say((res.j && res.j.error) || "Could not save just now.", "err"); return; }
+        savedAt = (res.j && res.j.updated_at) || Date.now();
+        var extra = isOwner ? ' <a href="/sui-pass-2-bids/review/">Review answers</a>' : "";
+        say("Thanks — your answers have been saved for review." + extra, "ok");
+      })
+      .catch(function(){ btn.disabled = false; say("Could not save just now. Please try again.", "err"); });
+  });
+
+  renderAll();
+  fetch("/api/sui-bids", { credentials: "same-origin" })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (j && j.user && j.user.username) {
+        me = j.user;
+        isOwner = !!j.owner;
+        $("who").textContent = "Signed in as " + j.user.username;
+        if (isOwner) {
+          $("who").innerHTML = "Signed in as " + esc(j.user.username) + ' · <a class="back" href="/sui-pass-2-bids/review/">Review answers</a>';
+        }
+      }
+      if (j && j.submission) {
+        applySaved(j.submission);
+        renderAll();
+        say("We loaded your saved answers. You can change them and save again." + (j.submission.updated_at ? " Last saved " + when(j.submission.updated_at) + "." : ""), "");
+      }
+    })
+    .catch(function(){});
+})();
+</script>
+</body>
+</html>

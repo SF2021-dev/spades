@@ -1114,6 +1114,11 @@
 "11960843": "PAB SUI PASS 2",
 "11960844": "CUT",
 "11960893": "REG PARTNERS",
+"11960912": "SUI PASS 2",
+"11960913": "SINGLES",
+"11960914": "REG PARTNERS",
+"11960915": "LOSER WINS",
+"11960916": "CUT",
 "manual-20261021-1015": "CUT",
 "manual-20261021-1115": "CUT",
 "manual-20261021-1315": "CUT",
@@ -2284,6 +2289,10 @@
 ],
 "11959569": [
 "trifolium"
+],
+"11959571": [
+"EgammeR",
+"DetroitLionsRule"
 ],
 "11959573": [
 "Maggie_May"

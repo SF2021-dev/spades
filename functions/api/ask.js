@@ -1744,57 +1744,121 @@ function shouldCacheAnswer(answer) {
 // ---------------- head-to-head from MyLeague STANDINGS brackets
 // Source: https://cgi6.igl.net/tourneysystem/standings.php?tcount=<id>&path=diamondspaders
 // A game is one table in the single-elim bracket (often 2 or 3 players in CUT). Byes are not games.
-const DATEISH_TOKEN = /^(?:\d{4}|\d{1,2}\/\d{1,2}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*)$/i;
-const H2H_SHAPE = /\b(?:head\s*-?\s*to\s*-?\s*head|\bh2h\b|\bbetween\b|\bversus\b|\bvs\.?\b|\bagainst\b|\boutcome\b|\brecord\b)\b/i;
-function h2hTokenOk(n) {
-  const t = String(n || "").trim();
-  if (!t || DATEISH_TOKEN.test(t)) return false;
-  if (isMePronoun(t) || /^myself$|^yourself$/i.test(t)) return true;
-  return okPlayerName(t);
+const H2H_COMMON = /^(a|an|the|of|in|on|at|to|for|from|and|or|as|is|was|are|were|be|been|being|has|have|had|did|does|do|how|many|much|more|most|least|few|some|any|all|both|each|every|other|others|same|such|own|no|not|only|just|also|even|very|than|then|that|this|these|those|which|what|whats|what's|who|whom|whose|why|when|where|she|he|her|him|hers|his|they|them|their|theirs|we|us|our|you|your|yours|it|its|one|two|win|wins|won|winning|winner|winners|loss|losses|lost|record|outcome|result|results|score|scores|game|games|match|matches|table|tables|tour|tours|tournament|tournaments|played|play|plays|playing|entered|joined|against|versus|vs|between|with|without|into|onto|over|under|about|after|before|since|until|during|while|if|so|but|by|per|up|out|off|down|again|once|times|first|next|last|past|previous|current|today|yesterday|tonight|tomorrow|week|month|year|day|days|morning|afternoon|evening|night|cut|cuts|singles|single|partners|partner|pards|pard|pab|sui|suicide|different|various|multiple|several|another|someone|anyone|anybody|somebody|everyone|everybody|nobody|myself|yourself|himself|herself|themselves|itself|i|me|my|mine|ive|im|id)$/i;
+const H2H_SHAPE = /\b(?:head\s*-?\s*to\s*-?\s*head|\bh2h\b|\bbetween\b|\bversus\b|\bvs\.?\b|\bagainst\b|\boutcome\b|\brecord\b|\bboth\s+played\b|\bhow\s+(?:many|did|do|have|has)\b|\bhow\s+many\s+did\b)\b/i;
+function knownPlayerIndex() {
+  if (ETC.knownPlayers) return ETC.knownPlayers;
+  const map = new Map();
+  const add = n => {
+    const raw = String(n || "").trim();
+    if (!raw || raw.length < 2) return;
+    if (H2H_COMMON.test(raw)) return;
+    const k = raw.toLowerCase();
+    if (!map.has(k)) map.set(k, raw);
+    const compact = k.replace(/[_\s]+/g, "");
+    if (compact.length >= 2 && compact !== k && !map.has(compact) && !H2H_COMMON.test(compact)) map.set(compact, raw);
+  };
+  for (const t of (RATES && RATES.tours) || []) {
+    for (const p of t.players || []) add(p);
+    for (const p of t.winners || []) add(p);
+  }
+  for (const t of Object.values((H2H && H2H.tours) || {})) {
+    for (const p of t.players || []) add(p);
+    for (const p of t.winners || []) add(p);
+    for (const m of t.matches || []) {
+      for (const p of m.players || []) add(p);
+      if (m.winner) add(m.winner);
+    }
+  }
+  for (const [shown, real] of Object.entries((REG && REG.aliases) || {})) { add(shown); add(real); }
+  const keys = [...map.keys()].sort((a, b) => b.length - a.length || a.localeCompare(b));
+  return (ETC.knownPlayers = { map, keys });
 }
-function resolveH2HName(n, me) {
-  const t = String(n || "").replace(/^@/, "").trim();
-  if (!t) return "";
-  if (isMePronoun(t) || /^myself$|^yourself$/i.test(t)) return me || "";
-  return t;
+function namedPlayersInQ(q) {
+  const { map, keys } = knownPlayerIndex();
+  const lower = String(q || "").toLowerCase();
+  const used = new Array(lower.length).fill(false);
+  const found = [];
+  const seen = new Set();
+  for (const k of keys) {
+    const rx = new RegExp("(^|[^a-z0-9_])(" + k.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&") + ")(?![a-z0-9_])", "gi");
+    let m;
+    while ((m = rx.exec(lower))) {
+      const start = m.index + m[1].length, end = start + m[2].length;
+      let overlap = false;
+      for (let i = start; i < end; i++) if (used[i]) { overlap = true; break; }
+      if (overlap) continue;
+      for (let i = start; i < end; i++) used[i] = true;
+      const disp = map.get(k);
+      const id = String(disp || "").toLowerCase();
+      if (disp && !seen.has(id)) { seen.add(id); found.push(disp); }
+    }
+  }
+  return found;
+}
+function h2hPeriod(q, now) {
+  const [y, mo] = now.date.split("-").map(Number);
+  if (/\bthis month\b/i.test(q)) return monthSpan(y, mo, now.date);
+  if (/\blast month\b/i.test(q) && !/\blast 30\b|\bpast 30\b|\bpast month\b/i.test(q))
+    return monthSpan(mo === 1 ? y - 1 : y, mo === 1 ? 12 : mo - 1, now.date);
+  const lastN = q.match(/\b(?:last|past)\s+(\d{1,3})\s+days?\b/i);
+  if (lastN) {
+    const n = Math.max(1, Math.min(180, +lastN[1]));
+    return [addDays(now.date, -(n - 1)), now.date];
+  }
+  const wd = new Date(now.date + "T12:00:00Z").getUTCDay(), mon = addDays(now.date, -((wd + 6) % 7));
+  if (/\blast week\b/i.test(q) && !/\blast 7\b|\bpast 7\b|\bpast week\b/i.test(q)) return [addDays(mon, -7), addDays(mon, -1)];
+  if (/\b(?:past|last)\s+(?:week|7 days)\b|\bpast\s+seven\s+days\b/i.test(q)) return [addDays(now.date, -6), now.date];
+  if (/\bthis week\b/i.test(q)) return [mon, now.date];
+  const text = String(q || "");
+  const hasExplicitDay = /\b(?:january|february|march|april|june|july|august|september|october|november|december|jan\.?|feb\.?|mar\.?|apr\.?|jun\.?|jul\.?|aug\.?|sept?\.?|oct\.?|nov\.?|dec\.?)\s+\d{1,2}/i.test(text)
+    || /\b\d{1,2}[/.-]\d{1,2}/.test(text)
+    || /\bon\s+(?:the\s+)?\d{1,2}(?:st|nd|rd|th)\b/i.test(text)
+    || /\b(?:20\d{2})-\d{1,2}-\d{1,2}\b/.test(text);
+  if (!hasExplicitDay) {
+    const named = q.match(/\b(january|february|march|april|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec)(?:\s+(\d{4}))?\b/i);
+    const may = !named && q.match(/\bin\s+may(?:\s+(\d{4}))?\b|\bmay\s+(\d{4})\b/i);
+    if (named || may) {
+      let month, year;
+      if (may) { month = 5; year = +(may[1] || may[2] || 0); }
+      else { month = MONTH_NUM[named[1].toLowerCase()]; year = +(named[2] || 0); }
+      if (!year) { year = y; if (month > mo) year = y - 1; }
+      return monthSpan(year, month, now.date);
+    }
+  }
+  const one = dayFromQ(q, now);
+  if (one) return [one, one];
+  return periodFromQ(q, now);
 }
 function h2hPlayersFromQ(q, me) {
-  const names = [];
-  const add = (a, b) => {
-    if (!h2hTokenOk(a) || !h2hTokenOk(b)) return false;
-    const A = resolveH2HName(a, me), B = resolveH2HName(b, me);
-    if (!A && isMePronoun(a)) return "needMe";
-    if (!B && isMePronoun(b)) return "needMe";
-    if (!A || !B) return false;
-    if (A.toLowerCase() === B.toLowerCase()) return false;
-    names.push(A, B);
-    return true;
-  };
-  const between = q.match(/\bbetween\s+@?([A-Za-z][\w.\-]{1,24})\s+and\s+@?([A-Za-z][\w.\-]{1,24})\b/i);
-  if (between) {
-    const r = add(between[1], between[2]);
-    if (r === "needMe") return { needMe: true };
-    if (r && names.length === 2) return { a: names[0], b: names[1] };
-  }
-  const vs = q.match(/\b@?([A-Za-z][\w.\-]{1,24})\s+(?:vs\.?|versus|against)\s+@?([A-Za-z][\w.\-]{1,24})\b/i);
-  if (vs) {
-    const r = add(vs[1], vs[2]);
-    if (r === "needMe") return { needMe: true };
-    if (r && names.length === 2) return { a: names[0], b: names[1] };
-  }
-  if (SAYS_ME.test(q)) {
-    const withMe = q.match(/\b(?:with|against|versus|vs\.?|and)\s+@?([A-Za-z][\w.\-]{1,24})\b/i);
-    if (withMe && h2hTokenOk(withMe[1]) && !isMePronoun(withMe[1])) {
-      if (!me) return { needMe: true };
-      return { a: me, b: withMe[1] };
+  const named = namedPlayersInQ(q);
+  const saysMe = SAYS_ME.test(q) || /\bmyself\b/i.test(q);
+  if (named.length >= 2) {
+    let a = named[0], b = named[1];
+    if (me) {
+      const meL = me.toLowerCase();
+      const mine = named.find(n => n.toLowerCase() === meL);
+      const other = named.find(n => n.toLowerCase() !== meL);
+      if (mine && other) { a = mine; b = other; }
     }
+    return { a, b };
+  }
+  if (named.length === 1) {
+    if (saysMe) {
+      if (!me) return { needMe: true };
+      if (named[0].toLowerCase() === me.toLowerCase()) return null;
+      return { a: me, b: named[0] };
+    }
+    return null;
   }
   return null;
 }
 function h2hIntent(q, me) {
   const pair = h2hPlayersFromQ(q, me);
   if (!pair) return null;
-  const shaped = H2H_SHAPE.test(q) || (/\b(?:games?|matches|tables?)\b/i.test(q) && /\b(?:and|with|between|versus|vs\.?|against)\b/i.test(q));
+  const shaped = H2H_SHAPE.test(q)
+    || (/\b(?:games?|matches|tables?)\b/i.test(q) && /\b(?:and|with|between|versus|vs\.?|against|both)\b/i.test(q))
+    || (/\b(?:games?|matches|tables?|tours?)\b/i.test(q) && /\bboth\s+played\b/i.test(q));
   if (!shaped) return null;
   return { ...pair, game: gameFromQ(q, officialNames(), {}) || "" };
 }
@@ -1961,8 +2025,9 @@ async function headToHead(q, intent, now, ctx) {
   const keysA = rateNameKeys(a, cfg), keysB = rateNameKeys(b, cfg);
   const shownA = shownOf(a, cfg, a), shownB = shownOf(b, cfg, b);
   const want = officialize(intent.game, officialNames()) || "";
-  const per = periodFromQ(q, now);
+  const per = h2hPeriod(q, now);
   const from = per ? per[0] : "", to = per ? per[1] : "";
+  const whenWords = (from && to) ? periodWords(q, from, to, now) : "";
   const rates = await loadRates(ctx);
   const h2h = await loadH2H(ctx);
   const byId = Object.assign({}, (h2h && h2h.tours) || {});
@@ -2023,7 +2088,7 @@ async function headToHead(q, intent, now, ctx) {
   }
   const kind = want || "tour";
   const kindBit = want ? ` ${want}` : "";
-  const span = both.length ? (from || to ? ` ${fmtRange(from || both[both.length - 1].date, to || both[0].date)}` : "") : "";
+  const span = whenWords ? ` ${whenWords}` : (from || to ? ` ${fmtRange(from, to)}` : "");
   const lines = [];
   const sorted = [...games].sort((x, y) => (y.t.date + y.t.time).localeCompare(x.t.date + x.t.time));
   for (const g of sorted) {
@@ -2037,17 +2102,18 @@ async function headToHead(q, intent, now, ctx) {
     const who = `${shownA} and ${shownB}`;
     const perBit = span ? span : "";
     return { info: want
-      ? `There are no recorded ${want} tours that both ${who} played${perBit}.`
-      : `There are no recorded tours that both ${who} played${perBit}.`, final: true, player: shownA, player2: shownB };
+      ? `There are no recorded ${want} games that both ${who} played${perBit}.`
+      : `There are no recorded games that both ${who} played${perBit}.`, final: true, player: shownA, player2: shownB };
   }
   let lead;
   if (done.length || openGames.length) {
     const thirdBit = third ? `, and a third player won ${third}` : "";
     const openBit = openGames.length ? ` ${openGames.length} ${openGames.length === 1 ? "game is" : "games are"} still in progress.` : "";
-    lead = `${shownA} and ${shownB} have played each other in ${games.length}${kindBit} game${games.length === 1 ? "" : "s"} (from MyLeague standings). ${shownA} has won ${aWins}, ${shownB} has won ${bWins}${thirdBit}.`.replace(/\s+/g, " ");
+    const whenBit = whenWords ? ` ${whenWords}` : "";
+    lead = `${shownA} and ${shownB} have played each other in ${games.length}${kindBit} game${games.length === 1 ? "" : "s"}${whenBit}, from MyLeague standings. ${shownA} has won ${aWins}, ${shownB} has won ${bWins}${thirdBit}.`.replace(/\s+/g, " ");
     if (openBit) lead = lead.replace(/\.\s*$/, ".") + openBit;
   } else {
-    lead = `${shownA} and ${shownB} have no recorded head-to-head${kindBit} games in the standings still available.`;
+    lead = `${shownA} and ${shownB} have no recorded head-to-head${kindBit} games${whenWords ? " " + whenWords : ""} in the standings still available.`;
   }
   const parts = [lead];
   if (lines.length) parts.push("The games:\n" + lines.join("\n"));
@@ -2062,14 +2128,23 @@ async function headToHead(q, intent, now, ctx) {
     const none = expired.length - posted;
     const fromD = fmtDate(dates[0]), toD = fmtDate(dates[dates.length - 1]);
     const when = dates[0] === dates[dates.length - 1] ? ` on ${fromD}` : ` (${fromD} to ${toD})`;
-    let note = `Standings for ${expired.length} older${kindBit} tour${expired.length === 1 ? "" : "s"} they both entered${when} are no longer available, so those individual games are not in this head-to-head.`;
-    note += ` Of those tours, ${shownA} was posted as the tour winner in ${aTour} and ${shownB} in ${bTour}`;
-    note += none ? `; ${none} ha${none === 1 ? "s" : "ve"} no posted winner in the records.` : ".";
+    const labs = [...new Set(expired.map(t => t.label).filter(l => l && l !== want))];
+    const labBit = !want && labs.length ? ` (${labs.join(", ")})` : "";
+    const inAsked = !!(from && to && dates[0] >= from && dates[dates.length - 1] <= to);
+    let note = inAsked && whenWords
+      ? `Standings for ${expired.length}${kindBit} tour${expired.length === 1 ? "" : "s"} they both entered ${whenWords}${labBit} are not available, so those individual games are not in this head-to-head.`
+      : `Standings for ${expired.length} older${kindBit} tour${expired.length === 1 ? "" : "s"} they both entered${when} are no longer available, so those individual games are not in this head-to-head.`;
+    if (aTour || bTour) {
+      note += ` Of those tours, ${shownA} was posted as the tour winner in ${aTour} and ${shownB} in ${bTour}`;
+      note += none ? `; ${none} ha${none === 1 ? "s" : "ve"} no posted winner in the records.` : ".";
+    } else if (none) {
+      note += ` ${none} of those ha${none === 1 ? "s" : "ve"} no posted winner in the records.`;
+    }
     parts.push(note);
   }
   return { info: parts.join("\n\n"), final: true, player: shownA, player2: shownB, game: want, aWins, bWins, third, games: done.length, open: openGames.length };
 }
-export { h2hIntent, headToHead, parseStandingsHtml };
+export { h2hIntent, headToHead, parseStandingsHtml, h2hPeriod, namedPlayersInQ };
 
 
 // ---------------- handler
@@ -2079,7 +2154,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (!q) return json({ answer: "No question was asked." });
   const now = etNow();
   const me = await signedInHandle(request, env);
-  const ansKey = `ans/v13/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v14/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());

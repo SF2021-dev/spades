@@ -295,7 +295,6 @@
 "10:15 AM|makinpa": 22,
 "10:15 AM|ochwiay": 22,
 "10:15 AM|potsayhitokettle": 16,
-"10:15 AM|tatsujin": 22,
 "10:15 AM|trifolium": 22,
 "10:15 AM|untouchable_one": 18,
 "10:15 PM|aceinblack": 20,
@@ -307,12 +306,10 @@
 "10:15 PM|muziklvr": 22,
 "10:15 PM|ochwiay": 22,
 "10:15 PM|really_why": 20,
-"10:15 PM|silkrollz": 22,
 "10:15 PM|treco521": 22,
 "10:15 PM|untouchable_one": 18,
 "10:15 PM|va_country_guy": 18,
 "11:15 AM|aceinblack": 20,
-"11:15 AM|bluangel1950": 20,
 "11:15 AM|gryzzlybear": 20,
 "11:15 AM|jaws33": 22,
 "11:15 AM|looks__": 22,
@@ -330,7 +327,6 @@
 "11:15 PM|silkrollz": 22,
 "11:15 PM|untouchable_one": 18,
 "12:15 PM|bluangel1950": 20,
-"12:15 PM|ellisandrew80": 18,
 "12:15 PM|hotandspicey69": 18,
 "12:15 PM|keepduckinthem": 18,
 "12:15 PM|lunatic20ca": 20,
@@ -344,7 +340,6 @@
 "1:15 PM|bluangel1950": 20,
 "1:15 PM|easyone23": 22,
 "1:15 PM|ellisandrew80": 18,
-"1:15 PM|looks__": 22,
 "1:15 PM|lunatic20ca": 20,
 "1:15 PM|makinpa": 22,
 "1:15 PM|melicious_1": 20,
@@ -362,7 +357,6 @@
 "2:15 PM|makinpa": 22,
 "2:15 PM|mybagsrgucci": 20,
 "2:15 PM|purplehaven16": 18,
-"2:15 PM|slovell_too": 20,
 "2:15 PM|tatsujin": 22,
 "2:15 PM|tykesbratt": 20,
 "3:15 PM|1jimbeam": 22,
@@ -372,7 +366,6 @@
 "3:15 PM|fetch_it_up": 20,
 "3:15 PM|flipflopgirlsc": 18,
 "3:15 PM|lewisrulz55": 20,
-"3:15 PM|lil_shopper": 20,
 "3:15 PM|looks__": 22,
 "3:15 PM|makinpa": 22,
 "3:15 PM|melicious_1": 20,
@@ -384,7 +377,6 @@
 "6:15 PM|flowerbill2": 20,
 "6:15 PM|huskernut50265": 18,
 "6:15 PM|jays_26": 22,
-"6:15 PM|khan01": 22,
 "6:15 PM|madrat": 22,
 "6:15 PM|muziklvr": 22,
 "6:15 PM|sadiee": 22,
@@ -397,12 +389,10 @@
 "8:15 AM|fetch_it_up": 20,
 "8:15 AM|jbaby1": 22,
 "8:15 AM|looks__": 22,
-"8:15 AM|madrat": 22,
 "8:15 AM|makinpa": 22,
 "8:15 AM|ochwiay": 22,
 "8:15 AM|tatsujin": 22,
 "8:15 AM|treco521": 22,
-"8:15 PM|aceylynn": 22,
 "8:15 PM|bluangel1950": 20,
 "8:15 PM|eager_1": 22,
 "8:15 PM|easyone23": 22,
@@ -1089,7 +1079,6 @@
 "11959872": "CUT",
 "11959887": "SINGLES",
 "11959918": "CUT",
-"11959924": "CUT",
 "11959957": "SUI PASS 2",
 "11960468": "CUT",
 "11960469": "PAB SUI PASS 2",
@@ -1119,6 +1108,8 @@
 "11960914": "REG PARTNERS",
 "11960916": "CUT",
 "11961020": "CUT",
+"11961027": "PAB SUI PASS 2",
+"11961028": "CUT",
 "manual-20261021-1015": "CUT",
 "manual-20261021-1115": "CUT",
 "manual-20261021-1315": "CUT",
@@ -2223,6 +2214,9 @@
 "11959417": [
 "Lookslikeapickel"
 ],
+"11959443": [
+"Maggie_May"
+],
 "11959447": [
 "waskelwabbit"
 ],
@@ -2337,6 +2331,9 @@
 ],
 "11959748": [
 "TinaBus"
+],
+"11959758": [
+"MaKinpa"
 ],
 "11959769": [
 "Ellisandrew80",

@@ -165,7 +165,7 @@
         function updateClock(){
             var v=tzParts('Etc/GMT+7');rot('hh',(v.hour%12)*30+(+v.minute)*0.5);rot('mh',(+v.minute)*6+(+v.second)*0.1);rot('sh',(+v.second)*6);
             var e=tzParts('America/New_York'),ab=estAbbr();
-            document.getElementById('est').textContent=hm(+e.hour,+e.minute)+' '+ab;
+            document.getElementById('est').textContent=SNOW().toLocaleDateString('en-US',{timeZone:'America/New_York',weekday:'short'}).toUpperCase()+' '+hm(+e.hour,+e.minute)+' '+ab;
             var today=e.year+'-'+e.month+'-'+e.day,nowMin=e.hour*60+(+e.minute);
             var up=TOURS.filter(function(t){if(!t.dt||t.dt===today)return (+t.h)*60+(+t.m)>nowMin;return t.dt>today;}).sort(function(a,b){return String(a.dt||today).localeCompare(String(b.dt||today))||((a.h*60+ +a.m)-(b.h*60+ +b.m));});
             var nxt=up[0]||null;

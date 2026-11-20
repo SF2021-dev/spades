@@ -26,15 +26,12 @@
     .rk { position:relative; width:22px; height:22px; flex:0 0 auto; }
     .rk b { position:absolute; top:-7px; left:-8px; font-size:10px; font-weight:800; color:#fbe646; }
     .rk img, .rk svg { width:22px; height:22px; display:block; border-radius:4px; }
-    #ds-upcoming { border-top:3px solid #fbe646; background:#0a0a0a; padding:0 0 16px; }
+    #ds-upcoming { border-top:3px solid #fbe646; background:#0a0a0a; padding:0; }
     #ds-upcoming .ds-up-title { padding:12px 10px 8px; font-size:15px; font-weight:800; letter-spacing:0.14em; color:#fbe646; }
-    #ds-upcoming .ds-up-day { padding:12px 10px 4px; font-size:14px; font-weight:800; letter-spacing:0.06em; color:#c9a227; }
-    #ds-upcoming a.ds-up-item { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; padding:7px 10px; font-size:16px; font-weight:700; color:#fbe646; text-decoration:none; }
-    #ds-upcoming a.ds-up-item:hover { background:#2a1608; }
-    #ds-upcoming .ds-up-time { color:#fff; min-width:6em; }
-    #ds-upcoming .ds-up-game { color:#fbe646; }
-    #ds-upcoming .ds-up-td { color:#fff; }
-    #ds-upcoming .ds-up-empty { padding:14px 10px; font-size:13px; font-weight:700; color:#c9a227; }
+    #ds-upcoming .ds-up-list { display:flex; flex-direction:column; gap:8px; background:#ff2ad4; padding:14px 12px; }
+    #ds-upcoming .ds-up-day { padding:10px 0 2px; font-family:Arial,Helvetica,sans-serif; font-size:16px; font-weight:800; letter-spacing:0.08em; color:#120c08; text-transform:uppercase; }
+    #ds-upcoming .ds-up-day:first-child { padding-top:0; }
+    #ds-upcoming .ds-up-empty { padding:14px 12px; font-family:Arial,Helvetica,sans-serif; font-size:20px; font-weight:800; color:#111; background:#ff2ad4; }
   </style>
 <script>
 (function () {

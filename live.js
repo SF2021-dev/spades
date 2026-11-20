@@ -1,46 +1,35 @@
-/* Asks /api/live when the page is open. That function reads MyLeague and returns today+tomorrow tours.
-   If the ask fails, the list already on the page is left alone. */
+/* Winners grids from /api/live (fed every 5 min by the Cloudflare cron worker "diamondspaders-winners"), so new
+   winners show even while the box that rewrites index.html is asleep. Tours list is refreshed by index.html itself.
+   If the ask fails, or the answer would show fewer winners for the same day than the page already has, the page is left alone. */
 (function () {
   var POLL = 60000, BG_EVEN = "#1a1200";
-  var lastTours = null;
   function norm(html) { var t = document.createElement("template"); t.innerHTML = html; return t.innerHTML; }
+  function cellsShown(grid) { return grid ? grid.querySelectorAll(':scope > div:not([style*="grid-column"])').length : 0; }
+  function heading(grid) { var h = grid && grid.querySelector(':scope > div[style*="grid-column"]'); return h ? h.textContent.trim() : ""; }
   function trail(grid, bg) {
     var a = grid && grid.lastElementChild && grid.lastElementChild.querySelector('a[href*="diamondspaders.online/"]');
     if (!a || a.textContent.trim() !== "more") return "";
     return '<div style="padding:14px 10px;background:' + bg + '; display:flex;align-items:center;"><a href="' + a.getAttribute("href")
       + '" style="color:#fbe646;font-size:22px;font-weight:800;text-decoration:underline;">more</a></div>';
   }
-  function body(day, heading) {
-    return (heading ? day.heading_html : "") + (day.cells.length ? day.cells.join("") : day.empty_html);
+  function put(grid, day, withTrail) {
+    if (!grid || !day) return;
+    var tmp = document.createElement("div"); tmp.innerHTML = day.heading_html;
+    var sameDay = heading(grid) === tmp.textContent.trim();
+    var had = cellsShown(grid) - (trail(grid, "") ? 1 : 0);
+    if (sameDay && day.cells.length < had) return;                       // never take winners away
+    var html = day.heading_html + (day.cells.length ? day.cells.join("") : day.empty_html)
+      + (withTrail && day.cells.length ? trail(grid, day.cells.length % 2 === 0 ? BG_EVEN : "#000") : "");
+    var want = norm(html);
+    if (norm(grid.innerHTML) !== want) grid.innerHTML = want;
   }
   function apply(d) {
     if (!d || !d.ok || !d.days || !d.today) return;
-    var gT = document.getElementById("ds-winners-today"), gY = document.getElementById("ds-winners-yesterday");
     var keys = Object.keys(d.days).sort().reverse();          // [today, yesterday, day before]
-    var todayKey = keys[0], yestKey = keys[1], beforeKey = keys[2];
-    var today = d.days[todayKey] || { cells: [] };
-    var todayHasWinner = today.cells && today.cells.length > 0;
-
-    // Top grid: today if it has winners, otherwise yesterday
-    var topKey = todayHasWinner ? todayKey : yestKey;
-    // Lower grid (below tours): yesterday once today has a winner, otherwise the day before
-    var lowerKey = todayHasWinner ? yestKey : beforeKey;
-
-    var top = d.days[topKey], lower = d.days[lowerKey];
-    if (gT && top) {
-      var wantT = norm(body(top, topKey !== todayKey));
-      if (norm(gT.innerHTML) !== wantT) gT.innerHTML = wantT;
-    }
-    if (gY && lower) {
-      var wantY = norm(body(lower, true) + (lower.cells.length ? trail(gY, lower.cells.length % 2 === 0 ? BG_EVEN : "#000") : ""));
-      if (norm(gY.innerHTML) !== wantY) gY.innerHTML = wantY;
-    }
-
-    if (d.tours && window.dsSetTours) {
-      var j = JSON.stringify(d.tours);
-      if (j !== lastTours) window.dsSetTours(d.tours);
-      lastTours = j;
-    }
+    var today = d.days[keys[0]] || { cells: [] };
+    var has = today.cells && today.cells.length > 0;          // roll over only once today has its first winner
+    put(document.getElementById("ds-winners-today"), d.days[has ? keys[0] : keys[1]], false);
+    put(document.getElementById("ds-winners-yesterday"), d.days[has ? keys[1] : keys[2]], true);
   }
   var busy = false;
   function poll() {

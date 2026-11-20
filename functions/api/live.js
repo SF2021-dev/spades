@@ -253,7 +253,7 @@ function makeRenderer(cfg, names = {}) {
       keys.push(`${clk}|${lab}|${t.winners.map(n => shown(n).toLowerCase()).join("&")}|${t.winners.length === 2 ? teamName(t) : ""}`);
     }
     return { heading: dl, cells, keys,
-      heading_html: `<div style="grid-column:1/-1;padding:12px 10px 4px;font-size:15px;font-weight:800;letter-spacing:0.14em;color:#fbe646;">${dl}</div>`,
+      heading_html: `<div style="grid-column:1/-1;padding:12px 10px 4px;font-size:15px;font-weight:800;letter-spacing:0.14em;color:#fbe646;">${dl}&rsquo;S WINNERS</div>`,
       empty_html: `<div style="grid-column:1/-1;padding:14px 10px;font-size:13px;font-weight:700;">${dl} &mdash; ${d === today ? "no winners yet" : "no winners recorded"}</div>` };
   }
   return { label, avatar, day, subtitle };
@@ -275,11 +275,24 @@ async function build(env, origin) {
   }
   tours.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.h - b.h) || (a.m - b.m) || (String(a.id) < String(b.id) ? -1 : 1));
   const mw = cfg.manual_winners || {}, mo = cfg.manual_overrides || {};
+  // Cloudflare cron worker "diamondspaders-winners" (every 5 min) writes standings.php champions to KV live:standings,
+  // so winners post even while the box sleeps. They sit UNDER manual_winners / manual_overrides (user always wins).
+  const kv = env.IMAGES;
+  let ks = {}, hb = null;
+  if (kv) {
+    try { [ks, hb] = await Promise.all([kv.get("live:standings", "json"), kv.get("live:heartbeat", "json")]); ks = ks || {}; } catch (e) { ks = {}; }
+    // Tell the worker which tours the user already settled or hid (synced from the box's config.json; written only on change).
+    const skip = JSON.stringify({ user: [...new Set([...Object.keys(mw), ...Object.keys(mo), ...(cfg.extra_tours || []).map(e => String(e.id))])].sort(),
+      hidden: (cfg.hidden || []).map(String).sort(), labels_by_id: cfg.labels_by_id || {} });
+    try { if ((await kv.get("live:skip")) !== skip) await kv.put("live:skip", skip); } catch (e) {}
+  }
   for (const t of tours) {
     // ABSOLUTE RULES (user t86u): 1) winners ONLY from the user (manual_winners/overrides/extra tours) or a standings.php
     // champion (verified by update_winners.py and shipped in manual_winners) -- the raw feed "winner" field is never trusted
     // for today/yesterday; 2) never >1 player / >1 team -- there are NO ties, extra names = invalid = no winner.
     if (t.status !== "extra" && t.date >= addDays(today, -1)) t.winners = [];
+    // standings.php champion found on Cloudflare (same rules as update_winners.py standings_winner)
+    if (!t.winners.length && t.status !== "extra" && ks[t.id]?.w?.length && ks[t.id].date === t.date) t.winners = [...ks[t.id].w];
     // User report always wins (never blocked by calendar feed status). Standings-verified names ship in cfg.manual_winners via page_winners.
     if (mw[t.id]?.length) t.winners = [...mw[t.id]];
     if (mo[t.id]?.length) t.winners = [...mo[t.id]];
@@ -313,12 +326,12 @@ async function build(env, origin) {
     const tomorrow = addDays(today, 1);
     const upcoming = tours.filter(t => !hidden.has(String(t.id)) && (t.date === today || t.date === tomorrow) && !t.winners.length && t.status !== "extra")
     .map(t => ({ dt: t.date, h: t.h, m: t.m, game: R.label(t), td: t.td, url: (cfg.tour_url || "").replace("%s", t.id), ava: R.avatar(t.td) || "", ...(R.subtitle(t) ? { sub: R.subtitle(t) } : {}) }));
-  return { ok: true, now: now.toISOString(), today, days, tours: upcoming };
+  return { ok: true, now: now.toISOString(), today, days, tours: upcoming, cron: hb ? { at: hb.at, checked: (hb.checked || []).length, found: hb.found || [] } : null };
 }
 
 export async function onRequestGet({ request, env, waitUntil }) {
   const url = new URL(request.url);
-  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v7");
+  const cache = caches.default, ck = new Request(url.origin + "/api/live?cache=v8");
   const hit = await cache.match(ck);
   if (hit) return hit;
   let body, status = 200;

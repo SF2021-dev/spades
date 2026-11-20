@@ -123,7 +123,8 @@
 "11960710": "In2win",
 "11960893": "EnMEL",
 "11960912": "Okie Dokie",
-"11960914": "Nighter"
+"11960914": "Nighter",
+"11961055": "Nighters"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png",
@@ -2459,6 +2460,9 @@
 "11960755": [
 "TATSUJIN"
 ],
+"11960761": [
+"titleistseemore"
+],
 "11960843": [
 "Ellisandrew80"
 ],
@@ -2492,6 +2496,10 @@
 "11961051": [
 "EgammeR",
 "DementedWench"
+],
+"11961055": [
+"Ellisandrew80",
+"Lookslikeapickel"
 ]
 },
 "subtitles": {

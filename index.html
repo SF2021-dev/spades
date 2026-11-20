@@ -26,15 +26,12 @@
     .rk { position:relative; width:22px; height:22px; flex:0 0 auto; }
     .rk b { position:absolute; top:-7px; left:-8px; font-size:10px; font-weight:800; color:#fbe646; }
     .rk img, .rk svg { width:22px; height:22px; display:block; border-radius:4px; }
-    #ds-upcoming { border-top:3px solid #fbe646; background:#0a0a0a; padding:0 0 16px; }
+    #ds-upcoming { border-top:3px solid #fbe646; background:#0a0a0a; padding:0; }
     #ds-upcoming .ds-up-title { padding:12px 10px 8px; font-size:15px; font-weight:800; letter-spacing:0.14em; color:#fbe646; }
-    #ds-upcoming .ds-up-day { padding:12px 10px 4px; font-size:14px; font-weight:800; letter-spacing:0.06em; color:#c9a227; }
-    #ds-upcoming a.ds-up-item { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; padding:7px 10px; font-size:16px; font-weight:700; color:#fbe646; text-decoration:none; }
-    #ds-upcoming a.ds-up-item:hover { background:#2a1608; }
-    #ds-upcoming .ds-up-time { color:#fff; min-width:6em; }
-    #ds-upcoming .ds-up-game { color:#fbe646; }
-    #ds-upcoming .ds-up-td { color:#fff; }
-    #ds-upcoming .ds-up-empty { padding:14px 10px; font-size:13px; font-weight:700; color:#c9a227; }
+    #ds-upcoming .ds-up-list { display:flex; flex-direction:column; gap:8px; background:#ff2ad4; padding:14px 12px; }
+    #ds-upcoming .ds-up-day { padding:10px 0 2px; font-family:Arial,Helvetica,sans-serif; font-size:16px; font-weight:800; letter-spacing:0.08em; color:#120c08; text-transform:uppercase; }
+    #ds-upcoming .ds-up-day:first-child { padding-top:0; }
+    #ds-upcoming .ds-up-empty { padding:14px 12px; font-family:Arial,Helvetica,sans-serif; font-size:20px; font-weight:800; color:#111; background:#ff2ad4; }
   </style>
 <script>
 (function () {
@@ -169,25 +166,25 @@
     { dt: "2026-11-19", h: 23, m: 15, game: "CUT", td: "EgammeR", url: "https://www.myleague.com/diamondspaders/tournament/11961112/", ava: "https://diamondspaders.online/EgammeR-ava.png" }
   ];
   var UPCOMING = [
-    { dt: "2026-11-19", h: 23, m: 15, game: "CUT", td: "EgammeR", url: "https://www.myleague.com/diamondspaders/tournament/11961112/" },
-    { dt: "2026-11-20", h: 8, m: 15, game: "CUT", td: "3Bid3Bags", url: "https://www.myleague.com/diamondspaders/tournament/11961020/" },
-    { dt: "2026-11-20", h: 9, m: 15, game: "SINGLES", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournament/11960541/" },
-    { dt: "2026-11-20", h: 10, m: 15, game: "CUT", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournament/11960542/" },
-    { dt: "2026-11-20", h: 11, m: 15, game: "CUT", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournament/11960543/" },
-    { dt: "2026-11-20", h: 14, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11959592/" },
-    { dt: "2026-11-20", h: 15, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11959606/" },
-    { dt: "2026-11-20", h: 16, m: 15, game: "SUI PASS 2", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11959605/" },
-    { dt: "2026-11-20", h: 18, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11959607/" },
-    { dt: "2026-11-20", h: 22, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959831/" },
-    { dt: "2026-11-21", h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11955935/" },
-    { dt: "2026-11-21", h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11960503/" },
-    { dt: "2026-11-21", h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11960677/" },
-    { dt: "2026-11-22", h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11961032/" },
-    { dt: "2026-11-22", h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959924/" },
-    { dt: "2026-11-23", h: 22, m: 15, game: "LOSER WINS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11959848/" },
-    { dt: "2026-11-23", h: 23, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11959849/" },
-    { dt: "2026-11-24", h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11960484/" },
-    { dt: "2026-11-28", h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11961029/" }
+    { dt: "2026-11-19", h: 23, m: 15, game: "CUT", td: "EgammeR", url: "https://www.myleague.com/diamondspaders/tournament/11961112/", ava: "https://diamondspaders.online/EgammeR-ava.png" },
+    { dt: "2026-11-20", h: 8, m: 15, game: "CUT", td: "3Bid3Bags", url: "https://www.myleague.com/diamondspaders/tournament/11961020/", ava: "https://diamondspaders.online/3Bid3Bags-ava.png" },
+    { dt: "2026-11-20", h: 9, m: 15, game: "SINGLES", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournament/11960541/", ava: "https://diamondspaders.online/bluangel1950-ava.png" },
+    { dt: "2026-11-20", h: 10, m: 15, game: "CUT", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournament/11960542/", ava: "https://diamondspaders.online/bluangel1950-ava.png" },
+    { dt: "2026-11-20", h: 11, m: 15, game: "CUT", td: "BluAngel1950", url: "https://www.myleague.com/diamondspaders/tournament/11960543/", ava: "https://diamondspaders.online/bluangel1950-ava.png" },
+    { dt: "2026-11-20", h: 14, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11959592/", ava: "https://diamondspaders.online/Treco521-ava.png" },
+    { dt: "2026-11-20", h: 15, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11959606/", ava: "https://diamondspaders.online/Treco521-ava.png" },
+    { dt: "2026-11-20", h: 16, m: 15, game: "SUI PASS 2", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11959605/", ava: "https://diamondspaders.online/Treco521-ava.png" },
+    { dt: "2026-11-20", h: 18, m: 15, game: "CUT", td: "Treco521", url: "https://www.myleague.com/diamondspaders/tournament/11959607/", ava: "https://diamondspaders.online/Treco521-ava.png" },
+    { dt: "2026-11-20", h: 22, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959831/", ava: U1 },
+    { dt: "2026-11-21", h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11955935/", ava: U1 },
+    { dt: "2026-11-21", h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11960503/", ava: U1 },
+    { dt: "2026-11-21", h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11960677/", ava: U1 },
+    { dt: "2026-11-22", h: 10, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11961032/", ava: U1 },
+    { dt: "2026-11-22", h: 11, m: 15, game: "CUT", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11959924/", ava: U1 },
+    { dt: "2026-11-23", h: 22, m: 15, game: "LOSER WINS", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11959848/", ava: "https://diamondspaders.online/AceyLynn-ava.png" },
+    { dt: "2026-11-23", h: 23, m: 15, game: "CUT", td: "AceyLynn", url: "https://www.myleague.com/diamondspaders/tournament/11959849/", ava: "https://diamondspaders.online/AceyLynn-ava.png" },
+    { dt: "2026-11-24", h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11960484/", ava: U1 },
+    { dt: "2026-11-28", h: 9, m: 15, game: "SINGLES", td: "Untouchable_One", url: "https://www.myleague.com/diamondspaders/tournament/11961029/", ava: U1 }
   ];
   function mkGames(list) {
     return list.map(function (t) {
@@ -242,15 +239,19 @@
     if (!list.length) {
       html += '<div class="ds-up-empty">no upcoming tours</div>';
     } else {
+      html += '<div class="ds-up-list">';
       var day = null;
       for (var i = 0; i < list.length; i++) {
         var t = list[i];
         if (t.dt !== day) { day = t.dt; html += '<div class="ds-up-day">' + escTxt(fmtUpDay(day)) + '</div>'; }
-        html += '<a class="ds-up-item" href="' + escTxt(t.url) + '" target="_blank">';
-        html += '<span class="ds-up-time">' + amp(t.h, t.m) + '</span>';
-        html += '<span class="ds-up-game">' + escTxt(t.game) + '</span>';
-        html += '<span class="ds-up-td">' + escTxt(t.td) + '</span></a>';
+        html += '<div class="ds-tour-item">';
+        html += '<a class="ds-join" href="' + escTxt(t.url) + '" target="_blank">JOIN</a>';
+        html += '<div class="ds-tour-text">' + amp(t.h, t.m) + '</div>';
+        html += '<div class="ds-tour-text"><a href="' + escTxt(t.url) + '" target="_blank">' + escTxt(t.game) + " w/ " + escTxt(t.td) + "</a></div>";
+        html += '<span style="margin-left:-6px;display:flex;">' + (t.ava ? '<img class="ds-td" src="' + escTxt(t.ava) + '" alt="" onerror="this.onerror=null;this.outerHTML=\'' + SPADE_TD.replace(/'/g,"\\'").replace(/"/g,"&quot;") + '\'">' : SPADE_TD) + '</span>';
+        html += "</div>";
       }
+      html += '</div>';
     }
     if (box.getAttribute("data-h") !== html) { box.setAttribute("data-h", html); box.innerHTML = html; }
   }

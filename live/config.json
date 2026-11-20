@@ -124,7 +124,8 @@
 "11960893": "EnMEL",
 "11960912": "Okie Dokie",
 "11960914": "Nighter",
-"11961055": "Nighters"
+"11961055": "Nighters",
+"11961066": "Jan and GOOD"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png",
@@ -1048,11 +1049,8 @@
 "11959582": "CUT",
 "11959583": "CUT",
 "11959585": "REG PARTNERS",
-"11959586": "CUT",
 "11959587": "CUT",
 "11959588": "CUT",
-"11959589": "SINGLES",
-"11959590": "CUT",
 "11959592": "CUT",
 "11959605": "SUI PASS 2",
 "11959606": "CUT",
@@ -2464,6 +2462,9 @@
 "11960761": [
 "titleistseemore"
 ],
+"11960762": [
+"Lookslikeapickel"
+],
 "11960843": [
 "Ellisandrew80"
 ],
@@ -2501,6 +2502,10 @@
 "11961055": [
 "Ellisandrew80",
 "Lookslikeapickel"
+],
+"11961066": [
+"Eager_1",
+"whocantplay"
 ]
 },
 "subtitles": {

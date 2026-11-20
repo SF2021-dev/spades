@@ -1,4 +1,4 @@
-window.DS_ALERT_V = 20;
+window.DS_ALERT_V = 21;
 /* Diamond Spaders tour alerts: "alert" switch right of the NEXT countdown.
    When ON, a sound menu appears; the chosen sound plays when the next tour
    starts (or N min before). Settings: localStorage (dsAlertOn, dsAlertSound,
@@ -243,6 +243,14 @@ window.DS_ALERT_V = 20;
   ch.onmouseover = function () { ch.style.background = "#2a1608"; };
   ch.onmouseout = function () { ch.style.background = "#120c08"; };
   if (row) row.appendChild(ch); else document.body.appendChild(ch);
+
+  var hw = document.createElement("a");
+  hw.id = "ds-hwbtn";
+  hw.href = "hwspades://dl/spades/SPADES/";
+  hw.title = "Open Hardwood Spades";
+  hw.innerHTML = '<img src="/icons/hwspades.png" alt="Hardwood Spades" style="width:34px;height:34px;display:block;border-radius:8px">';
+  hw.style.cssText = "display:inline-block;margin-left:12px;line-height:0;border:2px solid #fbe646;border-radius:10px;";
+  if (row) row.appendChild(hw); else document.body.appendChild(hw);
 
   var btn = w.querySelector("#ds-alert-btn");
   var file = w.querySelector("#ds-alert-file");

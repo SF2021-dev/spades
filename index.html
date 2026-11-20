@@ -229,10 +229,12 @@
   function remainingUpcoming(now) {
     now = now || etNow();
     var seen = {}, out = [];
+    var todayKey = now.getFullYear() + "-" + ("0" + (now.getMonth() + 1)).slice(-2) + "-" + ("0" + now.getDate()).slice(-2);
     for (var i = 0; i < UPCOMING.length; i++) {
       var t = UPCOMING[i];
       if (!t) continue;
       if (now.getTime() >= tourStartET(t, now).getTime()) continue;
+      if (String(t.dt || "") === todayKey) continue;   // today's tours are already in the list above
       var k = (t.dt || "") + "|" + t.h + "|" + t.m + "|" + String(t.td || "").toLowerCase();
       if (seen[k]) continue;
       seen[k] = 1;

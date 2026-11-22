@@ -100,7 +100,8 @@
   function rangeLine(R) {
     if (!R) return "";
     if (R.key === "all") return '<div class="total" style="margin-top:-6px;">Time period: All time' + (R.first ? " · Start date: " + fd(R.first) + " · Elapsed: " + span(R.first) : "") + "</div>";
-    return '<div class="muted" style="margin:-6px 0 12px;">Time frame: last ' + esc(R.label) + " (" + fd(R.from) + " – " + fd(R.to) + ")</div>";
+    var extra = (R.coverFrom && R.from && R.coverFrom > R.from) ? " · records begin " + fd(R.coverFrom) : "";
+    return '<div class="muted" style="margin:-6px 0 12px;">Time frame: last ' + esc(R.label) + " (" + fd(R.from) + " – " + fd(R.to) + ")" + extra + "</div>";
   }
   function render(list, H) {
     var found = [], missing = [], by = {}, seen = {};
@@ -153,7 +154,7 @@
   document.getElementById("f").addEventListener("submit", function (ev) { ev.preventDefault(); show(); });
   fetch("/snoop/data.json?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
     D = d;
-    document.getElementById("range").textContent = "Tours entered in the selected time frame (each league's Ladderbux log) · 6 leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · times = entry time (ET)";
+    document.getElementById("range").textContent = "Tours checked in for in the selected time frame · 6 leagues: " + Object.keys(d.leagues).map(function (k) { return d.leagues[k]; }).join(", ") + " · times = tour start (ET)";
     var dl = document.getElementById("names");
     dl.innerHTML = Object.keys(d.players).map(function (k) { return '<option value="' + esc(d.players[k].n) + '">'; }).join("");
     var sp = new URLSearchParams(location.search), p = sp.get("p");

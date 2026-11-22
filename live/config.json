@@ -134,12 +134,14 @@
 "11961391": "Nighters",
 "11961461": "VillainChillin",
 "11961474": "VillainChillin",
-"11961596": "Husk N ???"
+"11961596": "Husk N ???",
+"11961648": "Nighters"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png",
 "HapEturkeyDay": "https://diamondspaders.online/HapEturkeyDay-ava.png",
-"SSILKK": "https://diamondspaders.online/SILKROLLZ-ava.png"
+"SSILKK": "https://diamondspaders.online/SILKROLLZ-ava.png",
+"SiLkY_SpArKlE": "https://diamondspaders.online/aceinblack-ava.png"
 },
 "avatars": {
 "0utland3r": "https://diamondspaders.online/0UTLAND3R-ava.png",
@@ -239,6 +241,7 @@
 "sadiee": "https://diamondspaders.online/sadiee-ava.png",
 "sassyangel456": "https://diamondspaders.online/SassyAngel456-ava.png",
 "silkrollz": "https://diamondspaders.online/SILK%20ROLLZ-ava.png",
+"silky_sparkle": "https://diamondspaders.online/SiLkY_SpArKlE-ava.png",
 "skippyjjones": "https://diamondspaders.online/SkippyJJones-ava.png",
 "slovell_too": "https://diamondspaders.online/slovell_too-ava.png",
 "soloryder": "https://diamondspaders.online/soloryder-ava.png",
@@ -2649,6 +2652,10 @@
 "11961596": [
 "Huskernut50265",
 "MsZigs"
+],
+"11961648": [
+"Ellisandrew80",
+"Untouchable_One"
 ]
 },
 "subtitles": {

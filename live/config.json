@@ -130,7 +130,8 @@
 "11961202": "Old Pw",
 "11961223": "Okie Dokie",
 "11961249": "ZigZagJay",
-"11961379": "Nighters"
+"11961379": "Nighters",
+"11961391": "Nighters"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png",
@@ -1118,6 +1119,9 @@
 "11961391": "REG PARTNERS",
 "11961460": "CUT",
 "11961461": "SUI PASS 2",
+"11961469": "SUI PASS 2",
+"11961470": "CUT",
+"11961471": "CUT",
 "manual-20261021-1015": "CUT",
 "manual-20261021-1115": "CUT",
 "manual-20261021-1315": "CUT",
@@ -2337,6 +2341,9 @@
 "11959606": [
 "TATSUJIN"
 ],
+"11959607": [
+"Ochwiay"
+],
 "11959618": [
 "trifolium"
 ],
@@ -2575,6 +2582,10 @@
 "AA94"
 ],
 "11961379": [
+"Ellisandrew80",
+"Lookslikeapickel"
+],
+"11961391": [
 "Ellisandrew80",
 "Lookslikeapickel"
 ]

@@ -127,9 +127,7 @@
     var all = Object.keys(seen);
     if (!found.length || !all.length) { out.innerHTML = '<div class="total">No tours found.</div>' + rangeLine(H.range) + h; return; }
     var leagues = Object.keys(by).sort(function (a, b) { return by[b].length - by[a].length; });
-    var wins = all.filter(function (k) { return seen[k].t.p === "1"; }).length;
     var head = '<div class="total">' + found.map(esc).join(" + ") + ": " + all.length + " tour" + (all.length === 1 ? "" : "s") + " in " + leagues.length + " league" + (leagues.length === 1 ? "" : "s") + "</div>";
-    head += '<div class="total" style="margin-top:-6px;">Wins: ' + wins + "</div>";
     head += rangeLine(H.range);
     head += '<div class="muted" style="margin:-6px 0 12px;">Searched ' + list.length + " name" + (list.length === 1 ? "" : "s") + ": "
       + H.players.map(function (P) { var n = 0; Object.keys(P.leagues).forEach(function (L) { n += P.leagues[L].length; }); return P.name ? esc(P.name) + ' <b style="color:#fff">' + n + "</b>" : esc(P.q) + ' <b style="color:#ff8a8a">not found</b>'; }).join(" · ") + "</div>";
@@ -140,7 +138,7 @@
       rows.forEach(function (r) {
         var t = r.t, nm = D && D.tours ? null : null;
         h += "<tr><td>" + fdate(t.d) + " " + t.d.slice(0, 4) + "</td><td>" + ftime(t.t) + ' ET</td><td><a href="https://www.myleague.com/' + esc(L) + "/tournament/" + esc(t.id) + '/" target="_blank">tour ' + esc(t.id) + "</a>"
-          + (t.p ? " · place " + esc(t.p) : "") + (multi ? ' <span class="who">(' + r.who.map(esc).join(", ") + ")</span>" : "") + "</td></tr>";
+          + (multi ? ' <span class="who">(' + r.who.map(esc).join(", ") + ")</span>" : "") + "</td></tr>";
       });
       h += "</table></details>";
     });

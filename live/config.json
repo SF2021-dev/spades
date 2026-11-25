@@ -143,7 +143,8 @@
 "11961627": "10bags",
 "11961630": "Nighters",
 "11961648": "Nighters",
-"11961671": "Okie Dokie"
+"11961671": "Okie Dokie",
+"11961830": "GOBBLE FUN"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png",
@@ -1138,6 +1139,7 @@
 "11962040": "SINGLES",
 "11962041": "CUT",
 "11962093": "SINGLES",
+"11962096": "CUT",
 "manual-20261021-1015": "CUT",
 "manual-20261021-1115": "CUT",
 "manual-20261021-1315": "CUT",
@@ -2742,6 +2744,9 @@
 "EgammeR",
 "AceyLynn"
 ],
+"11961616": [
+"BluAngel1950"
+],
 "11961627": [
 "Duke413",
 "DementedWench"
@@ -2763,6 +2768,10 @@
 ],
 "11961794": [
 "Lil_Shopper"
+],
+"11961830": [
+"AceyLynn",
+"DetroitLionsRule"
 ]
 },
 "subtitles": {

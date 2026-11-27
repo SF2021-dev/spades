@@ -128,7 +128,7 @@ Fields:
 - "player2": second player for "head_to_head", else "".
 - "game": game type if mentioned (CUT, SINGLES, SUI PASS 2, REG PARTNERS, etc.), else "".
 - "td": host/TD name if the question filters to tours hosted by someone, else "".
-- "metric": for "leaderboard" only: "wins" (default), "played", or "hosted".
+- "metric": for "leaderboard" only: "wins" (default), "played", "hosted", or "rate" (best/highest or worst/lowest win percentage / win rate / ratio among players, e.g. "who had the best percentage of wins in CUT games"; set "worst": true for worst/lowest). Questions starting with "who" are about other players, never "I".
 - "top": for "leaderboard", the N in "top N" if asked, else 5.
 - "unit": "games" if the question is about individual games / hands / matches / tables (e.g. "most CUT games won", "game wins", "games, not tours"), else "tours". Respect negations: "games, not tours" = "games"; "tours, not games" = "tours".
 - For "player_tours": if no date or period is mentioned, set "date_from" and "date_to" to "" (meaning all time).
@@ -768,6 +768,8 @@ async function leaderboard(q, Q, now, intent, ctx) {
   }
 
   // individual GAME wins (tables inside tours), from the per-tour game records in /ask/player_tours.json
+  if (intent.metric === "rate")
+    return rateBoard(q, now, intent, ctx, { from, to, wantGame, official, graph, lname, hostKeys, hostBit, period });
   if (intent.metric === "wins" && (intent.unit === "games" || (!intent.unit && rateUnit(q) === "games")))
     return gameWinsBoard(q, now, intent, ctx, { from, to, wantGame, official, graph, lname, hostKeys, hostBit, period });
 
@@ -854,6 +856,86 @@ async function gameWinsBoard(q, now, intent, ctx, o) {
   if (noRec) extra += `; ${noRec} tour${noRec === 1 ? "" : "s"} had no game records`;
   if (from < coverFrom) extra += `; records start ${fmtRange(coverFrom, coverEnd)}`;
   return { info: `${lead}\n\nTop ${intent.top} by${gameBit} games won:\n${lines}\n\n(${extra}.)`, final: true, from, to, metric: "game_wins", game: wantGame, ranked };
+}
+
+// "who has the best/worst win percentage" boards (never first-person unless the question says I/me/my/mine and no "who")
+const PCT_WORDS = /\b(?:win(?:ning)?\s*(?:rates?|%|percent(?:ages?)?|pct|ratios?)|percent(?:ages?)?\s+of\s+wins|percent(?:ages?)?|pct|ratios?|efficient|efficiency|success\s+rates?)\b|\bwin\s*%/i;
+function rateBoardIntent(q, Q) {
+  if (!PCT_WORDS.test(q)) return null;
+  if (!/\b(?:best|highest|top|most|worst|lowest|weakest|strongest|least|leaders?|leaderboard|rank(?:ing|ings|ed)?|better|greatest)\b/i.test(q)) return null;
+  const who = /\bwho\b|\bwhich\s+(?:players?|people|members?)\b|\btop\s+\d+\b|\bleaderboard\b|\branking|\bbest\s+players?\b/i.test(q);
+  const named = SAYS_ME.test(q) || !!(Q && Q.player && okPlayerName(String(Q.player).trim()));
+  if (!who && named) return null;                       // "my best win rate", "REALLY_WHY's best variation"
+  if (!who && /\b(?:variation|game\s*types?|formats?)\b/i.test(q)) return null;
+  const topM = q.match(/\btop\s+(\d{1,2})\b/i);
+  return { metric: "rate", worst: /\b(?:worst|lowest|weakest|least)\b/i.test(q), top: topM ? Math.max(3, Math.min(15, +topM[1])) : 5,
+    unit: rateUnit(q) === "games" ? "games" : "tours" };
+}
+function minSample(unit, from, to) {
+  const days = Math.round((Date.parse(to) - Date.parse(from)) / 864e5) + 1;
+  const scale = Math.min(1, days / 28);
+  return unit === "games" ? Math.max(3, Math.ceil(20 * scale)) : Math.max(2, Math.ceil(5 * scale));
+}
+async function rateBoard(q, now, intent, ctx, o) {
+  const { from, to, wantGame, official, graph, lname, hostKeys, hostBit } = o;
+  const data = await loadRates(ctx);
+  if (!data || !Array.isArray(data.tours) || !data.tours.length)
+    return { info: "The records this page uses for win percentages are not available right now.", final: true };
+  const games = intent.unit === "games";
+  const gameBit = wantGame ? ` ${wantGame}` : "";
+  const noun = games ? "games" : "tours";
+  if (to < data.from || from > data.to)
+    return { info: `Records for ${lname} cover ${fmtRange(data.from, data.to)}, which does not include ${fmtRange(from, to)}.`, final: true };
+  const counts = {};
+  let toursN = 0;
+  for (const t of data.tours) {
+    if (t.date < from || t.date > to) continue;
+    const label = officialize(t.label || "", official, t.perteam) || "UNKNOWN";
+    if (wantGame && !labelsMatch(wantGame, label)) continue;
+    if (hostKeys && !hostKeys.has(String(t.td || "").toLowerCase())) continue;
+    if (!tourIsFinished(t)) continue;
+    const add = (name, w, p) => {
+      const k = canonKey(name, graph);
+      const r = (counts[k] ||= { name: displayName(name, graph), won: 0, played: 0 });
+      r.won += w; r.played += p; r.name = nicerName(r.name, displayName(name, graph));
+    };
+    if (games) {
+      const recs = t.records && typeof t.records === "object" ? Object.entries(t.records) : [];
+      if (!recs.length) continue;
+      toursN++;
+      for (const [name, wl] of recs) if (Array.isArray(wl) && (+wl[0] || +wl[1])) add(name, +wl[0] || 0, (+wl[0] || 0) + (+wl[1] || 0));
+    } else {
+      if (!(t.winners && t.winners.length)) continue;
+      toursN++;
+      const wk = new Set(t.winners.map(w => canonKey(w, graph)));
+      for (const name of t.players || []) add(name, wk.has(canonKey(name, graph)) ? 1 : 0, 1);
+    }
+  }
+  const min = minSample(intent.unit, from, to);
+  const rows = Object.values(counts).filter(r => r.played >= min).map(r => ({ ...r, pct: r.won / r.played }));
+  rows.sort(intent.worst
+    ? (a, b) => a.pct - b.pct || b.played - a.played || a.name.localeCompare(b.name)
+    : (a, b) => b.pct - a.pct || b.played - a.played || a.name.localeCompare(b.name));
+  // rank by percentage (ties share a rank), keep N plus anyone tied with the Nth
+  const out = [];
+  let rank = 0, prev = null;
+  rows.forEach((r, i) => {
+    if (prev === null || Math.abs(r.pct - prev) > 1e-9) { rank = i + 1; prev = r.pct; }
+    if (rank <= intent.top) out.push({ ...r, rank });
+  });
+  const when = periodWords(q, from, to, now);
+  const minTxt = `minimum ${min}${gameBit} ${noun} played`;
+  if (!out.length)
+    return { info: `Nobody played at least ${min}${gameBit} ${noun} at ${lname} ${when}, so there is no win-percentage leader.`, final: true };
+  const leads = out.filter(r => r.rank === 1);
+  const word = intent.worst ? "lowest" : "best";
+  const lead = leads.length === 1
+    ? `${leads[0].name} had the ${word}${gameBit} ${games ? "game" : "tour"} win percentage${hostBit} at ${lname} ${when}: ${leads[0].won} won of ${leads[0].played} ${noun} (${fmtPct(leads[0].won, leads[0].played)}).`
+    : `${joinAnd(leads.map(r => r.name))} tied for the ${word}${gameBit} ${games ? "game" : "tour"} win percentage${hostBit} at ${lname} ${when}, at ${fmtPct(leads[0].won, leads[0].played)}.`;
+  const lines = out.map(r => `${r.rank}. ${r.name} — ${r.won} won of ${r.played} (${fmtPct(r.won, r.played)})`).join("\n");
+  const how = games ? `individual games inside ${toursN} finished tour${toursN === 1 ? "" : "s"}; byes not counted; in partner games each partner gets the win`
+    : `${toursN} finished tour${toursN === 1 ? "" : "s"} with a posted winner; partner-tour wins count for each partner`;
+  return { info: `${lead}\n\n${intent.worst ? "Lowest" : "Top"} ${intent.top} by${gameBit} ${games ? "game" : "tour"} win % (${minTxt}):\n${lines}\n\n(${rows.length} player${rows.length === 1 ? "" : "s"} met the minimum; ${how}.)`, final: true, metric: "rate", unit: intent.unit, min, ranked: out };
 }
 
 // ---------------- per-player win rate by game variation (from /ask/player_tours.json)
@@ -2332,9 +2414,9 @@ const ASK_VOCAB_SET = new Set(ASK_VOCAB);
 const ASK_TARGETS = ("record stats wins won winner winners winning played playing players tours tournament tournaments " +
   "games singles partners cuts loser today tonight yesterday week month year people entered hosted percentage overall " +
   "january february march april june july august september october november december monday tuesday wednesday " +
-  "thursday friday saturday sunday what many wins most members joined").split(" ");
+  "thursday friday saturday sunday what many wins most members joined percent").split(" ");
 const ASK_COMMON_TYPOS = { hwo: "how", hw: "how", woh: "who", whp: "who", waht: "what", wat: "what", whta: "what", wht: "what",
-  teh: "the", gmaes: "games", gmae: "game", gaems: "games", gams: "games", gamse: "games", tuors: "tours", toursn: "tours", turs: "tours", neww: "new", nwe: "new", enw: "new", mebers: "members", membrs: "members", memebers: "members", hte: "the", mny: "many", mnay: "many", manny: "many", wn: "won", wo: "won", wom: "won", wins: "wins", mi: "my", ym: "my",
+  teh: "the", precent: "percent", percnt: "percent", perecnt: "percent", pecent: "percent", prcent: "percent", percet: "percent", precentage: "percentage", percantage: "percentage", percentige: "percentage", gmaes: "games", gmae: "game", gaems: "games", gams: "games", gamse: "games", tuors: "tours", toursn: "tours", turs: "tours", neww: "new", nwe: "new", enw: "new", mebers: "members", membrs: "members", memebers: "members", hte: "the", mny: "many", mnay: "many", manny: "many", wn: "won", wo: "won", wom: "won", wins: "wins", mi: "my", ym: "my",
   ct: "cut", cutt: "cut", ctu: "cut", sui: "sui", siu: "sui", pab: "pab", pba: "pab", todya: "today", tday: "today", yday: "yesterday",
   yest: "yesterday", tmrw: "tomorrow", wk: "week", mo: "month", mth: "month", mnth: "month", yr: "year", rec: "record", sngls: "singles",
   singls: "singles", sngles: "singles", prtners: "partners", partnes: "partners", parnters: "partners", pardners: "partners" };
@@ -2400,7 +2482,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   q = normalizeQuestion(q);
   const now = etNow();
   const me = await signedInHandle(request, env);
-  const ansKey = `ans/v17/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v18/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());
@@ -2439,7 +2521,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (shouldCacheAnswer(out.answer)) waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
     return json(out);
   }
-  const rateIntent = successRateIntent(q, stub) || (recordCountIntent(q, stub, me) ? { worst: false, unit: rateUnit(q) } : null);
+  const rateBoardQ = rateBoardIntent(q, stub);
+  const rateIntent = rateBoardQ ? null : successRateIntent(q, stub) || (recordCountIntent(q, stub, me) ? { worst: false, unit: rateUnit(q) } : null);
   if (rateIntent) {
     Q = stub;
     Q.ask = "player_rate";
@@ -2450,7 +2533,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (shouldCacheAnswer(out.answer)) waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
     return json(out);
   }
-  const lb = leaderboardIntent(q, stub) || (stub.ask === "leaderboard" ? { metric: /played|hosted/.test(String(stub.metric||"")) ? stub.metric : "wins", top: Math.max(3, Math.min(15, +stub.top || 5)) } : null);
+  const lb = rateBoardQ || leaderboardIntent(q, stub) || (stub.ask === "leaderboard" ? { metric: /played|hosted/.test(String(stub.metric||"")) ? stub.metric : "wins", top: Math.max(3, Math.min(15, +stub.top || 5)) } : null);
   if (lb) {
     Q = stub;
     const ctx = { env, url: request.url, debug: !!env.DEBUG, me };
@@ -2512,6 +2595,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       data = await leagueMembers(q, { kind, wantNames: true }, now, ctx);
     }
     else if (Q.ask === "player_rate") data = await playerRate(q, Q, now, { worst: /\bworst|weakest\b/i.test(q), unit: rateUnit(q) }, ctx);
+    else if (Q.ask === "leaderboard" && (Q.metric === "rate" || rateBoardIntent(q, {}))) data = await leaderboard(q, Q, now, rateBoardIntent(q, {}) || { metric: "rate", worst: !!Q.worst || /\b(?:worst|lowest)\b/i.test(q), top: Math.max(3, Math.min(15, +Q.top || 5)), unit: Q.unit === "games" || rateUnit(q) === "games" ? "games" : "tours" }, ctx);
     else if (Q.ask === "leaderboard") data = await leaderboard(q, Q, now, { metric: /played|hosted/.test(String(Q.metric || "")) ? Q.metric : "wins", top: Math.max(3, Math.min(15, +Q.top || 5)), unit: Q.unit === "games" || rateUnit(q) === "games" ? "games" : "tours" }, ctx);
     else if (Q.ask === "head_to_head") { const hq = h2hIntent(q, me); data = hq ? await headToHead(q, hq, now, ctx) : { info: "Name both players for a head-to-head, like \"my CUT record against REALLY_WHY this month\".", final: true }; }
     else data = await run(Q, now, ctx);

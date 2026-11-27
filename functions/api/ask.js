@@ -2473,4 +2473,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (shouldCacheAnswer(out.answer)) waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
   return json(out);
 }
-export const onRequestGet = () => json({ answer: "Use POST with {\"q\": \"your question\"}." });
+export const onRequestGet = (ctx) => {
+  const q = new URL(ctx.request.url).searchParams.get("q");
+  if (!q) return json({ answer: "Use POST with {\"q\": \"your question\"}, or GET /api/ask?q=your+question." });
+  const req = new Request(ctx.request.url, { method: "POST", headers: ctx.request.headers, body: JSON.stringify({ q }) });
+  return onRequestPost({ ...ctx, request: req });
+};

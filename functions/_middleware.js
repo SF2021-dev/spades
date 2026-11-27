@@ -18,6 +18,9 @@ const OWNER_NAME = "ochwiay";
 
 // Login page, login/session APIs, and assets the maintenance + login pages need.
 // Sign-up POST (/api/auth/register) is intentionally not on this list.
+// TEMPORARY: /ask + /api/ask open to everyone (no sign-in). Flip to false to put them back behind login.
+const ASK_PUBLIC = true;
+const ASK_PUBLIC_PATHS = [/^\/ask\/?$/, /^\/ask\/index\.html$/, /^\/api\/ask\/?$/];
 const MAINT_OPEN = [
   /^\/register(\.html)?\/?$/,
   /^\/api\/auth\/(login|logout|me|forgot|change|confirm|resend)\/?$/,
@@ -136,6 +139,9 @@ export async function onRequest(ctx) {
   }
 
   if (OPEN.some((r) => r.test(path))) return next();
+  // TEMPORARY (Nov 27, 2026, Dennis): /ask works without signing in. To restore the login gate, set ASK_PUBLIC = false.
+  // ask.js still reads the session cookie itself, so a signed-in visitor's "my/me/I" is their account; it rate-limits per IP.
+  if (ASK_PUBLIC && ASK_PUBLIC_PATHS.some((r) => r.test(path))) return next();
   let user = null;
   try { if (env.DB) user = await currentUser(request, env); } catch (e) { console.error("gate", e); }
   if (user) return passWithRenew(ctx, request, env, next);

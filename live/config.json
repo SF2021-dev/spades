@@ -149,7 +149,8 @@
 "11961777": "Nighters",
 "11961830": "GOBBLE FUN",
 "11962001": "In2win",
-"11962037": "Classik/Willson"
+"11962037": "Classik/Willson",
+"11962329": "ROAD RAGE"
 },
 "avatar_overrides": {
 "3Bid3Bags": "https://diamondspaders.online/3Bid3Bags-ava.png",
@@ -1110,7 +1111,6 @@
 "11962038": "CUT",
 "11962039": "SUI PASS 2",
 "11962040": "SINGLES",
-"11962041": "CUT",
 "11962093": "SINGLES",
 "11962096": "CUT",
 "11962101": "SINGLES",
@@ -2845,6 +2845,9 @@
 "Ochwiay",
 "whocantplay"
 ],
+"11962040": [
+"MaKinpa"
+],
 "11962093": [
 "Untouchable_One"
 ],
@@ -2862,6 +2865,10 @@
 ],
 "11962202": [
 "PurpleHaven16"
+],
+"11962329": [
+"Me6052",
+"DementedWench"
 ]
 },
 "subtitles": {

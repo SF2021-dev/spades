@@ -129,7 +129,7 @@ Fields:
 - "game": game type if mentioned (CUT, SINGLES, SUI PASS 2, REG PARTNERS, etc.), else "".
 - "td": host/TD name if the question filters to tours hosted by someone, else "".
 - "metric": for "leaderboard" only: "wins" (default), "played", "hosted", or "rate" (best/highest or worst/lowest win percentage / win rate / ratio among players, e.g. "who had the best percentage of wins in CUT games"; set "worst": true for worst/lowest). Questions starting with "who" are about other players, never "I".
-- "top": for "leaderboard", the N in "top N" if asked, else 5.
+- "top": for "leaderboard", the N asked for ("top 10", "top ten", "best twenty", "a dozen"), max 50, else 5.
 - "unit": "games" if the question is about individual games / hands / matches / tables (e.g. "most CUT games won", "game wins", "games, not tours"), else "tours". Respect negations: "games, not tours" = "games"; "tours, not games" = "tours".
 - For "player_tours": if no date or period is mentioned, set "date_from" and "date_to" to "" (meaning all time).
 - Questions are typed quickly and may have typos or shorthand ("recoerd" = record, "cuts" = CUT, "pards"/"partners" = REG PARTNERS, "sui" = SUI PASS 2, "pab" = PAB SUI PASS 2). Read them generously. A player's "record", "stats", "how am I doing", win count or win rate for a period/game type is "player_rate".
@@ -426,7 +426,7 @@ function leaderboardIntent(q, Q) {
     : /\b(?:who\s+(?:hosted|ran|td'?d?)|which\s+td|most\s+(?:tours\s+)?(?:hosted|ran|td)|hosted\s+the\s+most)\b/i.test(q) ? "hosted"
     : "wins";
   const topM = q.match(/\btop\s+(\d{1,2})\b/i);
-  const top = topM ? Math.max(3, Math.min(15, +topM[1])) : 5;
+  const top = topN(q, 5);
   return { metric, top };
 }
 const SIX_LABELS = ["CUT", "SINGLES", "PAB SUI PASS 2", "REG PARTNERS", "SUI PASS 2", "LOSER WINS"];
@@ -745,7 +745,7 @@ async function leaderboard(q, Q, now, intent, ctx) {
     const lead = leads.length === 1
       ? `${leads[0].name} played the most tours at ${lname} on ${period}, with ${leads[0].count}.`
       : `${leads.map(r => r.name).join(" and ")} tied for the most tours played at ${lname} on ${period}, with ${leads[0].count} each.`;
-    return { info: `${lead}\n\nTop ${intent.top}:\n${boardLine(ranked)}`, final: true, from, to, metric: "played" };
+    return { info: `${lead}\n\n${topHead(intent.top, ranked)}:\n${boardLine(ranked)}`, final: true, from, to, metric: "played" };
   }
 
   if (intent.metric === "hosted") {
@@ -764,7 +764,7 @@ async function leaderboard(q, Q, now, intent, ctx) {
     const lead = leads.length === 1
       ? `${leads[0].name} hosted the most${gameBit} tours at ${lname} ${from === to ? "on" : "from"} ${period}, with ${leads[0].count}.`
       : `${leads.map(r => r.name).join(" and ")} tied for the most${gameBit} tours hosted at ${lname} ${from === to ? "on" : "from"} ${period}, with ${leads[0].count} each.`;
-    return { info: `${lead}\n\nTop ${intent.top}:\n${boardLine(ranked)}\n\n(${kept.length} ${wantGame || "listed"} tour${kept.length === 1 ? "" : "s"})${gap}`, final: true, from, to, metric: "hosted", counts };
+    return { info: `${lead}\n\n${topHead(intent.top, ranked)}:\n${boardLine(ranked)}\n\n(${kept.length} ${wantGame || "listed"} tour${kept.length === 1 ? "" : "s"})${gap}`, final: true, from, to, metric: "hosted", counts };
   }
 
   // individual GAME wins (tables inside tours), from the per-tour game records in /ask/player_tours.json
@@ -807,7 +807,7 @@ async function leaderboard(q, Q, now, intent, ctx) {
   if (noWin) extra += `; ${noWin} with no winner posted`;
   if (skippedTeam.length) extra += `; ${skippedTeam.length} partner tour${skippedTeam.length === 1 ? "" : "s"} could not be credited to individual players`;
   if (!wantGame) extra += "; partner-tour wins are credited to each partner";
-  return { info: `${lead}\n\nTop ${intent.top}:\n${boardLine(ranked)}\n\n(${extra}.)` + gap, final: true, from, to, metric: "wins", game: wantGame, credited, ranked };
+  return { info: `${lead}\n\n${topHead(intent.top, ranked)}:\n${boardLine(ranked)}\n\n(${extra}.)` + gap, final: true, from, to, metric: "wins", game: wantGame, credited, ranked };
 }
 
 async function gameWinsBoard(q, now, intent, ctx, o) {
@@ -855,7 +855,7 @@ async function gameWinsBoard(q, now, intent, ctx, o) {
   let extra = `Individual${gameBit} games (tables) inside ${toursN} tour${toursN === 1 ? "" : "s"}; byes not counted; in partner games each partner gets the win`;
   if (noRec) extra += `; ${noRec} tour${noRec === 1 ? "" : "s"} had no game records`;
   if (from < coverFrom) extra += `; records start ${fmtRange(coverFrom, coverEnd)}`;
-  return { info: `${lead}\n\nTop ${intent.top} by${gameBit} games won:\n${lines}\n\n(${extra}.)`, final: true, from, to, metric: "game_wins", game: wantGame, ranked };
+  return { info: `${lead}\n\n${topHead(intent.top, ranked)} by${gameBit} games won:\n${lines}\n\n(${extra}.)`, final: true, from, to, metric: "game_wins", game: wantGame, ranked };
 }
 
 // "who has the best/worst win percentage" boards (never first-person unless the question says I/me/my/mine and no "who")
@@ -868,7 +868,7 @@ function rateBoardIntent(q, Q) {
   if (!who && named) return null;                       // "my best win rate", "REALLY_WHY's best variation"
   if (!who && /\b(?:variation|game\s*types?|formats?)\b/i.test(q)) return null;
   const topM = q.match(/\btop\s+(\d{1,2})\b/i);
-  return { metric: "rate", worst: /\b(?:worst|lowest|weakest|least)\b/i.test(q), top: topM ? Math.max(3, Math.min(15, +topM[1])) : 5,
+  return { metric: "rate", worst: /\b(?:worst|lowest|weakest|least)\b/i.test(q), top: topN(q, 5),
     unit: rateUnit(q) === "games" ? "games" : "tours" };
 }
 function minSample(unit, from, to) {
@@ -935,7 +935,7 @@ async function rateBoard(q, now, intent, ctx, o) {
   const lines = out.map(r => `${r.rank}. ${r.name} — ${r.won} won of ${r.played} (${fmtPct(r.won, r.played)})`).join("\n");
   const how = games ? `individual games inside ${toursN} finished tour${toursN === 1 ? "" : "s"}; byes not counted; in partner games each partner gets the win`
     : `${toursN} finished tour${toursN === 1 ? "" : "s"} with a posted winner; partner-tour wins count for each partner`;
-  return { info: `${lead}\n\n${intent.worst ? "Lowest" : "Top"} ${intent.top} by${gameBit} ${games ? "game" : "tour"} win % (${minTxt}):\n${lines}\n\n(${rows.length} player${rows.length === 1 ? "" : "s"} met the minimum; ${how}.)`, final: true, metric: "rate", unit: intent.unit, min, ranked: out };
+  return { info: `${lead}\n\n${topHead(intent.top, out, intent.worst ? "Lowest" : "Top")} by${gameBit} ${games ? "game" : "tour"} win % (${minTxt}):\n${lines}\n\n(${rows.length} player${rows.length === 1 ? "" : "s"} met the minimum; ${how}.)`, final: true, metric: "rate", unit: intent.unit, min, ranked: out };
 }
 
 // ---------------- per-player win rate by game variation (from /ask/player_tours.json)
@@ -2397,6 +2397,45 @@ async function leagueMembers(q, intent, now, ctx) {
   return { info: `${gone.length} member${gone.length === 1 ? "" : "s"} left ${lname} between ${fmtDate(baseD)} and ${asOf}${note}: ${nameList(gone)}. It has ${members.length} members now.`, final: true, left: gone };
 }
 
+// "top ten", "top10", "best 7", "a dozen", "twenty-five best" -> N (normalizeQuestion turns words into "top N"); cap 50
+const TOP_CAP = 50;
+function topN(q, dflt = 5) {
+  const m = String(q || "").match(/\btop\s*(\d{1,3})\b/i);
+  const n = m ? +m[1] : +dflt || 5;
+  return Math.max(1, Math.min(TOP_CAP, n));
+}
+function topHead(top, ranked, word = "Top") {
+  const people = new Set((ranked || []).map(r => r.name)).size;
+  return people < top ? `${word} ${top} (only ${people} ${people === 1 ? "player qualifies" : "players qualify"})` : `${word} ${top}`;
+}
+const NUM_WORDS = (() => {
+  const u = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+    "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+  const m = {};
+  u.forEach((w, i) => { if (w) m[w] = i; });
+  const tens = { twenty: 20, thirty: 30, forty: 40, fifty: 50 };
+  for (const [t, v] of Object.entries(tens)) { m[t] = v; if (v < 50) for (let i = 1; i <= 9; i++) { m[`${t}-${u[i]}`] = v + i; m[`${t} ${u[i]}`] = v + i; } }
+  Object.assign(m, { tenn: 10, dozen: 12, "a dozen": 12, "half a dozen": 6, "half dozen": 6 });
+  return m;
+})();
+const NUM_RX = Object.keys(NUM_WORDS).sort((a, b) => b.length - a.length).map(w => w.replace(/[- ]/g, "[-\\s]")).join("|");
+function spelledTopN(q) {
+  const lead = "(?:top|best|first|worst|lowest|bottom|highest|leading)";
+  const val = w => NUM_WORDS[String(w).toLowerCase().replace(/\s+/g, " ")] ?? NUM_WORDS[String(w).toLowerCase().replace(/[-\s]+/g, "-")] ?? NUM_WORDS[String(w).toLowerCase().replace(/[-\s]+/g, " ")];
+  return String(q || "")
+    .replace(/\btop(\d{1,3})\b/gi, "top $1")
+    .replace(new RegExp(`\\b(?:the\\s+)?${lead}\\s+(?:a\\s+)?(${NUM_RX})\\b`, "gi"), (m0, n) => {
+      const w = m0.match(/top|best|first|worst|lowest|bottom|highest|leading/i)[0].toLowerCase();
+      const v = val(n); if (!v) return m0;
+      return w === "top" || w === "first" || w === "leading" ? `top ${v}` : `top ${v} ${w}`;
+    })
+    .replace(new RegExp(`\\b(?:the\\s+)?(${NUM_RX})\\s+(best|top|worst|highest|lowest|biggest|leading|most)\\b`, "gi"), (m0, n, w) => {
+      const v = val(n); if (!v) return m0;
+      return w.toLowerCase() === "top" ? `top ${v}` : `top ${v} ${w}`;
+    })
+    .replace(/\b(best|worst|highest|lowest)\s+(\d{1,3})\b(?!\s*(?:days?|:|games?\s+or|tours?\s+or))/gi, "top $2 $1");
+}
+
 // ---------------- question clean-up: typos + synonyms (runs before every intent check)
 const ASK_VOCAB = ("record records stats wins win won winner winners winning winnings played play plays playing player players " +
   "tour tours tournament tournaments game games match matches singles single partners partner pards cuts cut loser losers " +
@@ -2451,6 +2490,7 @@ function fixTypos(q) {
 function normalizeQuestion(raw) {
   let q = String(raw || "").replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/\s+/g, " ").trim();
   q = fixTypos(q);
+  q = spelledTopN(q);
   q = q
     .replace(/\bwhat'?s\b/gi, "what is")
     .replace(/\b(?:stats|statistics|win[\s-]*loss(?:\s+record)?|w\s*\/\s*l|w-l)\b/gi, m => /loss|w\s*\/\s*l|w-l/i.test(m) ? "win/loss record" : "record")
@@ -2482,7 +2522,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
   q = normalizeQuestion(q);
   const now = etNow();
   const me = await signedInHandle(request, env);
-  const ansKey = `ans/v18/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const ansKey = `ans/v19/${now.date}/${now.time.slice(0, 4)}/${(me || "-").toLowerCase()}/${q.toLowerCase().replace(/\s+/g, " ")}`;
   const c = caches.default, ak = new Request("https://ask-cache.local/" + encodeURIComponent(ansKey));
   const hit = await c.match(ak);
   if (hit) return json(await hit.json());
@@ -2533,7 +2573,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (shouldCacheAnswer(out.answer)) waitUntil(c.put(ak, new Response(JSON.stringify(out), { headers: { "cache-control": "max-age=300" } })));
     return json(out);
   }
-  const lb = rateBoardQ || leaderboardIntent(q, stub) || (stub.ask === "leaderboard" ? { metric: /played|hosted/.test(String(stub.metric||"")) ? stub.metric : "wins", top: Math.max(3, Math.min(15, +stub.top || 5)) } : null);
+  const lb = rateBoardQ || leaderboardIntent(q, stub) || (stub.ask === "leaderboard" ? { metric: /played|hosted/.test(String(stub.metric||"")) ? stub.metric : "wins", top: topN(q, +stub.top || 5) } : null);
   if (lb) {
     Q = stub;
     const ctx = { env, url: request.url, debug: !!env.DEBUG, me };
@@ -2595,8 +2635,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
       data = await leagueMembers(q, { kind, wantNames: true }, now, ctx);
     }
     else if (Q.ask === "player_rate") data = await playerRate(q, Q, now, { worst: /\bworst|weakest\b/i.test(q), unit: rateUnit(q) }, ctx);
-    else if (Q.ask === "leaderboard" && (Q.metric === "rate" || rateBoardIntent(q, {}))) data = await leaderboard(q, Q, now, rateBoardIntent(q, {}) || { metric: "rate", worst: !!Q.worst || /\b(?:worst|lowest)\b/i.test(q), top: Math.max(3, Math.min(15, +Q.top || 5)), unit: Q.unit === "games" || rateUnit(q) === "games" ? "games" : "tours" }, ctx);
-    else if (Q.ask === "leaderboard") data = await leaderboard(q, Q, now, { metric: /played|hosted/.test(String(Q.metric || "")) ? Q.metric : "wins", top: Math.max(3, Math.min(15, +Q.top || 5)), unit: Q.unit === "games" || rateUnit(q) === "games" ? "games" : "tours" }, ctx);
+    else if (Q.ask === "leaderboard" && (Q.metric === "rate" || rateBoardIntent(q, {}))) data = await leaderboard(q, Q, now, rateBoardIntent(q, {}) || { metric: "rate", worst: !!Q.worst || /\b(?:worst|lowest)\b/i.test(q), top: topN(q, +Q.top || 5), unit: Q.unit === "games" || rateUnit(q) === "games" ? "games" : "tours" }, ctx);
+    else if (Q.ask === "leaderboard") data = await leaderboard(q, Q, now, { metric: /played|hosted/.test(String(Q.metric || "")) ? Q.metric : "wins", top: topN(q, +Q.top || 5), unit: Q.unit === "games" || rateUnit(q) === "games" ? "games" : "tours" }, ctx);
     else if (Q.ask === "head_to_head") { const hq = h2hIntent(q, me); data = hq ? await headToHead(q, hq, now, ctx) : { info: "Name both players for a head-to-head, like \"my CUT record against REALLY_WHY this month\".", final: true }; }
     else data = await run(Q, now, ctx);
   } catch (_) { data = { info: "MyLeague's tour data could not be reached right now." }; }
